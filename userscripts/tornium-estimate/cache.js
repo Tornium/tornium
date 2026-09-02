@@ -31,12 +31,15 @@ export async function getCache(url) {
         const expirationTime = new Date(parseInt(cachedResponse.headers.get("cache-expiry")));
 
         if (Date.now() < expirationTime) {
+            log (`HIT ${url}`);
             return await cachedResponse.json();
         }
 
+        log (`EXPIRE ${url}`);
         await cache.delete(url);
     }
 
+    log (`MISS ${url}`);
     return null;
 }
 

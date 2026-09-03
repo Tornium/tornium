@@ -127,7 +127,7 @@ ready(() => {
     document.getElementById("delete-client").addEventListener("click", createDeleteConfirmation);
     document.getElementById("client-redirect-uri-new").addEventListener("click", createNewClientRedirectURI);
 
-    Array.from(document.getElementsByClassName("remove-client-redirect-uri")).forEach((removeClientRedirectButton) => {
-        removeClientRedirectButton.addEventListener("click", removeClientRedirectButton);
+    Array.from(document.getElementsByClassName("remove-client-redirect-uri")).forEach((clientRedirectRemovalButton) => {
+        clientRedirectRemovalButton.addEventListener("click", removeClientRedirectButton);
     });
 });

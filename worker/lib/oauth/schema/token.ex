@@ -16,11 +16,16 @@
 defmodule Tornium.Schema.OAuthToken do
   @moduledoc """
   OAuth 2.0 access/refresh token.
+
+  The `:family_id` of an OAuth token groups all tokens originating from the same OAuth
+  token after being refreshed. This is used to revoke all OAuth tokens of the same
+  family in the case of a compromised refresh token. See RFC 9700 Section 4.14.2.
   """
+
   use Ecto.Schema
 
   @type t :: %__MODULE__{
-          id: integer(),
+          id: pos_integer(),
           client: Tornium.Schema.OAuthClient.t(),
           token_type: String.t(),
           access_token: String.t(),
@@ -29,8 +34,10 @@ defmodule Tornium.Schema.OAuthToken do
           issued_at: DateTime.t(),
           access_token_revoked_at: DateTime.t() | nil,
           refresh_token_revoked_at: DateTime.t() | nil,
-          expires_in: integer(),
-          user: Tornium.Schema.User.t()
+          expires_in: non_neg_integer(),
+          user_id: pos_integer(),
+          user: Tornium.Schema.User.t(),
+          family_id: Ecto.UUID.t()
         }
 
   @primary_key {:id, :id, autogenerate: true}
@@ -46,5 +53,6 @@ defmodule Tornium.Schema.OAuthToken do
     field(:expires_in, :integer)
 
     belongs_to(:user, Tornium.Schema.User, references: :tid)
+    field(:family_id, Ecto.UUID)
   end
 end

@@ -52,6 +52,7 @@ from authlib.oauth2.rfc6749 import grants
 from authlib.oauth2.rfc6749.errors import InvalidGrantError
 from authlib.oauth2.rfc6750 import BearerTokenValidator as _BearerTokenValidator
 from authlib.oauth2.rfc6750.errors import InvalidTokenError
+from peewee import DoesNotExist
 
 from .models import OAuthAuthorizationCode, OAuthToken, User
 
@@ -156,27 +157,45 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
 
 class RefreshTokenGrant(grants.RefreshTokenGrant):
     INCLUDE_NEW_REFRESH_TOKEN = True
-    TOKEN_ENDPOINT_AUTH_METHODS = ["client_secret_post", "client_secret_basic"]
+    TOKEN_ENDPOINT_AUTH_METHODS = ["none", "client_secret_post", "client_secret_basic"]
 
     def authenticate_refresh_token(self, refresh_token: str) -> typing.Optional[OAuthToken]:
-        token: typing.Optional[OAuthToken] = (
-            OAuthToken.select()
-            .where((OAuthToken.refresh_token == refresh_token) & (OAuthToken.refresh_token_revoked_at.is_null(True)))
-            .first()
-        )
+        if refresh_token is None:
+            return None
 
-        if token and token.is_refresh_token_valid():
-            return token
+        try:
+            token: OAuthToken = OAuthToken.select().where(OAuthToken.refresh_token == refresh_token).get()
+        except DoesNotExist:
+            return None
 
-        return None
+        if token.is_revoked():
+            # See RFC 9700 4.14.2
+            #
+            # Authorization servers MUST utilize one of these methods to detect refresh token
+            # replay by malicious actors (for public clients):
+            #
+            # Refresh token rotation: the authorization server issues a new refresh token with
+            # every access token refresh response. The previous refresh token is invalidated,
+            # but information about the relationship is retained by the authorization server. If
+            # a refresh token is compromised and subsequently used by both the attacker and the
+            # legitimate client, one of them will present an invalidated refresh token, which will
+            # inform the authorization server of the breach. The authorization server cannot determine
+            # which party submitted the invalid refresh token, but it will revoke the active refresh
+            # token. This stops the attack at the cost of forcing the legitimate client to obtain a
+            # fresh authorization grant.
+
+            # TODO: Disable all tokens belong to that family of tokens
+            return None
+        elif not token.is_refresh_token_valid():
+            return None
+
+        return token
 
     def authenticate_user(self, refresh_token: OAuthToken) -> User:
-        return OAuthToken.user
+        return refresh_token.user
 
     def revoke_old_credential(self, refresh_token: OAuthToken):
-        OAuthToken.update(
-            access_token_revoked_at=datetime.datetime.utcnow(), refresh_token_revoked_at=datetime.datetime.utcnow()
-        ).where(OAuthToken.access_token == refresh_token.access_token).execute()
+        refresh_token.revoke()
 
 
 class BearerTokenValidator(_BearerTokenValidator):

@@ -45,7 +45,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
+import typing
+import uuid
 
+from authlib.integrations.flask_oauth2.requests import FlaskOAuth2Request
 from peewee import (
     BigIntegerField,
     CharField,
@@ -54,6 +57,7 @@ from peewee import (
     ForeignKeyField,
     TextField,
 )
+from playhouse.postgres_ext import UUIDField
 
 from .base_model import BaseModel
 from .oauth_client import OAuthClient
@@ -73,6 +77,8 @@ class OAuthToken(BaseModel):
 
     user = ForeignKeyField(User, null=False)
 
+    family_id = UUIDField(null=False)
+
     def check_client(self, client: OAuthClient):
         return self.client_id == client.get_client_id()
 
@@ -83,7 +89,7 @@ class OAuthToken(BaseModel):
         return self.expires_in
 
     def is_revoked(self):
-        return self.access_token_revoked_at or self.refresh_token_revoked_at
+        return self.access_token_revoked_at is not None or self.refresh_token_revoked_at is not None
 
     def is_expired(self):
         if not self.expires_in:
@@ -93,22 +99,39 @@ class OAuthToken(BaseModel):
         return expires_at < datetime.datetime.utcnow()
 
     def is_refresh_token_valid(self) -> bool:
-        return self.is_revoked or self.is_expired
+        return not self.is_revoked() and not self.is_expired()
 
     def revoke(self) -> None:
         OAuthToken.update(
             access_token_revoked_at=datetime.datetime.utcnow(), refresh_token_revoked_at=datetime.datetime.utcnow()
         ).where(OAuthToken.access_token == self.access_token).execute()
 
+    def revoke_token_family(self) -> None:
+        now = datetime.datetime.utcnow()
+        OAuthToken.update(access_token_revoked_at=now, refresh_token_revoked_at=now).where(
+            OAuthToken.family_id == self.family_id
+        ).execute()
+
     @staticmethod
-    def save_token(token_data, request):
-        if request.user:
-            user_id = request.user.get_user_id()
-        else:
-            user_id = None
+    def save_token(token_data, request: FlaskOAuth2Request):
+        user_id = request.user.get_user_id() if request.user else None
+
+        family_id = uuid.uuid4()
+        if request.grant_type == "refresh_token":
+            # If the original token is performed with a refresh token, we want to re-use the family ID of that
+            # refresh token for this new token so that they're linked together in case it needs to be revoked.
+            old_refresh_token = request.data.get("refresh_token")
+            old_token: typing.Optional[OAuthToken] = (
+                OAuthToken.select(OAuthToken.family_id)
+                .where((OAuthToken.refresh_token == old_refresh_token) & (OAuthToken.refresh_token.is_null(False)))
+                .first()
+            )
+
+            if old_token is not None:
+                family_id = old_token.family_id
 
         return (
-            OAuthToken.insert(client_id=request.client.client_id, user_id=user_id, **token_data)
+            OAuthToken.insert(client_id=request.client.client_id, user_id=user_id, family_id=family_id, **token_data)
             .returning(OAuthToken)
             .execute()[0]
         )

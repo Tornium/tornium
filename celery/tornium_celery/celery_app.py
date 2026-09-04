@@ -71,11 +71,6 @@ if celery_app is None:
             "task": "tasks.faction.auto_cancel_requests",
             "enabled": True,
             "schedule": {"type": "cron", "minute": "*/10", "hour": "*"},
-        },  # Guild tasks
-        "refresh-guilds": {
-            "task": "tasks.guild.refresh_guilds",
-            "enabled": True,
-            "schedule": {"type": "cron", "minute": "0", "hour": "*"},
         },  # User tasks
         "refresh-users": {
             "task": "tasks.user.refresh_users",

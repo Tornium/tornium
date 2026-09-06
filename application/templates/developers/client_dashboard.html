@@ -90,6 +90,33 @@ Tornium - Client Dashboard
 
         <div class="col-sm-12 col-md-6 col-lg-4 mt-3">
             <div class="card">
+                <div class="card-header">Refresh Token Grant</div>
+                <ul class="list-group list-group-flush" id="refresh-token-grant-list">
+                    <li class="list-group-item">
+                        <label class="d-flex">
+                            <input type="radio" name="refresh-token-grant-toggle" autocomplete="off" value="on" {% if "refresh_token" in client.grant_types %} checked {% endif %}>
+                            <p class="card-text px-3" style="width: 100%;">
+                                <b>Enabled:</b><br />
+                                The client will can fetch a new access token from the refresh token. Duplicate usage of a refresh token will result in revocation of all related access tokens.
+                            </p>
+                        </label>
+                    </li>
+
+                    <li class="list-group-item">
+                        <label class="d-flex">
+                            <input type="radio" name="refresh-token-grant-toggle" autocomplete="off" value="off" {% if "refresh_token" not in client.grant_types %} checked {% endif %}>
+                            <p class="card-text px-3" style="width: 100%;">
+                                <b>Disabled:</b><br />
+                                The client will need to re-authenticate to fetch a new access token.
+                            </p>
+                        </label>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-sm-12 col-md-6 col-lg-4 mt-3">
+            <div class="card">
                 <div class="card-header">Scopes</div>
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">

@@ -24,6 +24,7 @@ from authlib.oauth2.rfc6749 import list_to_scope
 from flask import render_template, request
 from flask_login import current_user, fresh_login_required, login_required
 from peewee import DoesNotExist
+from tornium_commons.db_connection import db
 from tornium_commons.models import OAuthClient
 
 from controllers.api.v1.utils import make_exception_response
@@ -63,8 +64,8 @@ def validate_oauth_redirect_uri(uri: str) -> typing.Tuple[bool, typing.Optional[
 @login_required
 def clients_list():
     clients = [
-        _client
-        for _client in OAuthClient.select().where(
+        client
+        for client in OAuthClient.select().where(
             (OAuthClient.user_id == current_user.tid) & (OAuthClient.deleted_at.is_null(True))
         )
     ]
@@ -172,6 +173,7 @@ def delete_client(client_id: str):
 
 
 @fresh_login_required
+@db.atomic()
 def update_client(client_id: str):
     data = json.loads(request.get_data().decode("utf-8"))
 
@@ -179,6 +181,7 @@ def update_client(client_id: str):
         client: OAuthClient = (
             OAuthClient.select()
             .where((OAuthClient.client_id == client_id) & (OAuthClient.deleted_at.is_null(True)))
+            .for_update()
             .get()
         )
     except DoesNotExist:
@@ -193,6 +196,7 @@ def update_client(client_id: str):
     client_uri = data.get("client_uri")
     client_terms_uri = data.get("client_terms_uri")
     client_privacy_uri = data.get("client_privacy_uri")
+    client_refresh_grant = data.get("client_refresh_grant", False)
 
     if not isinstance(client_name, str) or len(client_name) == 0 or len(client_name) >= 64:
         return make_exception_response(
@@ -246,6 +250,10 @@ def update_client(client_id: str):
         )
     elif client_privacy_uri == "":
         client_privacy_uri = None
+    elif not isinstance(client_refresh_grant, bool):
+        return make_exception_response(
+            "1000", details={"message": "The provded client refresh grant toggle must be a boolean"}
+        )
 
     updated_client_metadata = {
         "redirect_uris": client_redirect_uris,
@@ -255,6 +263,13 @@ def update_client(client_id: str):
         "tos_uri": client_terms_uri,
         "privacy_uri": client_privacy_uri,
     }
+
+    if "refresh_token" in client.grant_types and not client_refresh_grant:
+        updated_client_metadata["grant_types"] = client.grant_types
+        updated_client_metadata["grant_types"].remove("refresh_token")
+    elif "refresh_token" not in client.grant_types and client_refresh_grant:
+        updated_client_metadata["grant_types"] = client.grant_types
+        updated_client_metadata["grant_types"].append("refresh_token")
 
     OAuthClient.update(client_metadata=OAuthClient.client_metadata.concat(updated_client_metadata)).where(
         OAuthClient.client_id == client_id

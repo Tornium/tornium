@@ -44,7 +44,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import datetime
 import typing
 
 from authlib.integrations.flask_oauth2 import ResourceProtector as _ResourceProtector
@@ -143,6 +142,8 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
             user=user,
             scope=scope,
             include_refresh_token=client.check_grant_type("refresh_token"),
+            expires_in=30 * 60 if client.check_grant_type("refresh_token") else 7 * 24 * 60 * 60,
+            refresh_token_expires_in=24 * 60 * 60 if client.check_grant_type("refresh_token") else None,
         )
 
         saved_token = self.save_token(token)

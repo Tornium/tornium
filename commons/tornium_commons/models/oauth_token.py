@@ -74,6 +74,7 @@ class OAuthToken(BaseModel):
     access_token_revoked_at = DateTimeField(null=True)
     refresh_token_revoked_at = DateTimeField(null=True)
     expires_in = BigIntegerField(null=False, default=0)
+    refresh_token_expires_in = BigIntegerField(null=True, default=None)
 
     user = ForeignKeyField(User, null=False)
 
@@ -98,13 +99,24 @@ class OAuthToken(BaseModel):
         expires_at = self.issued_at + datetime.timedelta(seconds=self.expires_in)
         return expires_at < datetime.datetime.utcnow()
 
+    def is_refresh_token_expired(self):
+        if not self.refresh_token_expires_in:
+            return False
+
+        expires_at = self.issued_at + datetime.timedelta(seconds=self.expires_in)
+        return expires_at < datetime.datetime.utcnow()
+
     def is_refresh_token_valid(self) -> bool:
-        return not self.is_revoked() and not self.is_expired()
+        # The refresh token is still valid as long as it hasn't been revoked as the access
+        # token would be revoked once it expires long before the refresh token expires.
+
+        return self.refresh_token_revoked_at is not None and not self.is_refresh_token_expired()
 
     def revoke(self) -> None:
-        OAuthToken.update(
-            access_token_revoked_at=datetime.datetime.utcnow(), refresh_token_revoked_at=datetime.datetime.utcnow()
-        ).where(OAuthToken.access_token == self.access_token).execute()
+        now = datetime.datetime.utcnow()
+        OAuthToken.update(access_token_revoked_at=now, refresh_token_revoked_at=now).where(
+            OAuthToken.access_token == self.access_token
+        ).execute()
 
     def revoke_token_family(self) -> None:
         now = datetime.datetime.utcnow()

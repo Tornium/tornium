@@ -167,13 +167,11 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
 
     def authenticate_refresh_token(self, refresh_token: str) -> typing.Optional[OAuthToken]:
         if refresh_token is None:
-            print("none")
             return None
 
         try:
             token: OAuthToken = OAuthToken.select().where(OAuthToken.refresh_token == refresh_token).get()
         except DoesNotExist:
-            print("doesn't exist")
             return None
 
         if token.is_revoked():
@@ -192,11 +190,11 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
             # token. This stops the attack at the cost of forcing the legitimate client to obtain a
             # fresh authorization grant.
 
-            # TODO: Disable all tokens belong to that family of tokens
-            print("revoked")
+            token.revoke_token_family()
+            token.alert_token_family_revocation()
+
             return None
         elif not token.is_refresh_token_valid():
-            print("invalid")
             return None
 
         return token

@@ -42,6 +42,7 @@ if (isAuthExpired() && hasRefreshToken()) {
     // If the access token has expired and there is a refresh token, we should try to
     // refresh the access token via refresh token grant before proceeding.
     refreshToken();
+    // TODO: This should be immediately effective but isn't.
 }
 
 const query = new URLSearchParams(document.location.search);

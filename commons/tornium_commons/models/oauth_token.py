@@ -45,6 +45,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
+import time
 import typing
 import uuid
 
@@ -59,6 +60,7 @@ from peewee import (
 )
 from playhouse.postgres_ext import UUIDField
 
+from ..skyutils import SKYNET_WARNING
 from .base_model import BaseModel
 from .oauth_client import OAuthClient
 from .user import User
@@ -123,6 +125,50 @@ class OAuthToken(BaseModel):
         OAuthToken.update(access_token_revoked_at=now, refresh_token_revoked_at=now).where(
             OAuthToken.family_id == self.family_id
         ).execute()
+
+    def alert_token_family_revocation(self) -> None:
+        from tornium_celery.tasks.misc import send_dm
+
+        if self.user.discord_id in (None, 0):
+            # Since the user doesn't have a Discord ID, we are unable to alert them.
+            return
+
+        discord_payload = {
+            "embeds": [
+                {
+                    "title": "Security Alert",
+                    "description": f"Someone has attempted to re-use an OAuth refresh token belonging to your Torn account (ID {self.user_id}) to generate a new OAuth access token <t:{int(time.time())}. For more information, see the [Tornium documentation]. If this was not intended or you don't understand this, please contact the developer as soon as possible. As a precaution, all of your Tornium OAuth access token related to this token have been revoked, and you may need to re-authorize applications logged in through Tornium.",
+                    "color": SKYNET_WARNING,
+                }
+            ],
+            "components": [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "tiksan [2383326] @ Torn (preferred)",
+                            "url": "https://www.torn.com/profiles.php?XID=2383326",
+                        },
+                    ],
+                },
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "tiksan [2383326] @ Discord",
+                            "url": "https://discord.com/users/695828257949352028",
+                        }
+                    ],
+                },
+            ],
+        }
+
+        send_dm.delay(self.user.discord_id, discord_payload)
+        return
 
     @staticmethod
     def save_token(token_data, request: FlaskOAuth2Request):

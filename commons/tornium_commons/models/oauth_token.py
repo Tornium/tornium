@@ -110,7 +110,7 @@ class OAuthToken(BaseModel):
         # The refresh token is still valid as long as it hasn't been revoked as the access
         # token would be revoked once it expires long before the refresh token expires.
 
-        return self.refresh_token_revoked_at is not None and not self.is_refresh_token_expired()
+        return self.refresh_token_revoked_at is None and not self.is_refresh_token_expired()
 
     def revoke(self) -> None:
         now = datetime.datetime.utcnow()

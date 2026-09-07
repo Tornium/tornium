@@ -143,8 +143,13 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
             scope=scope,
             include_refresh_token=client.check_grant_type("refresh_token"),
             expires_in=30 * 60 if client.check_grant_type("refresh_token") else 7 * 24 * 60 * 60,
-            refresh_token_expires_in=24 * 60 * 60 if client.check_grant_type("refresh_token") else None,
         )
+
+        # Since authlib doesn't support this yet, we need to manually insert this into the
+        # generated token. See: https://github.com/authlib/authlib/issues/686
+        token["refresh_token_expires_in"] = None
+        if client.check_grant_type("refresh_token"):
+            token["refresh_token_expires_in"] = 24 * 60 * 60
 
         saved_token = self.save_token(token)
         authorization_code.mark_created(saved_token)
@@ -162,11 +167,13 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
 
     def authenticate_refresh_token(self, refresh_token: str) -> typing.Optional[OAuthToken]:
         if refresh_token is None:
+            print("none")
             return None
 
         try:
             token: OAuthToken = OAuthToken.select().where(OAuthToken.refresh_token == refresh_token).get()
         except DoesNotExist:
+            print("doesn't exist")
             return None
 
         if token.is_revoked():
@@ -186,8 +193,10 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
             # fresh authorization grant.
 
             # TODO: Disable all tokens belong to that family of tokens
+            print("revoked")
             return None
         elif not token.is_refresh_token_valid():
+            print("invalid")
             return None
 
         return token

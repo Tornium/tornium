@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.5.8
+// @version      0.6.0-dev
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -13,6 +13,7 @@
 // @match        https://www.torn.com/page.php?sid=UserList*
 // @match        https://www.torn.com/factions.php*
 // @match        https://www.torn.com/index.php?page=people*
+// @match        http://127.0.0.1:5000/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue

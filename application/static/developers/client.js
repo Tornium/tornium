@@ -88,6 +88,8 @@ function removeClientRedirectButton(event) {
 function updateClient(event) {
     const clientName = document.getElementById("client-name").value;
     const selectedClientRedirectURIs = document.getElementsByClassName("client-redirect-uri");
+    const clientRefreshGrant =
+        document.querySelector(`input[name="refresh-token-grant-toggle"]:checked`).value === "on";
     const selectedClientScopes = document.querySelectorAll(`input[name="client-scope-selector"]:checked`);
     const clientURI = document.getElementById("client-uri").value;
     const clientTermsURI = document.getElementById("client-tos-uri").value;
@@ -111,6 +113,7 @@ function updateClient(event) {
             client_uri: clientURI,
             client_terms_uri: clientTermsURI,
             client_privacy_uri: clientPrivacyURI,
+            client_refresh_grant: clientRefreshGrant,
         },
         errorTitle: "Client Update Failed",
     }).then((clientData) => window.location.reload());

@@ -18,7 +18,7 @@ import { Config } from "./config.js";
 import { APP_ID, CACHE_ENABLED, DEBUG, VERSION } from "./constants.js";
 import { waitForElement } from "./dom.js";
 import { log } from "./logging.js";
-import { resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
+import { hasRefreshToken, refreshToken, resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
 import { injectAttackLoaderStats } from "./pages/attack-loader.js";
 import { checkRankedWarToggleState } from "./pages/faction-rw.js";
 import { startAbroadUserListObserver } from "./pages/people-abroad.js";
@@ -36,6 +36,13 @@ log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}${CACHE_ENABLED 
 
 function isEnabledOn(pageID) {
     return Config.pages.some((page) => page == pageID);
+}
+
+if (isAuthExpired() && hasRefreshToken()) {
+    // If the access token has expired and there is a refresh token, we should try to
+    // refresh the access token via refresh token grant before proceeding.
+    refreshToken();
+    // TODO: This should be immediately effective but isn't.
 }
 
 const query = new URLSearchParams(document.location.search);

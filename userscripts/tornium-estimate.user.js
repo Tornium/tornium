@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.5.8
+// @version      0.5.9
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -41,13 +41,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 (() => {
   // constants.js
   var DEBUG = false;
-  var BASE_URL = "https://tornium.com";
+  var BASE_URL = "http://127.0.0.1:5000";
   var ENABLE_LOGGING = true;
-  var VERSION = "0.5.8";
+  var VERSION = "0.5.9";
   var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
   var APP_SCOPE = "torn_key:usage";
   var CACHE_ENABLED = "caches" in window;
   var CONCURRENCY_LIMIT = 20;
+  var GM_PREFIX = "tornium-estimate";
   GM_setValue("tornium-estimate:test", "1");
   var localGMValue = localStorage.getItem("tornium-estimate:test");
   var clientLocalGM = localGMValue === "1" || localGMValue === `GMV2_"1"`;
@@ -120,8 +121,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   }
 
   // oauth.js
-  var accessToken = GM_getValue("tornium-estimate:access-token", null);
-  var accessTokenExpiration = GM_getValue("tornium-estimate:access-token-expires", 0);
+  var accessToken = GM_getValue(`${GM_PREFIX}:access-token`, null);
+  var accessTokenExpiration = GM_getValue(`${GM_PREFIX}:access-token-expires`, 0);
   var redirectURI = clientLocalGM ? `https://www.torn.com/tornium/${APP_ID}/oauth/callback` : `${BASE_URL}/oauth/${APP_ID}/callback`;
   function isAuthExpired() {
     if (accessToken == null || accessTokenExpiration == 0) {
@@ -131,11 +132,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     }
     return false;
   }
+  function hasRefreshToken() {
+    return GM_getValue(`${GM_PREFIX}:refresh-token`) != null;
+  }
+  function refreshToken() {
+    const refreshToken2 = GM_getValue(`${GM_PREFIX}:refresh-token`);
+    if (refreshToken2 == null) {
+      return;
+    }
+    log("Attempting to refresh access token with the refresh token...");
+    GM_deleteValue(`${GM_PREFIX}:refresh-token`);
+    const tokenData = new URLSearchParams();
+    tokenData.set("grant_type", "refresh_token");
+    tokenData.set("refresh_token", refreshToken2);
+    tokenData.set("scope", APP_SCOPE);
+    tokenData.set("client_id", APP_ID);
+    GM_xmlhttpRequest({
+      method: "POST",
+      url: `${BASE_URL}/oauth/token`,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      data: tokenData.toString(),
+      responseType: "json",
+      onload: (response) => {
+        resolveTokenCallback(response);
+        log("Access token successfully refreshed");
+      }
+    });
+  }
   function authStatus() {
     if (accessToken == null) {
       return "Disconnected";
+    } else if (isAuthExpired() && hasRefreshToken()) {
+      return "Expired (refreshable)";
     } else if (isAuthExpired()) {
       return "Expired";
+    } else if (hasRefreshToken()) {
+      return "Connected (refreshable)";
     }
     return "Connected";
   }
@@ -158,7 +192,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       },
       data: tokenData.toString(),
       responseType: "json",
-      onload: resolveTokenCallback
+      onload: (response) => {
+        resolveTokenCallback(response);
+        window.location.href = "https://www.torn.com";
+      }
     });
   }
   function resolveTokenCallback(response) {
@@ -167,11 +204,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       responseJSON = JSON.parse(response.responseText);
       response.responseType = "json";
     }
-    const accessToken2 = responseJSON.access_token;
-    const accessTokenExpiration2 = Math.floor(Date.now() / 1e3) + responseJSON.expires_in;
-    GM_setValue("tornium-estimate:access-token", accessToken2);
-    GM_setValue("tornium-estimate:access-token-expires", accessTokenExpiration2);
-    window.location.href = "https://torn.com";
+    accessToken = responseJSON.access_token;
+    accessTokenExpiration = Math.floor(Date.now() / 1e3) + responseJSON.expires_in;
+    const refreshToken2 = responseJSON.refresh_token ?? null;
+    GM_setValue(`${GM_PREFIX}:access-token`, accessToken);
+    GM_setValue(`${GM_PREFIX}:access-token-expires`, accessTokenExpiration);
+    if (refreshToken2 == null) {
+      GM_deleteValue(`${GM_PREFIX}:refresh-token`);
+    } else {
+      GM_setValue(`${GM_PREFIX}:refresh-token`, refreshToken2);
+    }
     return;
   }
 
@@ -736,6 +778,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       oauthConnectButton.innerText = "Connect";
     } else {
       oauthConnectButton.innerText = "Reconnect";
+      if (hasRefreshToken()) {
+        oauthConnectButton.innerText = "Refresh Connection";
+        oauthConnectButton.setAttribute("href", "#");
+        oauthConnectButton.addEventListener("click", (event) => {
+          event.preventDefault();
+          refreshToken();
+        });
+      }
       const oauthDisconnectButton = document.createElement("button");
       oauthDisconnectButton.classList.add("torn-btn");
       oauthDisconnectButton.innerText = "Disconnect";
@@ -884,6 +934,9 @@ margin: 8px 6px 0 0;
   log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}${CACHE_ENABLED ? " with cache" : ""}...`);
   function isEnabledOn(pageID) {
     return Config.pages.some((page) => page == pageID);
+  }
+  if (isAuthExpired() && hasRefreshToken()) {
+    refreshToken();
   }
   var query = new URLSearchParams(document.location.search);
   if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {

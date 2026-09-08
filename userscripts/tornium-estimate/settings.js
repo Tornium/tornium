@@ -16,7 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 import { PAGE_OPTIONS, Config } from "./config.js";
 import { APP_ID, BASE_URL, VERSION } from "./constants.js";
 import { log } from "./logging.js";
-import { accessToken, authorizationURL, authStatus, isAuthExpired } from "./oauth.js";
+import { accessToken, authorizationURL, authStatus, hasRefreshToken, isAuthExpired, refreshToken } from "./oauth.js";
 
 function arrayToString(array) {
     return btoa(String.fromCharCode.apply(null, array)).replaceAll("=", "").replaceAll("+", "-").replaceAll("/", "_");
@@ -92,6 +92,19 @@ export function injectSettingsPage(container) {
         oauthConnectButton.innerText = "Connect";
     } else {
         oauthConnectButton.innerText = "Reconnect";
+
+        if (hasRefreshToken()) {
+            // If there's a refresh token, we should try to use the refresh token instead of
+            // getting a new access token. If the user wants a new access token, they can use
+            // the disconnect button which would allow them to connect from scratch.
+
+            oauthConnectButton.innerText = "Refresh Connection";
+            oauthConnectButton.setAttribute("href", "#");
+            oauthConnectButton.addEventListener("click", (event) => {
+                event.preventDefault();
+                refreshToken();
+            });
+        }
 
         const oauthDisconnectButton = document.createElement("button");
         oauthDisconnectButton.classList.add("torn-btn");

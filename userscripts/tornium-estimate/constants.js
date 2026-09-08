@@ -14,14 +14,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 export const DEBUG = false;
-// export const BASE_URL = "http://127.0.0.1:5000";
-export const BASE_URL = "https://tornium.com";
+export const BASE_URL = "http://127.0.0.1:5000";
+// export const BASE_URL = "https://tornium.com";
 export const ENABLE_LOGGING = true;
-export const VERSION = "0.5.8";
+export const VERSION = "0.5.9";
 export const APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
 export const APP_SCOPE = "torn_key:usage";
 export const CACHE_ENABLED = "caches" in window;
 export const CONCURRENCY_LIMIT = 20;
+export const GM_PREFIX = "tornium-estimate";
 
 // Tampermonkey will store data from GM_setValue separately in its userscript storage,
 // however TPDA, violentmonkey, and others will store data from GM_setValue in localStorage.

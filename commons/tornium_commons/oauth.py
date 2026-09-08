@@ -48,18 +48,46 @@ import datetime
 import typing
 
 from authlib.integrations.flask_oauth2 import ResourceProtector as _ResourceProtector
+from authlib.integrations.flask_oauth2.requests import FlaskOAuth2Request
 from authlib.oauth2.rfc6749 import grants
 from authlib.oauth2.rfc6749.errors import InvalidGrantError
 from authlib.oauth2.rfc6750 import BearerTokenValidator as _BearerTokenValidator
 from authlib.oauth2.rfc6750.errors import InvalidTokenError
+from peewee import DataError, DoesNotExist
 
-from .models import OAuthAuthorizationCode, OAuthToken, User
+from .models import AuthAction, AuthLog, OAuthAuthorizationCode, OAuthToken, User
+
+
+def _log(user_id: typing.Optional[int], action: AuthAction, request: FlaskOAuth2Request, login_key=None) -> None:
+    now = datetime.datetime.utcnow()
+
+    try:
+        AuthLog.insert(
+            user=user_id,
+            timestamp=now,
+            ip=request._request.headers.get("CF-Connecting-IP") or request._request.remote_addr,
+            action=action.value,
+            login_key=login_key,
+            details=request.payload.client_id,
+        ).execute()
+    except DataError:
+        # Some IP addresses are larger than the data field
+        AuthLog.insert(
+            user=user_id,
+            timestamp=now,
+            ip=None,
+            action=action.value,
+            login_key=login_key,
+            details=request.payload.client_id,
+        ).execute()
+
+    return
 
 
 class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
     TOKEN_ENDPOINT_AUTH_METHODS = ["client_secret_basic", "client_secret_post", "none"]
 
-    def save_authorization_code(self, code, request):
+    def save_authorization_code(self, code, request: FlaskOAuth2Request):
         code_challenge = request.payload.data.get("code_challenge")
         code_challenge_method = request.payload.data.get("code_challenge_method")
         auth_code = OAuthAuthorizationCode.insert(
@@ -73,6 +101,8 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
             used_at=None,
             used_by=None,
         ).execute()
+
+        _log(user_id=request.user.tid, action=AuthAction.OAUTH_AUTHORIZATION_SUCCESS, request=request)
 
         return auth_code
 
@@ -142,10 +172,19 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
             user=user,
             scope=scope,
             include_refresh_token=client.check_grant_type("refresh_token"),
+            expires_in=30 * 60 if client.check_grant_type("refresh_token") else 7 * 24 * 60 * 60,
         )
+
+        # Since authlib doesn't support this yet, we need to manually insert this into the
+        # generated token. See: https://github.com/authlib/authlib/issues/686
+        token["refresh_token_expires_in"] = None
+        if client.check_grant_type("refresh_token"):
+            token["refresh_token_expires_in"] = 24 * 60 * 60
 
         saved_token = self.save_token(token)
         authorization_code.mark_created(saved_token)
+
+        _log(user_id=self.request.user.tid, action=AuthAction.OAUTH_TOKEN_ISSUE, request=self.request)
 
         # NOTE: the authorization code should not be deleted for auditability and to allow for deletion of
         # access tokens created by the authorization code when the authorization code is reused
@@ -156,27 +195,58 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
 
 class RefreshTokenGrant(grants.RefreshTokenGrant):
     INCLUDE_NEW_REFRESH_TOKEN = True
-    TOKEN_ENDPOINT_AUTH_METHODS = ["client_secret_post", "client_secret_basic"]
+    TOKEN_ENDPOINT_AUTH_METHODS = ["none", "client_secret_post", "client_secret_basic"]
 
     def authenticate_refresh_token(self, refresh_token: str) -> typing.Optional[OAuthToken]:
-        token: typing.Optional[OAuthToken] = (
-            OAuthToken.select()
-            .where((OAuthToken.refresh_token == refresh_token) & (OAuthToken.refresh_token_revoked_at.is_null(True)))
-            .first()
-        )
+        if refresh_token is None:
+            return None
 
-        if token and token.is_refresh_token_valid():
-            return token
+        try:
+            token: OAuthToken = OAuthToken.select().where(OAuthToken.refresh_token == refresh_token).get()
+        except DoesNotExist:
+            _log(
+                user_id=self.request.user.tid if self.request.user is not None else None,
+                action=AuthAction.OAUTH_TOKEN_REFRESH_INVALID,
+                request=self.request,
+            )
+            return None
 
-        return None
+        if token.is_revoked():
+            # See RFC 9700 4.14.2
+            #
+            # Authorization servers MUST utilize one of these methods to detect refresh token
+            # replay by malicious actors (for public clients):
+            #
+            # Refresh token rotation: the authorization server issues a new refresh token with
+            # every access token refresh response. The previous refresh token is invalidated,
+            # but information about the relationship is retained by the authorization server. If
+            # a refresh token is compromised and subsequently used by both the attacker and the
+            # legitimate client, one of them will present an invalidated refresh token, which will
+            # inform the authorization server of the breach. The authorization server cannot determine
+            # which party submitted the invalid refresh token, but it will revoke the active refresh
+            # token. This stops the attack at the cost of forcing the legitimate client to obtain a
+            # fresh authorization grant.
+
+            token.revoke_token_family()
+            token.alert_token_family_revocation()
+
+            return None
+        elif not token.is_refresh_token_valid():
+            _log(
+                user_id=self.request.user.tid if self.request.user is not None else None,
+                action=AuthAction.OAUTH_TOKEN_REFRESH_INVALID,
+                request=self.request,
+            )
+
+            return None
+
+        return token
 
     def authenticate_user(self, refresh_token: OAuthToken) -> User:
-        return OAuthToken.user
+        return refresh_token.user
 
     def revoke_old_credential(self, refresh_token: OAuthToken):
-        OAuthToken.update(
-            access_token_revoked_at=datetime.datetime.utcnow(), refresh_token_revoked_at=datetime.datetime.utcnow()
-        ).where(OAuthToken.access_token == refresh_token.access_token).execute()
+        refresh_token.revoke()
 
 
 class BearerTokenValidator(_BearerTokenValidator):

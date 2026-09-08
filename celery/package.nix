@@ -17,7 +17,6 @@ python3Packages.buildPythonPackage {
     redis
     requests
     orjson
-    flower
 
     tornium_commons
   ];
@@ -37,7 +36,6 @@ python3Packages.buildPythonPackage {
     redis
     requests
     orjson
-    flower
 
     tornium_commons
   ]);

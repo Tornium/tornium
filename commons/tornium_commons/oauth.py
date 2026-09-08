@@ -44,22 +44,50 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import typing
 
 from authlib.integrations.flask_oauth2 import ResourceProtector as _ResourceProtector
+from authlib.integrations.flask_oauth2.requests import FlaskOAuth2Request
 from authlib.oauth2.rfc6749 import grants
 from authlib.oauth2.rfc6749.errors import InvalidGrantError
 from authlib.oauth2.rfc6750 import BearerTokenValidator as _BearerTokenValidator
 from authlib.oauth2.rfc6750.errors import InvalidTokenError
-from peewee import DoesNotExist
+from peewee import DataError, DoesNotExist
 
-from .models import OAuthAuthorizationCode, OAuthToken, User
+from .models import AuthAction, AuthLog, OAuthAuthorizationCode, OAuthToken, User
+
+
+def _log(user_id: typing.Optional[int], action: AuthAction, request: FlaskOAuth2Request, login_key=None) -> None:
+    now = datetime.datetime.utcnow()
+
+    try:
+        AuthLog.insert(
+            user=user_id,
+            timestamp=now,
+            ip=request._request.headers.get("CF-Connecting-IP") or request._request.remote_addr,
+            action=action.value,
+            login_key=login_key,
+            details=request.payload.client_id,
+        ).execute()
+    except DataError:
+        # Some IP addresses are larger than the data field
+        AuthLog.insert(
+            user=user_id,
+            timestamp=now,
+            ip=None,
+            action=action.value,
+            login_key=login_key,
+            details=request.payload.client_id,
+        ).execute()
+
+    return
 
 
 class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
     TOKEN_ENDPOINT_AUTH_METHODS = ["client_secret_basic", "client_secret_post", "none"]
 
-    def save_authorization_code(self, code, request):
+    def save_authorization_code(self, code, request: FlaskOAuth2Request):
         code_challenge = request.payload.data.get("code_challenge")
         code_challenge_method = request.payload.data.get("code_challenge_method")
         auth_code = OAuthAuthorizationCode.insert(
@@ -73,6 +101,8 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
             used_at=None,
             used_by=None,
         ).execute()
+
+        _log(user_id=request.user.tid, action=AuthAction.OAUTH_AUTHORIZATION_SUCCESS, request=request)
 
         return auth_code
 
@@ -154,6 +184,8 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
         saved_token = self.save_token(token)
         authorization_code.mark_created(saved_token)
 
+        _log(user_id=self.request.user.tid, action=AuthAction.OAUTH_TOKEN_ISSUE, request=self.request)
+
         # NOTE: the authorization code should not be deleted for auditability and to allow for deletion of
         # access tokens created by the authorization code when the authorization code is reused
         # self.delete_authorization_code(authorization_code)
@@ -172,6 +204,11 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
         try:
             token: OAuthToken = OAuthToken.select().where(OAuthToken.refresh_token == refresh_token).get()
         except DoesNotExist:
+            _log(
+                user_id=self.request.user.tid if self.request.user is not None else None,
+                action=AuthLog.OAUTH_TOKEN_REFRESH_INVALID,
+                request=self.request,
+            )
             return None
 
         if token.is_revoked():
@@ -195,6 +232,12 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
 
             return None
         elif not token.is_refresh_token_valid():
+            _log(
+                user_id=self.request.user.tid if self.request.user is not None else None,
+                action=AuthLog.OAUTH_TOKEN_REFRESH_INVALID,
+                request=self.request,
+            )
+
             return None
 
         return token

@@ -44,6 +44,23 @@ class AuthAction(enum.Enum):
     API_KEY_ADD_FAILED_OTHER_USER = 42
     API_KEY_ADD_FAILED = 43
 
+    # User successfully created an OAuth authorization code (for authorization code grant)
+    OAUTH_AUTHORIZATION_SUCCESS = 51
+    # User failed to create an authorization code
+    # TODO: This needs to be added
+    OAUTH_AUTHORIZATION_FAILURE = 52
+
+    # An OAuth token was issued from an authorization code
+    OAUTH_TOKEN_ISSUE = 61
+    # An OAuth token was revoked by the user
+    OAUTH_TOKEN_REVOKE = 62
+    # An OAuth token was successfully refreshed with a refresh token
+    OAUTH_TOKEN_REFRESH = 63
+    # An OAuth token was unable to be refreshed as the refresh token expired or something else
+    OAUTH_TOKEN_REFRESH_INVALID = 64
+    # An OAuth token as unable to be refreshed as the refresh token had already been used
+    OAUTH_TOKEN_REFERSH_REUSE = 65
+
 
 class AuthLog(BaseModel):
     user = ForeignKeyField(User, null=True)

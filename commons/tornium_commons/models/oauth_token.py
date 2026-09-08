@@ -61,6 +61,7 @@ from peewee import (
 from playhouse.postgres_ext import UUIDField
 
 from ..skyutils import SKYNET_WARNING
+from .auth_log import AuthAction, AuthLog
 from .base_model import BaseModel
 from .oauth_client import OAuthClient
 from .user import User
@@ -120,10 +121,28 @@ class OAuthToken(BaseModel):
             OAuthToken.access_token == self.access_token
         ).execute()
 
+        AuthLog.insert(
+            user=self.user.tid,
+            timestamp=now,
+            ip=None,
+            action=AuthAction.OAUTH_TOKEN_REVOKE.value,
+            login_key=None,
+            details=self.client.client_id,
+        ).execute()
+
     def revoke_token_family(self) -> None:
         now = datetime.datetime.utcnow()
         OAuthToken.update(access_token_revoked_at=now, refresh_token_revoked_at=now).where(
             OAuthToken.family_id == self.family_id
+        ).execute()
+
+        AuthLog.insert(
+            user=self.user.tid,
+            timestamp=now,
+            ip=None,
+            action=AuthAction.OAUTH_TOKEN_REFERSH_REUSE.value,
+            login_key=str(self.family_id),
+            details=self.client.client_id,
         ).execute()
 
     def alert_token_family_revocation(self) -> None:

@@ -41,7 +41,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 (() => {
   // constants.js
   var DEBUG = false;
-  var BASE_URL = "http://127.0.0.1:5000";
+  var BASE_URL = "https://tornium.com";
   var ENABLE_LOGGING = true;
   var VERSION = "0.5.9";
   var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";

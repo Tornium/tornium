@@ -156,7 +156,7 @@ class OAuthToken(BaseModel):
             "embeds": [
                 {
                     "title": "Security Alert",
-                    "description": f"Someone has attempted to re-use an OAuth refresh token belonging to your Torn account (ID {self.user_id}) to generate a new OAuth access token <t:{int(time.time())}. For more information, see the [Tornium documentation]. If this was not intended or you don't understand this, please contact the developer as soon as possible. As a precaution, all of your Tornium OAuth access token related to this token have been revoked, and you may need to re-authorize applications logged in through Tornium.",
+                    "description": f"Someone has attempted to re-use an OAuth refresh token belonging to your Torn account (ID {self.user_id}) to generate a new OAuth access token <t:{int(time.time())}:R>. For more information, see the [Tornium documentation]. If this was not intended or you don't understand this, please contact the developer as soon as possible. As a precaution, all of your Tornium OAuth access token related to this token have been revoked, and you may need to re-authorize applications logged in through Tornium.",
                     "color": SKYNET_WARNING,
                 }
             ],

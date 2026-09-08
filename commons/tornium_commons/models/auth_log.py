@@ -59,7 +59,7 @@ class AuthAction(enum.Enum):
     # An OAuth token was unable to be refreshed as the refresh token expired or something else
     OAUTH_TOKEN_REFRESH_INVALID = 64
     # An OAuth token as unable to be refreshed as the refresh token had already been used
-    OAUTH_TOKEN_REFERSH_REUSE = 65
+    OAUTH_TOKEN_REFRESH_REUSE = 65
 
 
 class AuthLog(BaseModel):

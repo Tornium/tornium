@@ -252,7 +252,7 @@ def update_client(client_id: str):
         client_privacy_uri = None
     elif not isinstance(client_refresh_grant, bool):
         return make_exception_response(
-            "1000", details={"message": "The provded client refresh grant toggle must be a boolean"}
+            "1000", details={"message": "The provided client refresh grant toggle must be a boolean"}
         )
 
     updated_client_metadata = {

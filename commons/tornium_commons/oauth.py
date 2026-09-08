@@ -206,7 +206,7 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
         except DoesNotExist:
             _log(
                 user_id=self.request.user.tid if self.request.user is not None else None,
-                action=AuthLog.OAUTH_TOKEN_REFRESH_INVALID,
+                action=AuthAction.OAUTH_TOKEN_REFRESH_INVALID,
                 request=self.request,
             )
             return None
@@ -234,7 +234,7 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
         elif not token.is_refresh_token_valid():
             _log(
                 user_id=self.request.user.tid if self.request.user is not None else None,
-                action=AuthLog.OAUTH_TOKEN_REFRESH_INVALID,
+                action=AuthAction.OAUTH_TOKEN_REFRESH_INVALID,
                 request=self.request,
             )
 

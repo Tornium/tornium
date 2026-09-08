@@ -106,7 +106,7 @@ class OAuthToken(BaseModel):
         if not self.refresh_token_expires_in:
             return False
 
-        expires_at = self.issued_at + datetime.timedelta(seconds=self.expires_in)
+        expires_at = self.issued_at + datetime.timedelta(seconds=self.refresh_token_expires_in)
         return expires_at < datetime.datetime.utcnow()
 
     def is_refresh_token_valid(self) -> bool:
@@ -140,7 +140,7 @@ class OAuthToken(BaseModel):
             user=self.user.tid,
             timestamp=now,
             ip=None,
-            action=AuthAction.OAUTH_TOKEN_REFERSH_REUSE.value,
+            action=AuthAction.OAUTH_TOKEN_REFRESH_REUSE.value,
             login_key=str(self.family_id),
             details=self.client.client_id,
         ).execute()

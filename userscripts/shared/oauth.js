@@ -16,8 +16,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 import { APP_ID, APP_SCOPE, BASE_URL, GM_PREFIX, clientLocalGM } from "./constants.js";
 import { log } from "./logging.js";
 
-export const accessToken = GM_getValue(`${GM_PREFIX}:access-token`, null);
-export const accessTokenExpiration = GM_getValue(`${GM_PREFIX}:access-token-expires`, 0);
+export let accessToken = GM_getValue(`${GM_PREFIX}:access-token`, null);
+export let accessTokenExpiration = GM_getValue(`${GM_PREFIX}:access-token-expires`, 0);
 export const redirectURI = clientLocalGM
     ? `https://www.torn.com/tornium/${APP_ID}/oauth/callback`
     : `${BASE_URL}/oauth/${APP_ID}/callback`;
@@ -112,7 +112,7 @@ export function resolveToken(code, state, codeVerifier) {
             // To avoid introducing an open redirect vulnerability, we are just going to
             // redirect to Torn's home page.
             // See https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html
-            window.location.href = "https://torn.com";
+            window.location.href = "https://www.torn.com";
         },
     });
 }
@@ -126,13 +126,20 @@ function resolveTokenCallback(response) {
         response.responseType = "json";
     }
 
-    const accessToken = responseJSON.access_token;
-    const accessTokenExpiration = Math.floor(Date.now() / 1000) + responseJSON.expires_in;
-    const refreshToken = responseJSON.refresh_token;
+    accessToken = responseJSON.access_token;
+    accessTokenExpiration = Math.floor(Date.now() / 1000) + responseJSON.expires_in;
+    const refreshToken = responseJSON.refresh_token ?? null;
 
     GM_setValue(`${GM_PREFIX}:access-token`, accessToken);
     GM_setValue(`${GM_PREFIX}:access-token-expires`, accessTokenExpiration);
-    GM_setValue(`${GM_PREFIX}:refresh-token`, refreshToken);
+
+    if (refreshToken == null) {
+        // We want to delete the refresh token if none was provided from /oauth/token to
+        // avoid falsely indicting that an access token can be refreshed.
+        GM_deleteValue(`${GM_PREFIX}:refresh-token`);
+    } else {
+        GM_setValue(`${GM_PREFIX}:refresh-token`, refreshToken);
+    }
 
     return;
 }

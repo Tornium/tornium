@@ -13,7 +13,6 @@
 // @match        https://www.torn.com/page.php?sid=UserList*
 // @match        https://www.torn.com/factions.php*
 // @match        https://www.torn.com/index.php?page=people*
-// @match        http://127.0.0.1:5000/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue

@@ -17,7 +17,6 @@ Authorization: Basic {{ Base64(<client_id>:<client_secret>) }}
 
 Additionally, a public client **MUST** use the `none` client authentication method and **MUST** use Proof Key for Code Exchange (PKCE).
 
-
 #### Client Authorization
 The client **MUST** redirect the user to Tornium's authorization URL to authorize the application for their user for the requested scopes. Upon acceptance by the user, Tornium will redirect the user to the client through the included `redirect_uri`. The authorization code will be provided as the query parameter `code`. The authorization redirect URI to Tornium **MUST** be of form:
 
@@ -50,7 +49,9 @@ Pragma: no-cache
 ```
 
 ### Refresh Token Grant
-To avoid indefinite impersonation of users on a public client (which are unable to properly secure a refresh token), only confidential clients may utilize the refresh token grant. The refresh token grant will revoke the user's current access token for the client and grant a new access token with an updated expiration.
+When provided the refresh token from the original/previous token exchange, the refresh token grant will revoke the user's current access token for the client and grant a new access token (and a new refresh token if enabled) with an updated expiration. To utilize refresh token grant, the owner of the OAuth client must enable it which will result in refresh tokens being included in the token exchanges. Pursuant to [RFC 9700](https://www.rfc-editor.org/info/rfc9700/#section-4.14.2-5.2.1), all generated refresh tokens of a "family" (generated from the same series of refresh tokens) will be revoked if a refresh token is used more than once. This will also send a notification (as a Discord direct message) to the owner of the access token; it is **suggested** to indicate as such in your documentation/userscipt/etc. so that users will be aware of the circumstances resulting in that message.
+
+**NOTE:** If refresh token grant is enabled then disabled, any access tokens generated with a refresh token will still be able to utilize refresh token grant. Further generated access tokens will not include a refresh token though.
 
 ```http
 POST /oauth/token HTTP/1.1
@@ -77,6 +78,7 @@ Pragma: no-cache
 For an application to interact with Tornium's API, the application **MUST** be registered with the following information:
 - Redirect URIs: List of whitelisted URLs for authorization code grant that **MUST** NOT contain wildcards.
 - Scopes: List of scopes limiting data access of the application.
+- Refresh Grant Usage: Toggle of whether the client will use refresh token grant.
 - Client URI: URI of the homepage or main page of the application.
 - Client ToS URI: URI of the terms of service of the application.
 - Client Privacy Policy URI: URI of the privacy policy of the application.
@@ -92,7 +94,7 @@ The linked privacy policy **SHOULD** also include the following:
 - A method to contact the application's developer regarding data concerns
 - A description of how user data is protected by the application
 
-**NOTE:** Tornium currently does not support Dynamic Client Registration ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)), so clients can only be registered through [Tornium](https://tornium.com/developers/clients).
+**NOTE:** Tornium currently does not support Dynamic Client Registration ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)), so clients can only be registered through [Tornium's website](https://tornium.com/developers/clients).
 
 ### Scopes
 This is a list of Tornium's OAuth2 scopes required for use of certain endpoints in the Tornium API. The documentation for individual API endpoints will state which scopes, if any, are required. By default, an application has access no scopes.

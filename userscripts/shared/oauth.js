@@ -22,11 +22,30 @@ export const redirectURI = clientLocalGM
     ? `https://www.torn.com/tornium/${APP_ID}/oauth/callback`
     : `${BASE_URL}/oauth/${APP_ID}/callback`;
 
+if (typeof GM_addValueChangeListener != "undefined") {
+    // TPDA currently does not implement this aspect of GM. As such, we need to ensure
+    // that this still works for TPDA without this GM function, but we should prefer
+    // this over a naive version.
+    // See https://www.tampermonkey.net/documentation.php?locale=en&q=GM_values#api:GM_addValueChangeListener
+    GM_addValueChangeListener(`${GM_PREFIX}:access-token`, (key, old_value, new_value, remote) => {
+        log("Pushing new value of access token from listener", true);
+        accessToken = new_val;
+    });
+    GM_addValueChangeListener(`${GM_PREFIX}:access-token-expires`, (key, old_value, new_value, remote) => {
+        log("Pushing new value of access token expiration from listener", true);
+        accessTokenExpiration = new_val;
+    });
+}
+
 export function isAuthExpired() {
-    if (accessToken == null || accessTokenExpiration == 0) {
+    // To ensure that we're not reading stale data from a desynced tab, let us fetch these dynamically.
+    const currentAccessToken = GM_getValue(`${GM_PREFIX}:access-token`, null);
+    const currentAccessTokenExpiration = GM_getValue(`${GM_PREFIX}:access-token-expires`, 0);
+
+    if (currentAccessToken == null || currentAccessTokenExpiration == 0) {
         // Access token not set
         return true;
-    } else if (Math.floor(Date.now() / 1000) >= accessTokenExpiration) {
+    } else if (Math.floor(Date.now() / 1000) >= currentAccessTokenExpiration) {
         return true;
     }
 
@@ -37,7 +56,36 @@ export function hasRefreshToken() {
     return GM_getValue(`${GM_PREFIX}:refresh-token`) != null;
 }
 
-export function refreshToken() {
+export async function refreshToken() {
+    const acquiredLock = await navigator.locks.request(
+        `${GM_PREFIX}:refresh-token-lock`,
+        { ifAvailable: true },
+        async (lock) => {
+            if (!lock) {
+                log("Failed to achieve lock. Skipping...");
+                return false;
+            }
+
+            await doRefreshToken();
+            return true;
+        },
+    );
+
+    if (!acquiredLock) {
+        log("Failed to achieve lock. Waiting on current refresh to finish to release the lock...");
+
+        // We want to have a duplicate lock on the same lock key so that we can be notified
+        // when to release this lock and let the user continue with a new access token in the
+        // other tabs.
+        await navigator.locks.request(`${GM_PREFIX}:refresh-token-lock`, async () => {});
+
+        log("Lock released.");
+        accessToken = GM_getValue(`${GM_PREFIX}:access-token`, null);
+        accessTokenExpiration = GM_getValue(`${GM_PREFIX}:access-token-expires`, 0);
+    }
+}
+
+async function doRefreshToken() {
     const refreshToken = GM_getValue(`${GM_PREFIX}:refresh-token`);
 
     if (refreshToken == null) {
@@ -55,20 +103,31 @@ export function refreshToken() {
     tokenData.set("refresh_token", refreshToken);
     tokenData.set("scope", APP_SCOPE);
     tokenData.set("client_id", APP_ID);
+    console.log(tokenData);
 
-    GM_xmlhttpRequest({
-        method: "POST",
-        url: `${BASE_URL}/oauth/token`,
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        data: tokenData.toString(),
-        responseType: "json",
-        onload: (response) => {
-            resolveTokenCallback(response);
-            log("Access token successfully refreshed");
-            // TODO: Implement successful message
-        },
+    return new Promise((resolve, reject) => {
+        GM_xmlhttpRequest({
+            method: "POST",
+            url: `${BASE_URL}/oauth/token`,
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            data: tokenData.toString(),
+            responseType: "json",
+            onload: (response) => {
+                resolveTokenCallback(response);
+                log("Access token successfully refreshed");
+                // TODO: Implement successful message
+
+                resolve(response);
+            },
+            onerror: (error) => {
+                log(`Failed to refresh token: ${error}`);
+                reject(error);
+            },
+            ontimeout: () => {
+                log("Failed to refresh token: Request timed out");
+                reject(new Error("Refresh token request timed out"));
+            },
+        });
     });
 }
 

@@ -110,36 +110,44 @@ def update_faction_ts(faction_ts_data):
 )
 @with_db_connection
 def fetch_attacks_runner():
+    now = datetime.datetime.utcnow()
+    now_unix = now.timestamp()
+
+    api_key: TornKey
     for api_key in (
-        TornKey.select().distinct(TornKey.user.faction.tid).join(User).join(Faction).where(TornKey.default == True)
+        TornKey.select(TornKey, User, Faction)
+        .distinct(TornKey.user.faction_id)
+        .join(User)
+        .join(Faction)
+        .where(
+            (TornKey.default == True)
+            & (TornKey.disabled == False)
+            & (TornKey.paused == False)
+            & (TornKey.user.faction_id.is_null(False))
+            & (TornKey.user.faction_aa == True)
+        )
     ):
-        if api_key.user.faction is None:
-            continue
-
-        faction: typing.Optional[Faction] = Faction.select().where(Faction.tid == api_key.user.faction.tid).first()
-
+        faction: Faction = api_key.user.faction
         if faction is None:
             continue
-        elif len(faction.aa_keys) == 0:
-            continue
         elif faction.last_attacks is None or timestamp(faction.last_attacks) == 0:
-            # TODO: Convert to an atomic update
-            faction.last_attacks = datetime.datetime.utcnow()
-            faction.save()
+            faction.last_attacks = now
+            Faction.update(last_attacks=now).where(Faction.tid == faction.tid).execute()
+
             continue
         elif time.time() - timestamp(faction.last_attacks) > 86401:  # One day
             # Prevents old data from being added (especially for retals)
-            # TODO: Convert to an atomic update
-            faction.last_attacks = datetime.datetime.utcnow()
-            faction.save()
+            faction.last_attacks = now
+            Faction.update(last_attacks=now).where(Faction.tid == faction.tid).execute()
+
             continue
 
         last_attacks: int = timestamp(faction.last_attacks)
 
         tornget.signature(
             kwargs={
-                "endpoint": f"faction/?selections=basic,attacks&timestamp={int(time.time())}",
-                "key": random.choice(faction.aa_keys),
+                "endpoint": f"faction/?selections=basic,attacks&from={last_attacks - 1}&timestamp={now_unix}",
+                "key": api_key.api_key,
             },
             queue="api",
         ).apply_async(

@@ -116,15 +116,15 @@ def fetch_attacks_runner():
     api_key: TornKey
     for api_key in (
         TornKey.select(TornKey, User, Faction)
-        .distinct(TornKey.user.faction_id)
+        .distinct(User.faction)
         .join(User)
         .join(Faction)
         .where(
             (TornKey.default == True)
             & (TornKey.disabled == False)
             & (TornKey.paused == False)
-            & (TornKey.user.faction_id.is_null(False))
-            & (TornKey.user.faction_aa == True)
+            & (User.faction.is_null(False))
+            & (User.faction_aa == True)
         )
     ):
         faction: Faction = api_key.user.faction

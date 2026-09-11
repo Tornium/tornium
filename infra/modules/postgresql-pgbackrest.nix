@@ -78,7 +78,6 @@ in {
 
     systemd.services."postgresql-pgbackrest-daily-full" = {
       description = "Service to perform full backups with pgbackrest";
-      wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
       requires = [ "postgresql.service" ];
       path = [ pkgs.pgbackrest ];

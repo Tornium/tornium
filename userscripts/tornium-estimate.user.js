@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.5.11
+// @version      0.5.12-dev
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -45,7 +45,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 var DEBUG = false;
 var BASE_URL = "https://tornium.com";
 var ENABLE_LOGGING = true;
-var VERSION = "0.5.11";
+var VERSION = "0.5.12-dev";
 var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
 var APP_SCOPE = "torn_key:usage";
 var CACHE_ENABLED = "caches" in window;
@@ -129,11 +129,11 @@ var redirectURI = clientLocalGM ? `https://www.torn.com/tornium/${APP_ID}/oauth/
 if (typeof GM_addValueChangeListener != "undefined") {
   GM_addValueChangeListener(`${GM_PREFIX}:access-token`, (key, old_value, new_value, remote) => {
     log("Pushing new value of access token from listener", true);
-    accessToken = new_val;
+    accessToken = new_value;
   });
   GM_addValueChangeListener(`${GM_PREFIX}:access-token-expires`, (key, old_value, new_value, remote) => {
     log("Pushing new value of access token expiration from listener", true);
-    accessTokenExpiration = new_val;
+    accessTokenExpiration = new_value;
   });
 }
 function isAuthExpired() {
@@ -158,6 +158,11 @@ async function refreshToken() {
         log("Failed to achieve lock. Skipping...");
         return false;
       }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      if (!isAuthExpired()) {
+        log("Token was successfully refreshed by another tab. Aborting request.");
+        return true;
+      }
       await doRefreshToken();
       return true;
     }
@@ -167,6 +172,7 @@ async function refreshToken() {
     await navigator.locks.request(`${GM_PREFIX}:refresh-token-lock`, async () => {
     });
     log("Lock released.");
+    await new Promise((resolve) => setTimeout(resolve, 50));
     accessToken = GM_getValue(`${GM_PREFIX}:access-token`, null);
     accessTokenExpiration = GM_getValue(`${GM_PREFIX}:access-token-expires`, 0);
   }
@@ -247,8 +253,23 @@ function resolveToken(code, state, codeVerifier) {
 function resolveTokenCallback(response) {
   let responseJSON = response.response;
   if (response.responseType === void 0) {
-    responseJSON = JSON.parse(response.responseText);
-    response.responseType = "json";
+    try {
+      responseJSON = JSON.parse(response.responseText);
+      response.responseType = "json";
+    } catch (error) {
+      log("Failed to parse token response: " + e);
+      return;
+    }
+  }
+  if (response.status !== 200 || responseJSON.error) {
+    log(`Failed to update access token with an OAuth error: ${responseJSON.error || response.statusText}`);
+    if (responseJSON.error === "invalid_grant") {
+      GM_deleteValue(`${GM_PREFIX}:access-token`);
+      GM_deleteValue(`${GM_PREFIX}:access-token-expires`);
+      GM_deleteValue(`${GM_PREFIX}:refresh-token`);
+      accessToken = null;
+    }
+    return;
   }
   accessToken = responseJSON.access_token;
   accessTokenExpiration = Math.floor(Date.now() / 1e3) + responseJSON.expires_in;

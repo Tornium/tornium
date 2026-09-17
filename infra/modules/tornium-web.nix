@@ -68,7 +68,9 @@ in {
         "admin_passphrase": "${config.sops.placeholder."tornium/flask/admin_passphrase"}",
         "torn_api_uri": "${cfg.torn_api_uri}",
         "admin_users": [2383326],
-        "banned_users": {}
+        "banned_users": {
+          "2353116": "ToS violation: potential scraping of Tornium"
+        }
       }
       '';
       owner = "tornium";

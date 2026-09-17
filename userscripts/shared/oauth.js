@@ -56,7 +56,7 @@ export function hasRefreshToken() {
     return GM_getValue(`${GM_PREFIX}:refresh-token`) != null;
 }
 
-export async function refreshToken() {
+export async function refreshToken(forceRefresh=false) {
     const acquiredLock = await navigator.locks.request(
         `${GM_PREFIX}:refresh-token-lock`,
         { ifAvailable: true },
@@ -72,7 +72,7 @@ export async function refreshToken() {
             await new Promise((resolve) => setTimeout(resolve, 100));
 
             // Re-check state inside the lock!
-            if (!isAuthExpired()) {
+            if (!isAuthExpired() && !forceRefresh) {
                 log("Token was successfully refreshed by another tab. Aborting request.");
                 return true;
             }

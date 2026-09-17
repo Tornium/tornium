@@ -184,7 +184,12 @@ export function resolveToken(code, state, codeVerifier) {
             // To avoid introducing an open redirect vulnerability, we are just going to
             // redirect to Torn's home page.
             // See https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html
-            window.location.href = "https://www.torn.com";
+            setTimeout(() => {
+                // THIS IS A TEST
+                // We'll do this setTimeout after to try to see if stuff needs to finish
+                // updating before redirecting.
+                window.location.href = "https://www.torn.com";
+            }, 250);
         },
     });
 }
@@ -198,7 +203,7 @@ function resolveTokenCallback(response) {
             responseJSON = JSON.parse(response.responseText);
             response.responseType = "json";
         } catch (error) {
-            log("Failed to parse token response: " + e);
+            log("Failed to parse token response: " + error);
             return;
         }
     }

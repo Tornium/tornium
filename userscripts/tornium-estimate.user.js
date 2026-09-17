@@ -246,7 +246,9 @@ function resolveToken(code, state, codeVerifier) {
     responseType: "json",
     onload: (response) => {
       resolveTokenCallback(response);
-      window.location.href = "https://www.torn.com";
+      setTimeout(() => {
+        window.location.href = "https://www.torn.com";
+      }, 250);
     }
   });
 }
@@ -257,7 +259,7 @@ function resolveTokenCallback(response) {
       responseJSON = JSON.parse(response.responseText);
       response.responseType = "json";
     } catch (error) {
-      log("Failed to parse token response: " + e);
+      log("Failed to parse token response: " + error);
       return;
     }
   }

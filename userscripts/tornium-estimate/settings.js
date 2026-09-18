@@ -102,7 +102,7 @@ export function injectSettingsPage(container) {
             oauthConnectButton.setAttribute("href", "#");
             oauthConnectButton.addEventListener("click", (event) => {
                 event.preventDefault();
-                refreshToken();
+                refreshToken(true);
             });
         }
 

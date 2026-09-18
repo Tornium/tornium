@@ -29,11 +29,11 @@ if (typeof GM_addValueChangeListener != "undefined") {
     // See https://www.tampermonkey.net/documentation.php?locale=en&q=GM_values#api:GM_addValueChangeListener
     GM_addValueChangeListener(`${GM_PREFIX}:access-token`, (key, old_value, new_value, remote) => {
         log("Pushing new value of access token from listener", true);
-        accessToken = new_val;
+        accessToken = new_value;
     });
     GM_addValueChangeListener(`${GM_PREFIX}:access-token-expires`, (key, old_value, new_value, remote) => {
         log("Pushing new value of access token expiration from listener", true);
-        accessTokenExpiration = new_val;
+        accessTokenExpiration = new_value;
     });
 }
 
@@ -56,7 +56,7 @@ export function hasRefreshToken() {
     return GM_getValue(`${GM_PREFIX}:refresh-token`) != null;
 }
 
-export async function refreshToken() {
+export async function refreshToken(forceRefresh = false) {
     const acquiredLock = await navigator.locks.request(
         `${GM_PREFIX}:refresh-token-lock`,
         { ifAvailable: true },
@@ -64,6 +64,17 @@ export async function refreshToken() {
             if (!lock) {
                 log("Failed to achieve lock. Skipping...");
                 return false;
+            }
+
+            // Yield to the event loop. If this tab initialized with stale data,
+            // this gives Tampermonkey time to fire GM_addValueChangeListener
+            // from another tab's recent refresh.
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            // Re-check state inside the lock!
+            if (!isAuthExpired() && !forceRefresh) {
+                log("Token was successfully refreshed by another tab. Aborting request.");
+                return true;
             }
 
             await doRefreshToken();
@@ -78,8 +89,10 @@ export async function refreshToken() {
         // when to release this lock and let the user continue with a new access token in the
         // other tabs.
         await navigator.locks.request(`${GM_PREFIX}:refresh-token-lock`, async () => {});
-
         log("Lock released.");
+
+        // Yield briefly again to ensure GM listener has fired
+        await new Promise((resolve) => setTimeout(resolve, 50));
         accessToken = GM_getValue(`${GM_PREFIX}:access-token`, null);
         accessTokenExpiration = GM_getValue(`${GM_PREFIX}:access-token-expires`, 0);
     }
@@ -171,7 +184,12 @@ export function resolveToken(code, state, codeVerifier) {
             // To avoid introducing an open redirect vulnerability, we are just going to
             // redirect to Torn's home page.
             // See https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html
-            window.location.href = "https://www.torn.com";
+            setTimeout(() => {
+                // THIS IS A TEST
+                // We'll do this setTimeout after to try to see if stuff needs to finish
+                // updating before redirecting.
+                window.location.href = "https://www.torn.com";
+            }, 250);
         },
     });
 }
@@ -181,8 +199,27 @@ function resolveTokenCallback(response) {
     let responseJSON = response.response;
 
     if (response.responseType === undefined) {
-        responseJSON = JSON.parse(response.responseText);
-        response.responseType = "json";
+        try {
+            responseJSON = JSON.parse(response.responseText);
+            response.responseType = "json";
+        } catch (error) {
+            log("Failed to parse token response: " + error);
+            return;
+        }
+    }
+
+    if (response.status !== 200 || responseJSON.error) {
+        log(`Failed to update access token with an OAuth error: ${responseJSON.error || response.statusText}`);
+
+        // If the server explicitly rejected the grant (e.g. family revoked)
+        // purge the tokens to force a fresh login.
+        if (responseJSON.error === "invalid_grant") {
+            GM_deleteValue(`${GM_PREFIX}:access-token`);
+            GM_deleteValue(`${GM_PREFIX}:access-token-expires`);
+            GM_deleteValue(`${GM_PREFIX}:refresh-token`);
+            accessToken = null;
+        }
+        return;
     }
 
     accessToken = responseJSON.access_token;

@@ -56,7 +56,7 @@ export function hasRefreshToken() {
     return GM_getValue(`${GM_PREFIX}:refresh-token`) != null;
 }
 
-export async function refreshToken(forceRefresh=false) {
+export async function refreshToken(forceRefresh = false) {
     const acquiredLock = await navigator.locks.request(
         `${GM_PREFIX}:refresh-token-lock`,
         { ifAvailable: true },

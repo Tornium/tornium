@@ -248,6 +248,47 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
     def revoke_old_credential(self, refresh_token: OAuthToken):
         refresh_token.revoke()
 
+    def create_token_response(self):
+        """
+        If valid and authorized, the authorization server issues an access
+        token as described in Section 5.1.  If the request failed
+        verification or is invalid, the authorization server returns an error
+        response as described in Section 5.2.
+        """
+        client = self.request.client
+        refresh_token = self.request.refresh_token
+
+        user = self.authenticate_user(refresh_token)
+        if not user:
+            raise InvalidGrantError("There is no 'user' for this code.")
+        self.request.user = user
+
+        scope = self.request.payload.scope
+        if not scope:
+            scope = refresh_token.get_scope()
+
+        token = self.generate_token(
+            user=user,
+            scope=scope,
+            include_refresh_token=client.check_grant_type("refresh_token"),
+            expires_in=30 * 60 if client.check_grant_type("refresh_token") else 7 * 24 * 60 * 60,
+        )
+
+        # Since authlib doesn't support this yet, we need to manually insert this into the
+        # generated token. See: https://github.com/authlib/authlib/issues/686
+        token["refresh_token_expires_in"] = None
+        if client.check_grant_type("refresh_token"):
+            token["refresh_token_expires_in"] = 24 * 60 * 60
+
+        self.save_token(token)
+        self.revoke_old_credential(refresh_token)
+
+        _log(user_id=self.request.user.tid, action=AuthAction.OAUTH_TOKEN_REFRESH, request=self.request)
+
+        # We should return the unmodified token without the refresh_token_expires_in to ensure other
+        # authlib code handles it correctly.
+        return 200, token, self.TOKEN_RESPONSE_HEADER
+
 
 class BearerTokenValidator(_BearerTokenValidator):
     def authenticate_token(self, token_string: str) -> typing.Optional[OAuthToken]:

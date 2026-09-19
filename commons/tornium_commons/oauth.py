@@ -227,6 +227,13 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
             # token. This stops the attack at the cost of forcing the legitimate client to obtain a
             # fresh authorization grant.
 
+            _log(
+                user_id=self.request.user.tid if self.request.user is not None else None,
+                action=AuthAction.OAUTH_TOKEN_REFRESH_REUSE.value,
+                login_key=refresh_token,
+                request=self.request,
+            )
+
             token.revoke_token_family()
             token.alert_token_family_revocation()
 

@@ -229,7 +229,7 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
 
             _log(
                 user_id=self.request.user.tid if self.request.user is not None else None,
-                action=AuthAction.OAUTH_TOKEN_REFRESH_REUSE.value,
+                action=AuthAction.OAUTH_TOKEN_REFRESH_REUSE,
                 login_key=refresh_token,
                 request=self.request,
             )

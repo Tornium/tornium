@@ -20,7 +20,7 @@ let resourceIDInput;
 
 function notificationTypeConvert(typeString) {
     switch (typeString) {
-        case "notification-type-one-shot":
+        case "notification-type-oneshot":
             return true;
         case "notification-type-repeating":
             return false;

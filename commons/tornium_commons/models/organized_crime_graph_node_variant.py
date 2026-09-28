@@ -1,0 +1,38 @@
+# Copyright (C) 2021-2025 tiksan
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+from peewee import DateTimeField, FloatField, ForeignKeyField, TextField
+from playhouse.postgres_ext import UUIDField
+
+from .base_model import BaseModel
+from .organized_crime import OrganizedCrime
+from .organized_crime_graph_node import OrganizedCrimeGraphNode
+from .user import User
+
+
+class OrganizedCrimeGraphNodeVariant(BaseModel):
+    class Meta:
+        table_name = "organized_crime_graph_node_variant"
+
+    guid = UUIDField(primary_key=True)
+
+    node = ForeignKeyField(OrganizedCrimeGraphNode, null=False)
+    type = TextField(null=False)
+    text = TextField(null=False)
+    effective_weight = FloatField(default=1.0, null=False)
+
+    last_seen_at = DateTimeField(null=False)
+    last_seen_by = ForeignKeyField(User, null=False)
+    last_seen_in = ForeignKeyField(OrganizedCrime, null=False)

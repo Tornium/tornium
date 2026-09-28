@@ -69,8 +69,7 @@ in {
         "torn_api_uri": "${cfg.torn_api_uri}",
         "admin_users": [2383326],
         "banned_users": {
-          "2353116": "ToS violation: potential scraping of Tornium",
-          "2932849": "ToS violation: accessing other users' accounts"
+          "2353116": "ToS violation: potential scraping of Tornium"
         }
       }
       '';

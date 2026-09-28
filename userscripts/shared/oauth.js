@@ -23,7 +23,7 @@ export const redirectURI = `https://www.torn.com/tornium/${APP_ID}/oauth/callbac
 const REFRESH_TOKEN_HASH_ALGORITHM = "SHA-256";
 const REFRESH_TOKEN_LOCAL_STORAGE_KEY = `${GM_PREFIX}:refresh-token-hash`;
 
-// We will use a broadcast channel here as this appears to be more reliable than 
+// We will use a broadcast channel here as this appears to be more reliable than
 // using a `GM_addValueChangeListener` on each key, especially as that GM feature is
 // not supported on all platforms (such as TornPDA).
 const tokenBroadcastChannel = new BroadcastChannel(`${GM_PREFIX}:access-token-updates`);
@@ -82,7 +82,9 @@ export async function refreshToken(forceRefresh = false) {
                 // match the hash stored in local storage. This likely indicates that the
                 // refresh token has been updated by some other tab and this tab is holding
                 // an old value. We shouldn't delete the refresh token in case it's valid.
-                log("There is a mismatch in the refresh token hash and the hash stored in local storage. Aborting request.");
+                log(
+                    "There is a mismatch in the refresh token hash and the hash stored in local storage. Aborting request.",
+                );
                 return true;
             }
 

@@ -211,8 +211,10 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
             )
             return None
 
-        if token.is_revoked():
-            # See RFC 9700 4.14.2
+        if token.refresh_token_revoked_at is not None:
+            # This refresh token has already (presumably) been used already as it is revoked, so
+            # we should revoke all tokens of the family.
+            # See RFC 9700 4.14.2:
             #
             # Authorization servers MUST utilize one of these methods to detect refresh token
             # replay by malicious actors (for public clients):
@@ -239,6 +241,8 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
 
             return None
         elif not token.is_refresh_token_valid():
+            # This refresh token has expired (or has already been used, but that has already been
+            # hndled above), so we should log it ane return None.
             _log(
                 user_id=self.request.user.tid if self.request.user is not None else None,
                 action=AuthAction.OAUTH_TOKEN_REFRESH_INVALID,

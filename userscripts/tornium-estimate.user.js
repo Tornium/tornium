@@ -1,11 +1,10 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.5.12
+// @version      0.5.13
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
-// @match        https://tornium.com/oauth/6be7696c40837f83e5cab139e02e287408c186939c10b025/callback*
 // @match        https://www.torn.com/tornium/6be7696c40837f83e5cab139e02e287408c186939c10b025/oauth/callback*
 // @match        https://www.torn.com/tornium/6be7696c40837f83e5cab139e02e287408c186939c10b025/settings
 // @match        https://www.torn.com/gym.php*
@@ -45,7 +44,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 var DEBUG = false;
 var BASE_URL = "https://tornium.com";
 var ENABLE_LOGGING = true;
-var VERSION = "0.5.12";
+var VERSION = "0.5.13";
 var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
 var APP_SCOPE = "torn_key:usage";
 var CACHE_ENABLED = "caches" in window;
@@ -53,7 +52,6 @@ var CONCURRENCY_LIMIT = 20;
 var GM_PREFIX = "tornium-estimate";
 GM_setValue("tornium-estimate:test", "1");
 var localGMValue = localStorage.getItem("tornium-estimate:test");
-var clientLocalGM = localGMValue === "1" || localGMValue === `GMV2_"1"`;
 var clientMobile = (() => {
   let check = false;
   (function(a) {
@@ -75,6 +73,7 @@ function log(string, debug_log = false) {
 // cache.js
 var CACHE_NAME = "tornium-estimate-cache";
 var CACHE_EXPIRATION = 1e3 * 60 * 60 * 24;
+var CACHE_HEADER_KEYS = /* @__PURE__ */ new Set(["content-encoding", "content-type", "date", "etag"]);
 var cacheInstance = null;
 async function getCacheInstance() {
   if (cacheInstance == null) {
@@ -91,26 +90,27 @@ async function getCache(url) {
   if (cachedResponse) {
     const expirationTime = new Date(parseInt(cachedResponse.headers.get("cache-expiry")));
     if (Date.now() < expirationTime) {
-      log(`HIT ${url}`);
+      log(`HIT ${url}`, true);
       return await cachedResponse.json();
     }
-    log(`EXPIRE ${url}`);
+    log(`EXPIRE ${url}`, true);
     await cache.delete(url);
   }
-  log(`MISS ${url}`);
+  log(`MISS ${url}`, true);
   return null;
 }
 async function putCache(url, response, ttl = CACHE_EXPIRATION) {
   const newHeaders = new Headers();
-  if (response.responseHeaders) {
-    response.responseHeaders.trim().split(/[\r\n]+/).forEach((line) => {
-      const parts = line.split(": ");
-      const key = parts.shift();
-      const value = parts.join(": ");
-      if (key) {
-        newHeaders.append(key, value);
-      }
-    });
+  for (const line of (response.responseHeaders || "").trim().split(/[\r\n]+/)) {
+    const seperatorIndex = line.indexOf(":");
+    if (seperatorIndex <= 0) {
+      continue;
+    }
+    const headerKey = line.slice(0, seperatorIndex).trim().toLowerCase();
+    if (!CACHE_HEADER_KEYS.has(headerKey)) {
+      continue;
+    }
+    newHeaders.set(headerKey, line.slice(0, seperatorIndex + 1).trim());
   }
   newHeaders.set("cache-expiry", String(Date.now() + ttl));
   const modifiedResponse = new Response(response.responseText, {
@@ -125,42 +125,51 @@ async function putCache(url, response, ttl = CACHE_EXPIRATION) {
 // oauth.js
 var accessToken = GM_getValue(`${GM_PREFIX}:access-token`, null);
 var accessTokenExpiration = GM_getValue(`${GM_PREFIX}:access-token-expires`, 0);
-var redirectURI = clientLocalGM ? `https://www.torn.com/tornium/${APP_ID}/oauth/callback` : `${BASE_URL}/oauth/${APP_ID}/callback`;
-if (typeof GM_addValueChangeListener != "undefined") {
-  GM_addValueChangeListener(`${GM_PREFIX}:access-token`, (key, old_value, new_value, remote) => {
-    log("Pushing new value of access token from listener", true);
-    accessToken = new_value;
-  });
-  GM_addValueChangeListener(`${GM_PREFIX}:access-token-expires`, (key, old_value, new_value, remote) => {
-    log("Pushing new value of access token expiration from listener", true);
-    accessTokenExpiration = new_value;
-  });
-}
+var accessRefreshToken = GM_getValue(`${GM_PREFIX}:refresh-token`, null);
+var redirectURI = `https://www.torn.com/tornium/${APP_ID}/oauth/callback`;
+var REFRESH_TOKEN_HASH_ALGORITHM = "SHA-256";
+var REFRESH_TOKEN_LOCAL_STORAGE_KEY = `${GM_PREFIX}:refresh-token-hash`;
+var tokenBroadcastChannel = new BroadcastChannel(`${GM_PREFIX}:access-token-updates`);
+tokenBroadcastChannel.onmessage = (event) => {
+  accessToken = event.data.accessToken;
+  accessTokenExpiration = event.data.accessTokenExpiration;
+  accessRefreshToken = event.data.accessRefreshToken;
+  updateRefreshTokenHash();
+  log("Updated access token from another tab via broadcast channel...");
+};
 function isAuthExpired() {
-  const currentAccessToken = GM_getValue(`${GM_PREFIX}:access-token`, null);
-  const currentAccessTokenExpiration = GM_getValue(`${GM_PREFIX}:access-token-expires`, 0);
-  if (currentAccessToken == null || currentAccessTokenExpiration == 0) {
+  accessToken = GM_getValue(`${GM_PREFIX}:access-token`, null);
+  accessTokenExpiration = GM_getValue(`${GM_PREFIX}:access-token-expires`, 0);
+  if (accessToken == null || accessTokenExpiration == 0) {
     return true;
-  } else if (Math.floor(Date.now() / 1e3) >= currentAccessTokenExpiration) {
+  } else if (Math.floor(Date.now() / 1e3) >= accessTokenExpiration) {
     return true;
   }
   return false;
 }
 function hasRefreshToken() {
-  return GM_getValue(`${GM_PREFIX}:refresh-token`) != null;
+  accessRefreshToken = GM_getValue(`${GM_PREFIX}:refresh-token`, null);
+  return accessRefreshToken != null;
 }
 async function refreshToken(forceRefresh = false) {
   const acquiredLock = await navigator.locks.request(
     `${GM_PREFIX}:refresh-token-lock`,
-    { ifAvailable: true },
+    { mode: "exclusive", ifAvailable: true },
     async (lock) => {
-      if (!lock) {
+      if (lock == null) {
         log("Failed to achieve lock. Skipping...");
         return false;
       }
-      await new Promise((resolve) => setTimeout(resolve, 100));
       if (!isAuthExpired() && !forceRefresh) {
         log("Token was successfully refreshed by another tab. Aborting request.");
+        return true;
+      } else if (!hasRefreshToken()) {
+        log("There is no longer a refresh token to use. Aborting request.");
+        return true;
+      } else if (!await hasValidRefreshTokenHash()) {
+        log(
+          "There is a mismatch in the refresh token hash and the hash stored in local storage. Aborting request."
+        );
         return true;
       }
       await doRefreshToken();
@@ -169,27 +178,22 @@ async function refreshToken(forceRefresh = false) {
   );
   if (!acquiredLock) {
     log("Failed to achieve lock. Waiting on current refresh to finish to release the lock...");
-    await navigator.locks.request(`${GM_PREFIX}:refresh-token-lock`, async () => {
+    await navigator.locks.request(`${GM_PREFIX}:refresh-token-lock`, async (lock) => {
     });
-    log("Lock released.");
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    accessToken = GM_getValue(`${GM_PREFIX}:access-token`, null);
-    accessTokenExpiration = GM_getValue(`${GM_PREFIX}:access-token-expires`, 0);
+    log("Lock released by the other tab.");
   }
 }
 async function doRefreshToken() {
-  const refreshToken2 = GM_getValue(`${GM_PREFIX}:refresh-token`);
-  if (refreshToken2 == null) {
+  if (!hasRefreshToken()) {
     return;
   }
   log("Attempting to refresh access token with the refresh token...");
   GM_deleteValue(`${GM_PREFIX}:refresh-token`);
   const tokenData = new URLSearchParams();
   tokenData.set("grant_type", "refresh_token");
-  tokenData.set("refresh_token", refreshToken2);
+  tokenData.set("refresh_token", accessRefreshToken);
   tokenData.set("scope", APP_SCOPE);
   tokenData.set("client_id", APP_ID);
-  console.log(tokenData);
   return new Promise((resolve, reject) => {
     GM_xmlhttpRequest({
       method: "POST",
@@ -246,9 +250,7 @@ function resolveToken(code, state, codeVerifier) {
     responseType: "json",
     onload: (response) => {
       resolveTokenCallback(response);
-      setTimeout(() => {
-        window.location.href = "https://www.torn.com";
-      }, 250);
+      window.location.href = "https://www.torn.com";
     }
   });
 }
@@ -269,21 +271,64 @@ function resolveTokenCallback(response) {
       GM_deleteValue(`${GM_PREFIX}:access-token`);
       GM_deleteValue(`${GM_PREFIX}:access-token-expires`);
       GM_deleteValue(`${GM_PREFIX}:refresh-token`);
+      localStorage.removeItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY);
       accessToken = null;
+      accessTokenExpiration = 0;
+      accessRefreshToken = null;
+      tokenBroadcastChannel.postMessage({
+        accessToken,
+        accessTokenExpiration,
+        accessRefreshToken
+      });
     }
     return;
   }
   accessToken = responseJSON.access_token;
   accessTokenExpiration = Math.floor(Date.now() / 1e3) + responseJSON.expires_in;
-  const refreshToken2 = responseJSON.refresh_token ?? null;
+  accessRefreshToken = responseJSON.refresh_token ?? null;
   GM_setValue(`${GM_PREFIX}:access-token`, accessToken);
   GM_setValue(`${GM_PREFIX}:access-token-expires`, accessTokenExpiration);
-  if (refreshToken2 == null) {
+  if (accessRefreshToken == null) {
     GM_deleteValue(`${GM_PREFIX}:refresh-token`);
+    localStorage.removeItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY);
   } else {
-    GM_setValue(`${GM_PREFIX}:refresh-token`, refreshToken2);
+    GM_setValue(`${GM_PREFIX}:refresh-token`, accessRefreshToken);
+    updateRefreshTokenHash();
   }
+  tokenBroadcastChannel.postMessage({
+    accessToken,
+    accessTokenExpiration,
+    accessRefreshToken
+  });
   return;
+}
+async function getRefreshTokenHash() {
+  if (accessRefreshToken == null) {
+    return null;
+  }
+  const encoder = new TextEncoder();
+  const encodedRefreshToken = encoder.encode(accessRefreshToken);
+  const hashedRefreshToken = await window.crypto.subtle.digest(REFRESH_TOKEN_HASH_ALGORITHM, encodedRefreshToken);
+  const hashedRefreshTokenHex = new Uint8Array(hashedRefreshToken).toHex();
+  return hashedRefreshTokenHex;
+}
+async function updateRefreshTokenHash() {
+  if (window.location.host != "www.torn.com") {
+    return;
+  }
+  const hashedRefreshToken = await getRefreshTokenHash();
+  localStorage.setItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY, hashedRefreshToken);
+}
+async function hasValidRefreshTokenHash() {
+  accessRefreshToken = GM_getValue(`${GM_PREFIX}:refresh-token`, null);
+  if (accessRefreshToken == null) {
+    return false;
+  }
+  const refreshTokenHash = await getRefreshTokenHash();
+  const refreshTokenLocalStorageHash = localStorage.getItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY);
+  if (refreshTokenLocalStorageHash == null) {
+  }
+  return refreshTokenHash === refreshTokenLocalStorageHash;
 }
 
 // api.js
@@ -852,7 +897,9 @@ function injectSettingsPage(container) {
       oauthConnectButton.setAttribute("href", "#");
       oauthConnectButton.addEventListener("click", (event) => {
         event.preventDefault();
-        refreshToken(true);
+        refreshToken(true).then(() => {
+          window.location.reload();
+        });
       });
     }
     const oauthDisconnectButton = document.createElement("button");
@@ -1004,7 +1051,7 @@ log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}${CACHE_ENABLED 
 function isEnabledOn(pageID) {
   return Config.pages.some((page) => page == pageID);
 }
-if (isAuthExpired() && hasRefreshToken()) {
+if (isAuthExpired() && hasRefreshToken() && window.location.host == "www.torn.com") {
   await refreshToken();
 }
 var query = new URLSearchParams(document.location.search);

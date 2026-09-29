@@ -1,11 +1,10 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.5.12
+// @version      0.5.13
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
-// @match        https://tornium.com/oauth/6be7696c40837f83e5cab139e02e287408c186939c10b025/callback*
 // @match        https://www.torn.com/tornium/6be7696c40837f83e5cab139e02e287408c186939c10b025/oauth/callback*
 // @match        https://www.torn.com/tornium/6be7696c40837f83e5cab139e02e287408c186939c10b025/settings
 // @match        https://www.torn.com/gym.php*

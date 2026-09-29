@@ -38,7 +38,7 @@ function isEnabledOn(pageID) {
     return Config.pages.some((page) => page == pageID);
 }
 
-if (isAuthExpired() && hasRefreshToken()) {
+if (isAuthExpired() && hasRefreshToken() && window.location.host == "www.torn.com") {
     // If the access token has expired and there is a refresh token, we should try to
     // refresh the access token via refresh token grant before proceeding with the rest
     // of the entrypoint.

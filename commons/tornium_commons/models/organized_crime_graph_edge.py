@@ -13,32 +13,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from __future__ import annotations
-import functools
-import typing
-
-from peewee import CharField, DeferredForeignKey, SmallIntegerField, TextField
+from peewee import BooleanField, DateTimeField, FloatField, ForeignKeyField
 from playhouse.postgres_ext import UUIDField
 
 from .base_model import BaseModel
+from .organized_crime import OrganizedCrime
+from .organized_crime_graph_node import OrganizedCrimeGraphNode
+from .user import User
 
 
-class OrganizedCrimeType(BaseModel):
+class OrganizedCrimeGraphEdge(BaseModel):
     class Meta:
-        table_name = "organized_crime_type"
+        table_name = "organized_crime_graph_edge"
 
     guid = UUIDField(primary_key=True)
 
-    name = CharField(null=False)
-    description = TextField(null=False)
+    success = BooleanField(null=False)
+    from_node = ForeignKeyField(OrganizedCrimeGraphNode, null=False)
+    to_node = ForeignKeyField(OrganizedCrimeGraphNode, null=False)
 
-    difficulty = SmallIntegerField(null=False)
-    spawn_level = SmallIntegerField(null=False)
-    # spawn level values: [lambda: 1, sigma: 2, phi: 3, psi: 4, omega: 5])
+    effective_weight = FloatField(default=1.0, null=False)
 
-    prerequisite = DeferredForeignKey("OrganizedCrimeSlotType", default=None, null=True)
-
-    @staticmethod
-    @functools.lru_cache
-    def get_by_name(name: str) -> typing.Optional[OrganizedCrimeType]:
-        return OrganizedCrimeType.select().where(OrganizedCrimeType.name == name).first()
+    last_seen_at = DateTimeField(null=False)
+    last_seen_by = ForeignKeyField(User, null=False)
+    last_seen_in = ForeignKeyField(OrganizedCrime, null=False)

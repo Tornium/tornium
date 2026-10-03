@@ -14,6 +14,7 @@
 // @grant        GM_setValue
 // @grant        GM_deleteValue
 // @grant        GM_addStyle
+// @grant        unsafeWindow
 // @connect      tornium.com
 // @downloadURL  https://github.com/Tornium/tornium/raw/refs/heads/master/userscripts/tornium-crimes.user.js
 // @updateURL    https://github.com/Tornium/tornium/raw/refs/heads/master/userscripts/tornium-crimes.user.js
@@ -34,3 +35,5 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
+
+(async () => {

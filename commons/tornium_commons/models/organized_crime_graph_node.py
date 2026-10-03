@@ -13,32 +13,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from __future__ import annotations
-import functools
-import typing
-
-from peewee import CharField, DeferredForeignKey, SmallIntegerField, TextField
+from peewee import DateTimeField, ForeignKeyField, IntegerField, TextField
 from playhouse.postgres_ext import UUIDField
 
 from .base_model import BaseModel
+from .organized_crime import OrganizedCrime
+from .organized_crime_type import OrganizedCrimeType
+from .user import User
 
 
-class OrganizedCrimeType(BaseModel):
+class OrganizedCrimeGraphNode(BaseModel):
     class Meta:
-        table_name = "organized_crime_type"
+        table_name = "organized_crime_graph_node"
 
     guid = UUIDField(primary_key=True)
+    oc_type = ForeignKeyField(OrganizedCrimeType, null=False)
 
-    name = CharField(null=False)
-    description = TextField(null=False)
+    scene_id = IntegerField(null=False)
+    scene_slug = TextField(null=False)
 
-    difficulty = SmallIntegerField(null=False)
-    spawn_level = SmallIntegerField(null=False)
-    # spawn level values: [lambda: 1, sigma: 2, phi: 3, psi: 4, omega: 5])
-
-    prerequisite = DeferredForeignKey("OrganizedCrimeSlotType", default=None, null=True)
-
-    @staticmethod
-    @functools.lru_cache
-    def get_by_name(name: str) -> typing.Optional[OrganizedCrimeType]:
-        return OrganizedCrimeType.select().where(OrganizedCrimeType.name == name).first()
+    last_seen_at = DateTimeField(null=False)
+    last_seen_by = ForeignKeyField(User, null=False)
+    last_seen_in = ForeignKeyField(OrganizedCrime, null=False)

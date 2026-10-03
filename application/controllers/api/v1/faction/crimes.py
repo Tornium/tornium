@@ -13,15 +13,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import dataclasses
+import datetime
 import itertools
+import json
+import re
 import typing
+import uuid
 
 from flask import jsonify, request
 from peewee import DoesNotExist
+from tornium_commons.db_connection import db
 from tornium_commons.models import (
     Faction,
     OrganizedCrime,
     OrganizedCrimeCPR,
+    OrganizedCrimeGraphEdge,
+    OrganizedCrimeGraphNode,
+    OrganizedCrimeGraphNodeVariant,
     OrganizedCrimeSlot,
     OrganizedCrimeSlotType,
     OrganizedCrimeType,
@@ -467,3 +476,302 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
             )
 
     return possible_slots, 200, api_ratelimit_response(key)
+
+
+@require_oauth()
+@ratelimit
+def upload_crime_scenarios(faction_id: int, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    data = json.loads(request.get_data().decode("utf-8"))
+
+    if kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4022", key)
+    elif not Faction.select().where(Faction.tid == faction_id).exists():
+        return make_exception_response("1102", key)
+
+    if not isinstance(data["success"], bool) or not data["success"]:
+        # The data provided by Torn is not something the user can control, so let us just
+        # do an early, quiet exit.
+        return make_exception_response("0000", key, details={"message": "Invalid Torn data"})
+
+    crimes = data.get("data") or []
+    provided_oc_ids = [crime_data["ID"] for crime_data in crimes]
+    crimes_found = {
+        crime.oc_id
+        for crime in OrganizedCrime.select(OrganizedCrime.oc_id).where(
+            (OrganizedCrime.oc_id.in_(provided_oc_ids))
+            & (OrganizedCrime.faction_id == faction_id)
+            & (OrganizedCrime.scenario_ingested_at.is_null(True))
+        )
+    }
+
+    for crime_data in crimes:
+        oc_id: int = crime_data["ID"]
+
+        if oc_id not in crimes_found:
+            # This OC isn't the database, so we are unable to verify the data provided.
+            continue
+        elif crime_data["status"] not in ("Failed", "Successful"):
+            # Presumably this OC is still in planning, so we should skip it.
+            continue
+
+        oc_type: typing.Optional[OrganizedCrimeType] = OrganizedCrimeType.get_by_name(crime_data["scenario"]["name"])
+        if oc_type is None:
+            continue
+
+        crime_slots_base_query = OrganizedCrimeSlot.select().where(OrganizedCrimeSlot.oc_id == oc_id)
+        crime_slots_is_valid = True
+        crime_slot_assignments = []
+
+        crime_slot: dict
+        for crime_slot in crime_data["playerSlots"]:
+            # The slot index is zero-indexed in Tornium but one-indexed by Torn, so we
+            # need to remove one to ensure the DB query is correct.
+            slot_member_id = int(crime_slot["player"]["ID"])
+            slot_index = int(crime_slot["key"][1]) - 1
+            slot_position_name, slot_position_index = OrganizedCrimeSlotType.parse_slot(crime_slot["name"])
+            crime_slot_assignments.append((slot_position_name, slot_position_index, slot_member_id))
+
+            print(slot_member_id, slot_index, slot_position_name, slot_position_index)
+            valid_member = crime_slots_base_query.where(
+                (OrganizedCrimeSlot.user_id == slot_member_id)
+                & (OrganizedCrimeSlot.slot_index == slot_index)
+                & (OrganizedCrimeSlot.crime_position == slot_position_name)
+                & (OrganizedCrimeSlot.crime_position_index == slot_position_index)
+            ).exists()
+
+            if not valid_member:
+                crime_slots_is_valid = False
+                break
+
+        if not crime_slots_is_valid:
+            # Some member in the provided data did not match the values in the database,
+            # so we should skip it.
+            continue
+
+        ingest_crime_data(
+            oc_type=oc_type,
+            oc_id=oc_id,
+            scenes=crime_data["scenario"]["scenes"],
+            crime_slot_assignments=crime_slot_assignments,
+            user_id=kwargs["user"].tid,
+        )
+
+    return make_exception_response("0001", key)
+
+
+@db.atomic()
+def ingest_crime_data(
+    oc_type: OrganizedCrimeType,
+    oc_id: int,
+    scenes: typing.List[dict],
+    crime_slot_assignments: typing.List[tuple],
+    user_id: int,
+) -> None:
+    path = parse_scenario_path(scenes, crime_slot_assignments)
+    seen_data = {
+        "last_seen_at": datetime.datetime.utcnow(),
+        "last_seen_by": user_id,
+        "last_seen_in": oc_id,
+    }
+
+    scene: dict
+    for scene in scenes:
+        # We want to look for scenes that are decision nodes resulting in a success or a failure.
+        # From that scene, the previous scene with a similar name should be decision node with
+        # success/failure node being the text describing it (eg A2-C1F -> A2-C1).
+        if scene["type"] not in ("success", "failed"):
+            print("skipping invalid type:", scene)
+            continue
+        elif scene["slug"][-1] not in ("P", "F"):
+            print("skipping slug suffix:", scene)
+            continue
+
+        print("ingesting ", scene)
+
+        base_slug = scene["slug"][:-1]
+        decision_node = next(filter(lambda scene: scene["slug"] == base_slug, scenes), None)
+
+        if decision_node is None:
+            # Since there's no decision node found, we should exit early as this would cause a break
+            # in the graph.
+            print(f"No decision node found for {scene['slug']}")
+            return
+        elif decision_node["type"] != "event":
+            print(f"Invalid decision node type {decision_node['type']}")
+            return
+
+        now = datetime.datetime.utcnow()
+        node = (
+            OrganizedCrimeGraphNode.insert(
+                guid=uuid.uuid4(),
+                oc_type_id=oc_type.guid,
+                scene_id=decision_node["ID"],
+                scene_slug=decision_node["slug"],
+                last_seen_at=now,
+                last_seen_by=user_id,
+                last_seen_in=oc_id,
+            )
+            .on_conflict(
+                conflict_target=[
+                    OrganizedCrimeGraphNode.oc_type,
+                    OrganizedCrimeGraphNode.scene_id,
+                    OrganizedCrimeGraphNode.scene_slug,
+                ],
+                preserve=[
+                    OrganizedCrimeGraphNode.last_seen_at,
+                    OrganizedCrimeGraphNode.last_seen_by,
+                    OrganizedCrimeGraphNode.last_seen_in,
+                ],
+            )
+            .returning(OrganizedCrimeGraphNode)
+            .execute()[0]
+        )
+        OrganizedCrimeGraphNodeVariant.insert(
+            guid=uuid.uuid4(),
+            node_id=node.guid,
+            text=normalize_scene_text(scene["dialogues"][0]["description"], crime_slot_assignments),
+            effective_weight=1.0,
+            last_seen_at=now,
+            last_seen_by=user_id,
+            last_seen_in=oc_id,
+        ).on_conflict(
+            conflict_target=[OrganizedCrimeGraphNodeVariant.node, OrganizedCrimeGraphNodeVariant.text],
+            preserve=[
+                OrganizedCrimeGraphNode.last_seen_at,
+                OrganizedCrimeGraphNode.last_seen_by,
+                OrganizedCrimeGraphNode.last_seen_in,
+            ],
+        ).execute()
+
+        if previous_node is not None:
+            OrganizedCrimeGraphEdge.insert(
+                guid=uuid.uuid4(),
+                success=decision_node["type"] == "success",
+                from_node=previous_node.guid,
+                to_node=node.guid,
+                effective_weight=1.0,
+                last_seen_at=now,
+                last_seen_by=user_id,
+                last_seen_in=oc_id,
+            ).on_conflict(
+                conflict_target=[
+                    OrganizedCrimeGraphEdge.from_node,
+                    OrganizedCrimeGraphEdge.to_node,
+                    OrganizedCrimeGraphEdge.success,
+                ],
+                preserve=[
+                    OrganizedCrimeGraphEdge.last_seen_at,
+                    OrganizedCrimeGraphEdge.last_seen_by,
+                    OrganizedCrimeGraphEdge.last_seen_in,
+                ],
+            ).execute()
+
+        # TODO: We need to increment the weight of the edge and node variant if they already
+        # exist when we're upserting them.
+        # TODO: We need to exponential decay the weights of the other edges and other node
+        # variants at the end of thsi
+
+        previous_node = node
+
+        # TODO: We also need to handle terminal nodes somehow
+
+    OrganizedCrime.update(scenario_ingested_at=datetime.datetime.utcnow()).where(
+        OrganizedCrime.oc_id == oc_id
+    ).execute()
+
+
+@dataclasses.dataclass(frozen=True)
+class ScenarioPathNode:
+    scene_id: int
+    slug: str
+    text: typing.Optional[str]
+    success: bool
+    terminal: bool = False
+
+
+SCENARIO_OUTCOME_SLUG_REGEX = re.compile(r"^(?P<base>.+)(?P<outcome>[PF])$")
+SCENARIO_OUTCOME_TYPES = {"P": "success", "F": "failed"}
+
+
+def parse_scenario_path(
+    scenes: typing.List[dict], crime_slot_assignments: typing.List[tuple]
+) -> typing.List[ScenarioPathNode]:
+    # We want to parse the list of scenes provided by Torn into the linear path:
+    #   root -> decision nodes -> terminal node
+    if len(scenes) == 0:
+        raise ValueError("No scenes were provided")
+
+    mapped_scenes = {scene["slug"]: scene for scene in scenes}
+    path = [ScenarioPathNode(scene_id=0, slug="__root__", text=None, success=True)]
+
+    for scene in scenes:
+        # We want to look for scenes that are decision nodes resulting in a success or a failure.
+        # From that scene, the previous scene with a similar name should be decision node with
+        # success/failure node being the text describing it (eg A2-C1F -> A2-C1).
+        if scene["type"] not in SCENARIO_OUTCOME_TYPES.values():
+            print("skipping invalid type:", scene)
+            continue
+
+        slug_match = SCENARIO_OUTCOME_SLUG_REGEX.match(scene["slug"])
+        if slug_match is None:
+            continue
+        elif scene["type"] != SCENARIO_OUTCOME_TYPES[slug_match["outcome"]]:
+            raise ValueError(f"Scenario outcome scene {scene['slug']} has mismatched type {scene['type']}")
+
+        decision_node = mapped_scenes.get(slug_match["base"])
+        if decision_node is None:
+            raise ValueError(f"Unable to find matching slug base for scene {scene['slug']}")
+        elif decision_node["type"] not in ("event", "objective"):
+            raise ValueError(f"Invalid decision node type {scene['type']}")
+
+        path.append(
+            ScenarioPathNode(
+                scene_id=decision_node["ID"],
+                slug=decision_node["slug"],
+                text=normalize_scene_text(scene["dialogues"][0]["description"], crime_slot_assignments),
+                success=slug_match["outcome"] == "P",
+            )
+        )
+
+    if len(path) <= 1:
+        raise ValueError("Scenario doesn't have enough decision nodes")
+
+    terminal_node = scenes[-1]
+    path.append(
+        ScenarioPathNode(
+            scene_id=terminal_node["ID"],
+            slug=terminal_node["slug"],
+            text=normalize_scene_text(decision_node["dialogues"][0]["description"], crime_slot_assignments),
+            success=True,
+            terminal=True,
+        )
+    )
+
+    return path
+
+
+def normalize_scene_text(scene_text: str, crime_slot_assignments: typing.List[tuple]) -> str:
+    # We want to replace the member-specific IDs in the scene text with strings representing
+    # the position so that the scene text from different OCs/factions doesn't get split into
+    # seperate node variants.
+    # For this, we can use the same format the tornium_oc_graph library uses:
+    #   `<{crime_position_name.lower()}_{crime_position_index}>`
+    # such that Cat Burglar #1 would become
+    #   `<cat_burglar_1>`
+
+    USER_ID_REGEX = re.compile(r"userId-(\d+)")
+    placeholders = {
+        member_id: f"<{'_'.join(position_name.lower().split(' '))}_{position_index}>"
+        for position_name, position_index, member_id in crime_slot_assignments
+    }
+
+    def replace_user_id(match: re.Match) -> str:
+        member_id = int(match.group(1))
+
+        if member_id not in placeholders:
+            raise ValueError(f"Unknown member ID {member_id} referenced in scene text.")
+
+        return placeholders[member_id]
+
+    return " ".join(USER_ID_REGEX.sub(replace_user_id, scene_text).split())

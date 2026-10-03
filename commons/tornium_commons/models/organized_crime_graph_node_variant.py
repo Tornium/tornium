@@ -29,7 +29,6 @@ class OrganizedCrimeGraphNodeVariant(BaseModel):
     guid = UUIDField(primary_key=True)
 
     node = ForeignKeyField(OrganizedCrimeGraphNode, null=False)
-    type = TextField(null=False)
     text = TextField(null=False)
     effective_weight = FloatField(default=1.0, null=False)
 

@@ -24,7 +24,6 @@ defmodule Tornium.Schema.OrganizedCrimeGraphNodeVariant do
           guid: Ecto.UUID.t(),
           node_id: Ecto.UUID.t(),
           node: Tornium.Schema.OrganizedCrimeGraphNode.t(),
-          type: String.t(),
           text: String.t(),
           effective_weight: float(),
           last_seen_at: DateTime.t(),
@@ -37,7 +36,6 @@ defmodule Tornium.Schema.OrganizedCrimeGraphNodeVariant do
   @primary_key {:guid, Ecto.UUID, autogenerate: true}
   schema "organized_crime_graph_node_variant" do
     belongs_to(:node, Tornium.Schema.OrganizedCrimeGraphNode, references: :guid)
-    field(:type, :string)
     field(:text, :string)
     field(:effective_weight, :float)
 

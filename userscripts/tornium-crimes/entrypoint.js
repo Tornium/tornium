@@ -19,6 +19,7 @@ import { APP_ID, CACHE_ENABLED, DEBUG, GM_PREFIX, VERSION } from "./constants.js
 import { waitForElement } from "./dom.js";
 import { log } from "./logging.js";
 import { resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
+import { startScenarioExporterListener } from "./scenario-exporter.js";
 import { createSettingsButton, injectSettingsPage, injectSettingsStyles } from "./settings.js";
 
 log(`Loading userscript v${VERSION}${DEBUG ? " with debug" : ""}${CACHE_ENABLED ? " with cache" : ""}...`);
@@ -28,7 +29,9 @@ const query = new URLSearchParams(document.location.search);
 function executeCrimes() {
     createSettingsButton();
     injectStyles();
-    startCrimeTabListener();
+    // startCrimeTabListener();
+
+    startScenarioExporterListener();
 
     torniumFetch("user", { ttl: 1000 * 60 * 60 })
         .then((identityData) => {
@@ -36,23 +39,24 @@ function executeCrimes() {
         })
         .then(([factionID, userID]) => {
             GM_setValue(`${GM_PREFIX}:userID`, userID);
+            GM_setValue(`${GM_PREFIX}:factionID`, factionID);
 
-            return Promise.all([
-                torniumFetch(`faction/${factionID}/crime/member/${userID}/optimum`, { ttl: 60 }),
-                userID,
-                factionID,
-                waitForElement(`#faction-crimes-root [class*="buttonsContainer__"]`),
-            ]);
+            // return Promise.all([
+            //     torniumFetch(`faction/${factionID}/crime/member/${userID}/optimum`, { ttl: 60 }),
+            //     userID,
+            //     factionID,
+            //     waitForElement(`#faction-crimes-root [class*="buttonsContainer__"]`),
+            // ]);
         })
-        .then(([data, userID, factionID, memberSelectorContainer]) => {
-            if (memberSelectorContainer == null) {
-                log("Failed to load container .buttonsContainer for the memberSelector");
-                throw new Error("Failed to find container for memberSelector");
-            }
+        // .then(([data, userID, factionID, memberSelectorContainer]) => {
+        //     if (memberSelectorContainer == null) {
+        //         log("Failed to load container .buttonsContainer for the memberSelector");
+        //         throw new Error("Failed to find container for memberSelector");
+        //     }
 
-            injectMemberSelector(memberSelectorContainer, userID, factionID);
-            updateMemberOptimums(data);
-        });
+        //     // injectMemberSelector(memberSelectorContainer, userID, factionID);
+        //     //updateMemberOptimums(data);
+        // });
 }
 
 if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {

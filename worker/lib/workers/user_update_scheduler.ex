@@ -35,7 +35,7 @@ defmodule Tornium.Workers.UserUpdateScheduler do
     queue: :scheduler,
     tags: ["scheduler", "user"]
 
-  @max_chunk if Application.compile_env!(:tornium, :env) == :dev, do: 10, else: 100
+  @max_chunk if Application.compile_env(:tornium, :env) == :dev, do: 10, else: 100
   @update_niceness 10
 
   @impl Oban.Worker

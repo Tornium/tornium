@@ -17,6 +17,8 @@ state.last_triggered = state.last_triggered or {}
 -- Preprocessed variables
 ---@type number
 MINUTES = tonumber(MINUTES) or 5
+---@type integer[]
+ROLES = tornium.to_list(ROLES or {}, "integer") or {}
 ---@type boolean
 ONLY_RW = tornium.to_boolean(ONLY_RW) or false
 
@@ -105,6 +107,7 @@ end)
 local render_state = {
   faction_name = faction.name,
   configured_minutes = MINUTES,
+  configured_roles = ROLES,
   members_leaving_hosp = members_leaving_hosp
 }
 

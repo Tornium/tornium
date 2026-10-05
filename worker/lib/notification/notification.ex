@@ -265,6 +265,7 @@ defmodule Tornium.Notification do
   defp handle_api_response(%{} = response, trigger, notifications) when is_list(notifications) do
     Enum.map(notifications, fn %Tornium.Schema.Notification{} = notification ->
       Tornium.Notification.Lua.execute_lua(trigger.code, generate_lua_state_map(notification, response))
+      |> IO.inspect(label: "execution result")
       |> update_passthrough_state(notification)
       |> handle_lua_states(notification)
     end)

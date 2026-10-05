@@ -36,7 +36,7 @@ defmodule Tornium.Notification.FactionSelfHosp.Test do
     assert {[false, render_state, _passthrough_state], _vm} = Lua.eval!(vm, notification.code)
 
     assert_unordered(
-      [{"configured_minutes", 5}, {"members_leaving_hosp", []}, {"faction_name", "Test"}],
+      [{"configured_minutes", 5}, {"members_leaving_hosp", []}, {"faction_name", "Test"}, {"configured_roles", []}],
       render_state
     )
   end
@@ -113,6 +113,7 @@ defmodule Tornium.Notification.FactionSelfHosp.Test do
       })
       # Parameters
       |> Lua.set!(["MINUTES"], @minutes)
+      |> Lua.set!(["ROLES"], "1,2,3")
       |> Lua.set!(["ONLY_RW"], "true")
       # Internal notification data
       |> Lua.set!(["state"], %{})
@@ -122,7 +123,8 @@ defmodule Tornium.Notification.FactionSelfHosp.Test do
     assert %{
              "configured_minutes" => 5,
              "members_leaving_hosp" => %{1 => %{"id" => 1}},
-             "faction_name" => "Test"
+             "faction_name" => "Test",
+             "configured_roles" => %{1 => 1, 2 => 2, 3 => 3},
            } = Tornium.Utils.tuples_to_map(render_state)
   end
 end

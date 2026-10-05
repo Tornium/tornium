@@ -336,7 +336,10 @@ defmodule Tornium.Faction.ChainMonitor do
     end
   end
 
-  if Application.compile_env!(:tornium, :env) == :test do
+  if Application.compile_env(:tornium, :env, :test) == :test do
+    # We want to override send_message for test cases to avoid Discord API calls. This will
+    # fallback to the `:test` environment so that notification_inator can work as expected
+    # without having a config.
     defp send_message(_faction_id, message) do
       {:ok, message}
     end

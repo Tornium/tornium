@@ -1,5 +1,5 @@
 {
-"content": "{% for index in (1..members_leaving_hosp.size) limit: 25 %}{{ members_leaving_hosp[index].discord }} {% endfor %}Self hospitalize!",
+	"content": "{% for index in (1..configured_roles.size) %}<@&{{ configured_roles[index] }}> {% endfor %}{% for index in (1..members_leaving_hosp.size) limit: 25 %}{{ members_leaving_hosp[index].discord }} {% endfor %}Self hospitalize!",
 	"embeds": [
 		{
 			"title": "Members Leaving Hospital",

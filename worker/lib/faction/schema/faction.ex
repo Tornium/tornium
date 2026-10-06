@@ -35,7 +35,8 @@ defmodule Tornium.Schema.Faction do
           od_data: map(),
           last_members: DateTime.t(),
           last_attacks: DateTime.t(),
-          has_migrated_oc: boolean()
+          has_migrated_oc: boolean(),
+          chains: [Tornium.Schema.Chain.t()]
         }
 
   @primary_key {:tid, :integer, autogenerate: false}
@@ -58,6 +59,8 @@ defmodule Tornium.Schema.Faction do
     field(:last_members, :utc_datetime_usec)
     field(:last_attacks, :utc_datetime_usec)
     field(:has_migrated_oc, :boolean)
+
+    has_many(:chains, Tornium.Schema.Chain, references: :tid, foreign_key: :faction_id)
   end
 
   @doc """

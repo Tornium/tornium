@@ -15,22 +15,27 @@
 
 defmodule Tornium.Schema.Chain do
   @moduledoc """
-  Faction chain data.
+  A chain for a faction.
+
+  If the chain is not in cooldown yet, the chain `:end_timestamp` will be `nil` and the
+  `:length` will be updated as the chain progresses.
   """
 
   use Ecto.Schema
 
   @type t :: %__MODULE__{
-          id: pos_integer(),
+          chain_id: pos_integer(),
           faction_id: pos_integer(),
           faction: Tornium.Schema.Faction.t(),
+          length: 0..100_000,
           start_timestamp: DateTime.t(),
           end_timestamp: DateTime.t() | nil
         }
 
-  @primary_key {:id, :integer, autogenerate: false}
+  @primary_key {:chain_id, :integer, autogenerate: false}
   schema "chain" do
     belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
+    field(:length, :integer)
     field(:start_timestamp, :utc_datetime)
     field(:end_timestamp, :utc_datetime)
   end

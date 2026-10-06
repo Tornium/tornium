@@ -105,6 +105,7 @@ defmodule Tornium.Test.Faction.ChainMonitor.Discovery do
 
     test "excludes factions whose chain has ended", %{chain: chain} do
       now = DateTime.utc_now() |> DateTime.truncate(:second)
+
       Tornium.Schema.Chain
       |> where([c], c.chain_id == ^chain.chain_id)
       |> update([c], set: [end_timestamp: ^now])

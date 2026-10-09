@@ -37,6 +37,7 @@ defmodule Tornium.Schema.Server do
           armory_enabled: boolean(),
           armory_config: map(),
           oc_config: map(),
+          attack_configs: [Tornium.Schema.ServerAttackConfig.t()],
           notifications_config: Tornium.Schema.ServerNotificationsConfig.t()
         }
 
@@ -66,6 +67,7 @@ defmodule Tornium.Schema.Server do
 
     field(:oc_config, :map)
 
+    has_many(:attack_configs, Tornium.Schema.ServerAttackConfig, foreign_key: :server_id, references: :sid)
     has_one(:notifications_config, Tornium.Schema.ServerNotificationsConfig, foreign_key: :server_id, references: :sid)
   end
 

@@ -88,8 +88,7 @@ defmodule Tornium.Application do
       Tornex.HTTP.FinchClient,
       Tornex.NodeRatelimiter,
       Tornex.Scheduler.Supervisor,
-      Tornium.Item.NameCache,
-      Tornium.Faction.ChainMonitor.Supervisor
+      Tornium.Item.NameCache
     ]
   end
 end

@@ -20,6 +20,8 @@ defmodule Tornium.Test.Faction.ChainMonitor do
   @api_key Application.compile_env(:tornium, :api_key)
 
   defp setup do
+    start_supervised!(Tornium.Faction.ChainMonitor.Supervisor)
+
     %Tornium.Schema.Server{sid: 1, name: "Test server", factions: [0, 1]} |> Repo.insert!()
     %Tornium.Schema.Faction{tid: 0, name: "0", guild_id: 1} |> Repo.insert!()
     %Tornium.Schema.Faction{tid: 1, name: "1", guild_id: 1} |> Repo.insert!()
@@ -65,8 +67,11 @@ defmodule Tornium.Test.Faction.ChainMonitor do
       chain_length: 1500
     }
 
-    assert {:stop, "Stopped ChainMonitor as chain has ended for faction 0"} =
-             ChainMonitor.handle_continue(:message, state)
+    assert {
+             :stop,
+             {:shutdown, "Stopped ChainMonitor as chain has ended for faction 0"},
+             %Tornium.Faction.ChainMonitor.State{}
+           } = ChainMonitor.handle_continue(:message, state)
 
     GenServer.stop(pid)
   end

@@ -27,9 +27,12 @@ defmodule Tornium.Faction.ChainMonitor do
   is low, we should increase the API call frequency to ensure notifications are sent to keep the chain alive.
   """
 
-  use GenServer
+  use GenServer, restart: :transient
   import Ecto.Query
   alias Tornium.Repo
+
+  # During the initial testing period, these are the only factions the feature will run for.
+  @permitted_factions [52_355, 24_218, 15_644, 12_894]
 
   @doc """
   Start a ChainMonitor for a specific faction.
@@ -40,24 +43,29 @@ defmodule Tornium.Faction.ChainMonitor do
 
   ## Options
     * `:faction_id` - The Torn ID of the faction the ChainMonitor will be started against (required)
+    * `:chain_id` - The Torn ID of the current chain of the faction (default: `nil`)
   """
   @spec start_link(opts :: keyword()) :: GenServer.on_start()
   def start_link(opts \\ []) do
     faction_id = Keyword.fetch!(opts, :faction_id)
 
-    # We should check if the faction is configured properly here and not start the server if it isn't.
-    case Tornium.Schema.ServerAttackConfig.config(faction_id) do
-      nil ->
-        {:error, "Missing configuration"}
+    if Enum.member?(@permitted_factions, faction_id) do
+      # We should check if the faction is configured properly here and not start the server if it isn't.
+      case Tornium.Schema.ServerAttackConfig.config(faction_id) do
+        nil ->
+          {:error, "Missing configuration"}
 
-      %Tornium.Schema.ServerAttackConfig{chain_alert_channel: chain_alert_channel}
-      when is_integer(chain_alert_channel) and chain_alert_channel > 0 ->
-        GenServer.start_link(__MODULE__, opts,
-          name: {:via, Registry, {Tornium.Faction.ChainMonitor.Registry, faction_id}}
-        )
+        %Tornium.Schema.ServerAttackConfig{chain_alert_channel: chain_alert_channel}
+        when is_integer(chain_alert_channel) and chain_alert_channel > 0 ->
+          GenServer.start_link(__MODULE__, opts,
+            name: {:via, Horde.Registry, {Tornium.Faction.ChainMonitor.Registry, faction_id}}
+          )
 
-      %Tornium.Schema.ServerAttackConfig{} ->
-        {:error, "Invalid configuration"}
+        %Tornium.Schema.ServerAttackConfig{} ->
+          {:error, "Invalid configuration"}
+      end
+    else
+      {:error, "Faction not allowed during testing period"}
     end
   end
 
@@ -98,7 +106,7 @@ defmodule Tornium.Faction.ChainMonitor do
         })
 
         disable(faction_id, reason: "No AA API keys found")
-        {:stop, "Stopped ChainMonitor as no API key was found for faction #{faction_id}"}
+        {:stop, {:shutdown, "Stopped ChainMonitor as no API key was found for faction #{faction_id}"}, state}
 
       %Tornex.SpecQuery{} = initial_query ->
         chain_data = Tornex.Scheduler.Bucket.enqueue(initial_query)
@@ -162,7 +170,7 @@ defmodule Tornium.Faction.ChainMonitor do
     case Tornium.Schema.ServerAttackConfig.config(faction_id) do
       %Tornium.Schema.ServerAttackConfig{chain_alert_channel: chain_alert_channel}
       when not is_integer(chain_alert_channel) or chain_alert_channel <= 0 ->
-        {:stop, "Stopped ChainMonitor as the feature was disabled for faction #{faction_id}"}
+        {:stop, {:shutdown, "Stopped ChainMonitor as the feature was disabled for faction #{faction_id}"}, state}
 
       _ when seconds_left <= 0 ->
         # When the chain timer is 0, we should stop the ChainMonitor to reduce resource usage.
@@ -171,12 +179,16 @@ defmodule Tornium.Faction.ChainMonitor do
             "ChainMonitor has stopped for faction ID #{faction_id} as the chain has ended at chain ##{Tornium.Utils.commas(chain_length)}."
         })
 
-        {:stop, "Stopped ChainMonitor as chain has ended for faction #{faction_id}"}
+        {:stop, {:shutdown, "Stopped ChainMonitor as chain has ended for faction #{faction_id}"}, state}
 
-      %Tornium.Schema.ServerAttackConfig{chain_alert_minimum: chain_alert_minimum}
+      %Tornium.Schema.ServerAttackConfig{
+        faction: %Tornium.Schema.Faction{name: faction_name},
+        chain_alert_minimum: chain_alert_minimum
+      }
       when seconds_left <= chain_alert_minimum ->
         # Since there are fewer seconds left on the chain than the configured minimum, we should try to send
         # an notifiction for this.
+
         # TODO: Add the role ping to this
         faction_id
         |> send_message(%Nostrum.Struct.Message{
@@ -185,7 +197,7 @@ defmodule Tornium.Faction.ChainMonitor do
             %Nostrum.Struct.Embed{
               title: "Chain Timer Alert",
               description:
-                "The chain timer for {faction.name} [#{faction_id}] will reach zero <t:#{DateTime.to_unix(last_attack) + 300}:R> with a current chain length of #{Tornium.Utils.commas(chain_length)}.",
+                "The chain timer for #{faction_name} [#{faction_id}] will reach zero <t:#{DateTime.to_unix(last_attack) + 300}:R> with a current chain length of #{Tornium.Utils.commas(chain_length)}.",
               color: Tornium.Discord.Constants.colors()[:error]
             }
           ]
@@ -200,7 +212,7 @@ defmodule Tornium.Faction.ChainMonitor do
       nil ->
         # Since there is no configuration found for the faction, we can stop the ChainMonitor for the faction.
         disable(faction_id, reason: "No configuration found")
-        {:stop, "Stopped ChainMonitor as no configuration was found for faction #{faction_id}"}
+        {:stop, {:shutdown, "Stopped ChainMonitor as no configuration was found for faction #{faction_id}"}, state}
     end
   end
 
@@ -225,7 +237,7 @@ defmodule Tornium.Faction.ChainMonitor do
         })
 
         disable(faction_id, reason: "No AA API keys found")
-        {:stop, "Stopped ChainMonitor as no API key was found for faction #{faction_id}"}
+        {:stop, {:shutdown, "Stopped ChainMonitor as no API key was found for faction #{faction_id}"}, state}
 
       %Tornex.SpecQuery{} = chain_query ->
         chain_data = Tornex.Scheduler.Bucket.enqueue(chain_query)
@@ -260,7 +272,7 @@ defmodule Tornium.Faction.ChainMonitor do
         })
 
         disable(faction_id, reason: "No AA API keys found")
-        {:stop, "Stopped ChainMonitor as no API key was found for faction #{faction_id}"}
+        {:stop, {:shutdown, "Stopped ChainMonitor as no API key was found for faction #{faction_id}"}, state}
 
       %Tornex.SpecQuery{} = chain_query ->
         chain_data = Tornex.Scheduler.Bucket.enqueue(chain_query)
@@ -282,11 +294,11 @@ defmodule Tornium.Faction.ChainMonitor do
           state :: Tornium.Faction.ChainMonitor.State.t()
         ) ::
           {:noreply, Tornium.Faction.ChainMonitor.State.t()}
-          | {:stop, reason :: term(), Tornium.Faction.ChainMonitor.State.t()}
+          | {:stop, {:shutdown, reason :: term()}, Tornium.Faction.ChainMonitor.State.t()}
   defp try_timer(
          {:error, %Nostrum.Error.ApiError{response: %{code: discord_error_code, message: discord_error_message}}} =
            _message_response,
-         %Tornium.Faction.ChainMonitor.State{faction_id: faction_id} = _state
+         %Tornium.Faction.ChainMonitor.State{faction_id: faction_id} = state
        )
        when discord_error_code in [
               # Unknown channel
@@ -305,12 +317,14 @@ defmodule Tornium.Faction.ChainMonitor do
     # Since there was some sort of error from the Discord API, we should stop the ChainMonitor if the error
     # code indicates that no message could be sent.
     disable(faction_id, reason: "Discord error #{discord_error_code} (#{discord_error_message})")
-    {:stop, "Stopped ChainMonitor as Discord errored code #{discord_error_code} for faction #{faction_id}"}
+
+    {:stop, {:shutdown, "Stopped ChainMonitor as Discord errored code #{discord_error_code} for faction #{faction_id}"},
+     state}
   end
 
   defp try_timer({:error, %Nostrum.Error.ApiError{}} = _message_response, %Tornium.Faction.ChainMonitor.State{} = state) do
-    # As ths error code hasn't been caught above, we can assume ths error to be some sort of transient error that
-    # may go away the next iteration of the timer's execution.
+    # As ths error code hasn't been caught above, we can assume ths error to be some sort of
+    # transient error that may go away the next iteration of the timer's execution.
     {:noreply, Tornium.Faction.ChainMonitor.State.set_timer(state)}
   end
 
@@ -336,6 +350,10 @@ defmodule Tornium.Faction.ChainMonitor do
     end
   end
 
+  @spec send_message(faction_id :: pos_integer(), message :: Nostrum.Struct.Message.t()) ::
+          Nostrum.Api.error() | {:ok, Nostrum.Struct.Message.t()}
+  defp send_message(faction_id, message)
+
   if Application.compile_env(:tornium, :env, :test) == :test do
     # We want to override send_message for test cases to avoid Discord API calls. This will
     # fallback to the `:test` environment so that notification_inator can work as expected
@@ -343,29 +361,27 @@ defmodule Tornium.Faction.ChainMonitor do
     defp send_message(_faction_id, message) do
       {:ok, message}
     end
-  end
+  else
+    defp send_message(faction_id, %Nostrum.Struct.Message{} = message) when is_integer(faction_id) do
+      faction_id
+      |> Tornium.Schema.ServerAttackConfig.config()
+      |> send_message(message)
+    end
 
-  @spec send_message(faction_id :: pos_integer(), message :: Nostrum.Struct.Message.t()) ::
-          Nostrum.Api.error() | {:ok, Nostrum.Struct.Message.t()}
-  defp send_message(faction_id, %Nostrum.Struct.Message{} = message) when is_integer(faction_id) do
-    faction_id
-    |> Tornium.Schema.ServerAttackConfig.config()
-    |> send_message(message)
-  end
-
-  @spec send_message(faction_config :: Tornium.Schema.ServerAttackConfig.t(), message :: Nostrum.Struct.Message.t()) ::
-          Nostrum.Api.error() | {:ok, Nostrum.Struct.Message.t()}
-  defp send_message(
-         %Tornium.Schema.ServerAttackConfig{chain_alert_channel: chain_alert_channel} = _faction_config,
-         %Nostrum.Struct.Message{} = message
-       )
-       when not is_nil(chain_alert_channel) and chain_alert_channel != 0 do
-    Nostrum.Api.Message.create(
-      chain_alert_channel,
-      message
-      |> Map.from_struct()
-      |> Map.to_list()
-    )
+    @spec send_message(faction_config :: Tornium.Schema.ServerAttackConfig.t(), message :: Nostrum.Struct.Message.t()) ::
+            Nostrum.Api.error() | {:ok, Nostrum.Struct.Message.t()}
+    defp send_message(
+           %Tornium.Schema.ServerAttackConfig{chain_alert_channel: chain_alert_channel} = _faction_config,
+           %Nostrum.Struct.Message{} = message
+         )
+         when not is_nil(chain_alert_channel) and chain_alert_channel != 0 do
+      Nostrum.Api.Message.create(
+        chain_alert_channel,
+        message
+        |> Map.from_struct()
+        |> Map.to_list()
+      )
+    end
   end
 
   @doc """

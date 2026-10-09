@@ -35,8 +35,11 @@ defmodule Tornium.Schema.Faction do
           od_data: map(),
           last_members: DateTime.t(),
           last_attacks: DateTime.t(),
-          has_migrated_oc: boolean()
+          has_migrated_oc: boolean(),
+          chains: [Tornium.Schema.Chain.t()]
         }
+
+  @type ensure_exists_faction :: {faction_id :: pos_integer(), faction_name :: String.t() | nil}
 
   @primary_key {:tid, :integer, autogenerate: false}
   schema "faction" do
@@ -58,6 +61,8 @@ defmodule Tornium.Schema.Faction do
     field(:last_members, :utc_datetime_usec)
     field(:last_attacks, :utc_datetime_usec)
     field(:has_migrated_oc, :boolean)
+
+    has_many(:chains, Tornium.Schema.Chain, references: :tid, foreign_key: :faction_id)
   end
 
   @doc """
@@ -158,5 +163,32 @@ defmodule Tornium.Schema.Faction do
     Tornium.Schema.User
     |> where([u], u.tid not in ^current_member_ids and u.faction_id == ^faction_id)
     |> Repo.update_all(set: [faction_id: nil, faction_aa: false, faction_position_id: nil])
+  end
+
+  @doc """
+  Bulk upsert factions' IDs and names to ensure that exist in the database.
+
+  This is to prevent failures in other inserts/upserts that depend upon the faction table
+  as a foreign key.
+  """
+  @spec ensure_exists(factions :: [ensure_exists_faction()]) :: :ok
+  def ensure_exists(factions) when is_list(factions) do
+    mapped_factions =
+      factions
+      |> Enum.reject(fn {faction_id, _faction_name} -> is_nil(faction_id) end)
+      |> Enum.uniq_by(fn {faction_id, _faction_name} when is_integer(faction_id) -> faction_id end)
+      |> Enum.map(fn {faction_id, faction_name}
+                     when is_integer(faction_id) and (is_binary(faction_name) or is_nil(faction_name)) ->
+        %{tid: faction_id, name: faction_name}
+      end)
+
+    Repo.insert_all(
+      __MODULE__,
+      mapped_factions,
+      on_conflict: :nothing,
+      conflict_target: :tid
+    )
+
+    :ok
   end
 end

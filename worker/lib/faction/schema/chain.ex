@@ -70,7 +70,7 @@ defmodule Tornium.Schema.Chain do
       chain_id: chain_id,
       faction_id: faction_id,
       length: chain_length,
-      start_timestamp: chain_start_timestamp,
+      start_timestamp: chain_start_timestamp |> DateTime.from_unix!(:second),
       end_timestamp: nil
     }
   end
@@ -89,8 +89,8 @@ defmodule Tornium.Schema.Chain do
       chain_id: chain_id,
       faction_id: faction_id,
       length: chain_length,
-      start_timestamp: chain_start_timestamp,
-      end_timestamp: chain_end_timestamp
+      start_timestamp: chain_start_timestamp |> DateTime.from_unix!(:second),
+      end_timestamp: chain_end_timestamp |> DateTime.from_unix!(:second)
     }
   end
 
@@ -108,8 +108,8 @@ defmodule Tornium.Schema.Chain do
       chain_id: chain_id,
       faction_id: faction_id,
       length: chain_length,
-      start_timestamp: chain_start_timestamp,
-      end_timestamp: chain_end_timestamp
+      start_timestamp: chain_start_timestamp |> DateTime.from_unix!(:second),
+      end_timestamp: chain_end_timestamp |> DateTime.from_unix!(:second)
     }
   end
 
@@ -137,6 +137,15 @@ defmodule Tornium.Schema.Chain do
   @spec upsert_all(chains :: [Torngen.Client.Schema.FactionChainWarfare.t()]) ::
           {non_neg_integer(), [pos_integer()]}
   def upsert_all([%Torngen.Client.Schema.FactionChainWarfare{} | _] = chains) do
+    chains
+    |> Enum.map(fn %Torngen.Client.Schema.FactionChainWarfare{values: chain_data_values} ->
+      %{faction: %{id: faction_id, name: faction_name}} =
+        Enum.find(chain_data_values, &match?(%{faction: %{id: _}}, &1))
+
+      {faction_id, faction_name}
+    end)
+    |> Tornium.Schema.Faction.ensure_exists()
+
     chains
     |> Enum.map(&map/1)
     |> Enum.reject(&(&1.length < @minimum_chain_length))

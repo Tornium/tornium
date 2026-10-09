@@ -35,8 +35,8 @@ defmodule Tornium.Faction.ChainMonitor.Supervisor do
   @impl true
   def init(opts \\ []) do
     children = [
-      {Registry, keys: :unique, name: Tornium.Faction.ChainMonitor.Registry},
-      {DynamicSupervisor, name: Tornium.Faction.ChainMonitor.MonitorSupervisor, strategy: :one_for_one},
+      {Horde.Registry, keys: :unique, name: Tornium.Faction.ChainMonitor.Registry},
+      {Horde.DynamicSupervisor, name: Tornium.Faction.ChainMonitor.MonitorSupervisor, strategy: :one_for_one},
       Tornium.Faction.ChainMonitor.Discovery
     ]
 

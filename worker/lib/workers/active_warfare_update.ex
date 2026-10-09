@@ -82,11 +82,13 @@ defmodule Tornium.Workers.ActiveWarfareUpdate do
     # not entirely reliable.
 
     latest_start_timstamp =
-      Enum.max_by(chain_data, fn %Torngen.Client.Schema.FactionChainWarfare{values: chain_data_values} ->
+      chain_data
+      |> Enum.max_by(fn %Torngen.Client.Schema.FactionChainWarfare{values: chain_data_values} ->
         chain_data_values
         |> Enum.find(&match?(%Torngen.Client.Schema.FactionChain{}, &1))
         |> Map.get(:start)
       end)
+      |> Map.get(:start)
 
     # Since the database can de-duplicate existing chains when it's upserting the data, we
     # should use the latest timestamp instead of the timstamp plus one to avoid losing

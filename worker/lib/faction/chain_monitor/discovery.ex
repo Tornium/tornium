@@ -63,7 +63,7 @@ defmodule Tornium.Faction.ChainMonitor.Discovery do
   end
 
   @doc false
-  @spec chaining_faction_ids() :: [pos_integer()]
+  @spec chaining_faction_ids() :: [{faction_id :: pos_integer(), chain_id :: pos_integer()}]
   def chaining_faction_ids() do
     Tornium.Schema.TornKey
     |> where([k], k.default == true and k.disabled == false and k.paused == false and k.access_level >= :limited)
@@ -82,7 +82,7 @@ defmodule Tornium.Faction.ChainMonitor.Discovery do
       sac.faction_id == f.tid and sac.chain_alert_channel != 0 and not is_nil(sac.chain_alert_channel)
     )
     |> distinct([k, u, f, c, s, sac], f.tid)
-    |> select([k, u, f, c, s, sac], f.tid)
+    |> select([k, u, f, c, s, sac], {f.tid, c.chain_id})
     |> Repo.all()
   end
 
@@ -91,11 +91,11 @@ defmodule Tornium.Faction.ChainMonitor.Discovery do
     Process.send_after(self(), :discover, discovery_interval)
   end
 
-  @spec start_monitor(faction_id :: pos_integer()) :: DynamicSupervisor.on_start_child()
-  defp start_monitor(faction_id) when is_integer(faction_id) do
+  @spec start_monitor({faction_id :: pos_integer(), chain_id :: pos_integer()}) :: DynamicSupervisor.on_start_child()
+  defp start_monitor({faction_id, chain_id}) when is_integer(faction_id) and is_integer(chain_id) do
     Horde.DynamicSupervisor.start_child(
       Tornium.Faction.ChainMonitor.MonitorSupervisor,
-      {Tornium.Faction.ChainMonitor, [faction_id: faction_id]}
+      {Tornium.Faction.ChainMonitor, [faction_id: faction_id, chain_id: chain_id]}
     )
   end
 end

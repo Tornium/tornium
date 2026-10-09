@@ -75,6 +75,8 @@ defmodule Tornium.Workers.ChainUpdate do
 
     chain_report
     |> Tornium.Schema.Chain.upsert(faction_id)
+
+    :ok
   end
 
   defp do_perform(%{"chains" => _} = api_call_result, chain_id, faction_id)
@@ -95,6 +97,8 @@ defmodule Tornium.Workers.ChainUpdate do
     chains
     |> Enum.find(&(&1.id == chain_id))
     |> Tornium.Schema.Chain.upsert(faction_id)
+
+    :ok
   end
 
   @doc """

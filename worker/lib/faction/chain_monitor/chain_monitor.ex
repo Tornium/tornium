@@ -31,6 +31,9 @@ defmodule Tornium.Faction.ChainMonitor do
   import Ecto.Query
   alias Tornium.Repo
 
+  # During the initial testing period, these are the only factions the feature will run for.
+  @permitted_factions [52_355, 24_218, 15_644, 12_894]
+
   @doc """
   Start a ChainMonitor for a specific faction.
 
@@ -46,19 +49,23 @@ defmodule Tornium.Faction.ChainMonitor do
   def start_link(opts \\ []) do
     faction_id = Keyword.fetch!(opts, :faction_id)
 
-    # We should check if the faction is configured properly here and not start the server if it isn't.
-    case Tornium.Schema.ServerAttackConfig.config(faction_id) do
-      nil ->
-        {:error, "Missing configuration"}
+    if Enum.member?(@permitted_factions, faction_id) do
+      # We should check if the faction is configured properly here and not start the server if it isn't.
+      case Tornium.Schema.ServerAttackConfig.config(faction_id) do
+        nil ->
+          {:error, "Missing configuration"}
 
-      %Tornium.Schema.ServerAttackConfig{chain_alert_channel: chain_alert_channel}
-      when is_integer(chain_alert_channel) and chain_alert_channel > 0 ->
-        GenServer.start_link(__MODULE__, opts,
-          name: {:via, Horde.Registry, {Tornium.Faction.ChainMonitor.Registry, faction_id}}
-        )
+        %Tornium.Schema.ServerAttackConfig{chain_alert_channel: chain_alert_channel}
+        when is_integer(chain_alert_channel) and chain_alert_channel > 0 ->
+          GenServer.start_link(__MODULE__, opts,
+            name: {:via, Horde.Registry, {Tornium.Faction.ChainMonitor.Registry, faction_id}}
+          )
 
-      %Tornium.Schema.ServerAttackConfig{} ->
-        {:error, "Invalid configuration"}
+        %Tornium.Schema.ServerAttackConfig{} ->
+          {:error, "Invalid configuration"}
+      end
+    else
+      {:error, "Faction not allowed during testing period"}
     end
   end
 
@@ -174,10 +181,14 @@ defmodule Tornium.Faction.ChainMonitor do
 
         {:stop, {:shutdown, "Stopped ChainMonitor as chain has ended for faction #{faction_id}"}, state}
 
-      %Tornium.Schema.ServerAttackConfig{chain_alert_minimum: chain_alert_minimum}
+      %Tornium.Schema.ServerAttackConfig{
+        faction: %Tornium.Schema.Faction{name: faction_name},
+        chain_alert_minimum: chain_alert_minimum
+      }
       when seconds_left <= chain_alert_minimum ->
         # Since there are fewer seconds left on the chain than the configured minimum, we should try to send
         # an notifiction for this.
+
         # TODO: Add the role ping to this
         faction_id
         |> send_message(%Nostrum.Struct.Message{
@@ -186,7 +197,7 @@ defmodule Tornium.Faction.ChainMonitor do
             %Nostrum.Struct.Embed{
               title: "Chain Timer Alert",
               description:
-                "The chain timer for {faction.name} [#{faction_id}] will reach zero <t:#{DateTime.to_unix(last_attack) + 300}:R> with a current chain length of #{Tornium.Utils.commas(chain_length)}.",
+                "The chain timer for #{faction_name} [#{faction_id}] will reach zero <t:#{DateTime.to_unix(last_attack) + 300}:R> with a current chain length of #{Tornium.Utils.commas(chain_length)}.",
               color: Tornium.Discord.Constants.colors()[:error]
             }
           ]

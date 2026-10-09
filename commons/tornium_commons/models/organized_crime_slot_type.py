@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import typing
+
 from peewee import BooleanField, CharField, ForeignKeyField, SmallIntegerField
 from playhouse.postgres_ext import UUIDField
 
@@ -34,3 +36,12 @@ class OrganizedCrimeSlotType(BaseModel):
 
     required_item = ForeignKeyField(Item, default=None, null=True)
     required_item_consumed = BooleanField(default=None, null=True)
+
+    @staticmethod
+    def parse_slot(name: str) -> typing.Tuple[str, int]:
+        base, seperator, index = name.rpartition("#")
+
+        if seperator and index.strip().isdigit():
+            return base.strip(), int(index.strip())
+
+        return name.strip(), 1

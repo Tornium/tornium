@@ -99,8 +99,8 @@ defmodule Tornium.Test.Faction.ChainMonitor.Discovery do
   end
 
   describe "chaining_faction_ids/0" do
-    test "returns a fully configured faction with an open chain", %{faction: faction} do
-      assert Discovery.chaining_faction_ids() == [faction.tid]
+    test "returns a fully configured faction with an open chain", %{faction: faction, chain: chain} do
+      assert Discovery.chaining_faction_ids() == [{faction.tid, chain.chain_id}]
     end
 
     test "excludes factions whose chain has ended", %{chain: chain} do
@@ -123,7 +123,11 @@ defmodule Tornium.Test.Faction.ChainMonitor.Discovery do
       assert Discovery.chaining_faction_ids() == []
     end
 
-    test "returns a faction once even with multiple AA keys", %{faction: faction, faction_position: faction_position} do
+    test "returns a faction once even with multiple AA keys", %{
+      chain: chain,
+      faction: faction,
+      faction_position: faction_position
+    } do
       user_id = unique_id()
 
       Repo.insert!(%Tornium.Schema.User{
@@ -143,17 +147,17 @@ defmodule Tornium.Test.Faction.ChainMonitor.Discovery do
         access_level: :full
       })
 
-      assert Discovery.chaining_faction_ids() == [faction.tid]
+      assert Discovery.chaining_faction_ids() == [{faction.tid, chain.chain_id}]
     end
   end
 
   describe "discovery loop" do
-    test "starts a monitor for each discovered faction", %{faction: faction} do
+    test "starts a monitor for each discovered faction", %{chain: chain, faction: faction} do
       pid = start_discovery(discovery_interval: 60_000)
 
       send(pid, :discover)
-      assert_receive {:started, tid}
-      assert tid == faction.tid
+      assert_receive {:started, started_id}
+      assert started_id == {faction.tid, chain.chain_id}
     end
 
     test "keeps rediscovering at the configured interval" do

@@ -67,8 +67,11 @@ defmodule Tornium.Test.Faction.ChainMonitor do
       chain_length: 1500
     }
 
-    assert {:stop, "Stopped ChainMonitor as chain has ended for faction 0"} =
-             ChainMonitor.handle_continue(:message, state)
+    assert {
+             :stop,
+             {:shutdown, "Stopped ChainMonitor as chain has ended for faction 0"},
+             %Tornium.Faction.ChainMonitor.State{}
+           } = ChainMonitor.handle_continue(:message, state)
 
     GenServer.stop(pid)
   end

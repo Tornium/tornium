@@ -40,7 +40,10 @@ defmodule Tornium.Faction.ChainMonitor.Discovery do
     # attempting to spawn the same chain's `ChainMonitor`.
     {name, opts} = Keyword.pop(opts, :name, {:global, __MODULE__})
 
-    GenServer.start_link(__MODULE__, opts, name: name)
+    case GenServer.start_link(__MODULE__, opts, name: name) do
+      {:ok, pid} -> {:ok, pid}
+      {:error, {:already_started, _pid}} -> :ignore
+    end
   end
 
   @impl true

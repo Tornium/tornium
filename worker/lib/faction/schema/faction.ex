@@ -177,7 +177,8 @@ defmodule Tornium.Schema.Faction do
       factions
       |> Enum.reject(fn {faction_id, _faction_name} -> is_nil(faction_id) end)
       |> Enum.uniq_by(fn {faction_id, _faction_name} when is_integer(faction_id) -> faction_id end)
-      |> Enum.map(fn {faction_id, faction_name} when is_integer(faction_id) and (is_binary(faction_name) or is_nil(faction_name)) ->
+      |> Enum.map(fn {faction_id, faction_name}
+                     when is_integer(faction_id) and (is_binary(faction_name) or is_nil(faction_name)) ->
         %{tid: faction_id, name: faction_name}
       end)
 

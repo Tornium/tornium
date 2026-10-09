@@ -306,7 +306,9 @@ defmodule Tornium.Faction.ChainMonitor do
     # Since there was some sort of error from the Discord API, we should stop the ChainMonitor if the error
     # code indicates that no message could be sent.
     disable(faction_id, reason: "Discord error #{discord_error_code} (#{discord_error_message})")
-    {:stop, {:shutdown, "Stopped ChainMonitor as Discord errored code #{discord_error_code} for faction #{faction_id}"}, state}
+
+    {:stop, {:shutdown, "Stopped ChainMonitor as Discord errored code #{discord_error_code} for faction #{faction_id}"},
+     state}
   end
 
   defp try_timer({:error, %Nostrum.Error.ApiError{}} = _message_response, %Tornium.Faction.ChainMonitor.State{} = state) do

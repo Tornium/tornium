@@ -41,7 +41,7 @@ defmodule Tornium.Schema.FactionPosition do
   end
 
   @doc """
-  Map the faction position data for a specfic position to a `Tornium.Schema.FactionPosition`.
+  Map the faction position data for a specific position to a `Tornium.Schema.FactionPosition`.
   """
   @spec map(position_data :: Torngen.Client.Schema.FactionPosition.t(), faction_id :: pos_integer()) :: t()
   def map(

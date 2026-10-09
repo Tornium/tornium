@@ -28,6 +28,9 @@ If you have a full access API key on Tornium, we may collect your user logs for 
 ## Faction Attacks
 We may collect your faction attacks for potential retaliations, for the chain timer, for updating the stat database. This data (except for related data in the stat database) is not stored persistently. Your faction attacks cannot be accessed by anyone.
 
+## Faction Chains
+We collect your faction chains for the chain timer and for updating the global list of chains in the database. This data is stored persistently and cannot be access by anyone except through the chain watcher on the linked Discord server if configured.
+
 ## Faction Crimes
 We collect your faction organized crimes for related notifications (e.g. when an organized crime is delayed). This data is stored persistently and can be accessed by any member of your faction with the "Manage Organized Crimes" permission.
 

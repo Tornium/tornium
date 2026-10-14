@@ -32,13 +32,20 @@ in {
     services.pgbackrest.enable = cfg.enable;
     services.pgbackrest.settings = {
       backup-standby = "y";
-      # archive-async = "y";
+      archive-async = "y";
+      spool-path = "/var/spool/pgbackrest";
 
       compress-type = "zst";
       compress-level = 3;
 
       process-max = 5;
+
+      archive-push-queue-max = "20GiB";
     };
+    systemd.tmpfiles.rules = [
+      "d /var/spool/pgbackrest 0750 postgres postgres -"
+    ];
+
     services.pgbackrest.repos = {
       b2 = {
         type = "s3";

@@ -15,8 +15,10 @@
     max_wal_senders = "10";
     max_replication_slots = "10";
     wal_keep_size = "1GB";
-    min_wal_size = "80MB";
-    max_wal_size = "1GB";
+    min_wal_size = "1GB";
+    max_wal_size = "8GB";
+    checkpoint_timeout = "15min";
+    # wal_compression = "zstd";
 
     max_connections = "150";
 
@@ -63,8 +65,13 @@
     iptables -I INPUT 3 -p tcp --dport 5432 -j DROP
   '';
 
+  systemd.tmpfiles.rules = [
+    "d /var/spool/pgbackrest 0750 postgres postgres -"
+    "d /var/log/pgbackrest   0750 postgres postgres -"
+  ];
   systemd.services.postgresql.serviceConfig = {
       EnvironmentFile = config.sops.templates."pgbackrest.env".path;
       ReadOnlyPaths = [ config.sops.templates."pgbackrest.env".path ];
+      ReadWritePaths = [ "/var/spool/pgbackrest" "/var/log/pgbackrest" ];
   };
 }

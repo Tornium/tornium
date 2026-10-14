@@ -32,7 +32,7 @@ defmodule Tornium.Faction.ChainMonitor do
   alias Tornium.Repo
 
   # During the initial testing period, these are the only factions the feature will run for.
-  @permitted_factions [52_355, 24_218, 15_644, 12_894]
+  @permitted_factions [7_652, 52_355, 24_218, 15_644, 12_894]
 
   @doc """
   Start a ChainMonitor for a specific faction.
@@ -57,9 +57,7 @@ defmodule Tornium.Faction.ChainMonitor do
 
         %Tornium.Schema.ServerAttackConfig{chain_alert_channel: chain_alert_channel}
         when is_integer(chain_alert_channel) and chain_alert_channel > 0 ->
-          GenServer.start_link(__MODULE__, opts,
-            name: {:via, Horde.Registry, {Tornium.Faction.ChainMonitor.Registry, faction_id}}
-          )
+          GenServer.start_link(__MODULE__, opts, name: via(faction_id))
 
         %Tornium.Schema.ServerAttackConfig{} ->
           {:error, "Invalid configuration"}
@@ -78,10 +76,17 @@ defmodule Tornium.Faction.ChainMonitor do
   """
   @spec check(opts :: keyword()) :: :ok
   def check(opts \\ []) do
-    faction_id = Keyword.fetch!(opts, :faction_id)
     timeout = Keyword.get(opts, :timeout, 5_000)
 
-    GenServer.call({:via, Registry, {Tornium.Faction.ChainMonitor.Registry, faction_id}}, :check, timeout)
+    opts
+    |> Keyword.fetch!(:faction_id)
+    |> via()
+    |> GenServer.call(:check, timeout)
+  end
+
+  @spec via(faction_id :: pos_integer()) :: tuple()
+  defp via(faction_id) when is_integer(faction_id) do
+    {:via, Horde.Registry, {Tornium.Faction.ChainMonitor.Registry, faction_id}}
   end
 
   @impl true
@@ -148,9 +153,28 @@ defmodule Tornium.Faction.ChainMonitor do
 
   @impl true
   def handle_continue(:message, %Tornium.Faction.ChainMonitor.State{chain_length: chain_length} = state)
-      when is_integer(chain_length) and chain_length < 100 do
-    # Since the chain is below 100 hits, we can ignore the chain timer and not send any messages for it.
+      when chain_length == 0 do
+    # Since the chain is still at 0, we can ignore the chain timer and just wait until it's started.
     try_timer({:ok, nil}, state)
+  end
+
+  @impl true
+  def handle_continue(
+        :message,
+        %Tornium.Faction.ChainMonitor.State{
+          chain_id: chain_id,
+          chain_length: chain_length,
+          last_attack: last_attack
+        } = state
+      )
+      when is_integer(chain_length) and chain_length < 100 do
+    if not is_nil(last_attack) and DateTime.diff(last_attack, DateTime.utc_now(), :second) > 300 do
+      # Since there were more than 300 seconds since the last attack of the chain, the
+      # chain is now over. We can now end the ChainMonitor for this chain.
+      {:stop, {:shutdown, "Stopped ChainMonitor as the chain #{chain_id} ended"}, state}
+    else
+      try_timer({:ok, nil}, state)
+    end
   end
 
   @impl true
@@ -290,7 +314,7 @@ defmodule Tornium.Faction.ChainMonitor do
   end
 
   @spec try_timer(
-          message_response :: Nostrum.Api.error() | {:ok, Nostrum.Struct.Message.t() | term()},
+          message_response :: Nostrum.Api.error() | {:ok, Nostrum.Struct.Message.t() | term()} | nil,
           state :: Tornium.Faction.ChainMonitor.State.t()
         ) ::
           {:noreply, Tornium.Faction.ChainMonitor.State.t()}

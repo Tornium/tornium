@@ -47,7 +47,9 @@ defmodule Tornium.Schema.Chain do
     field(:end_timestamp, :utc_datetime)
   end
 
-  # TODO: Document this
+  @doc """
+  Map API data into the chain schema.
+  """
   @spec map(
           chain_data ::
             Torngen.Client.Schema.FactionChainWarfare.t()
@@ -58,20 +60,30 @@ defmodule Tornium.Schema.Chain do
   def map(chain_data, faction_id \\ nil)
 
   def map(%Torngen.Client.Schema.FactionChainWarfare{values: chain_data_values} = _chain_data, _faction_id) do
-    %Torngen.Client.Schema.FactionChain{id: chain_id, chain: chain_length, start: chain_start_timestamp} =
+    %Torngen.Client.Schema.FactionChain{
+      id: chain_id,
+      chain: chain_length,
+      start: chain_start_timestamp,
+      end: chain_end_timestamp
+    } =
       Enum.find(chain_data_values, &match?(%Torngen.Client.Schema.FactionChain{}, &1))
 
     %{faction: %{id: faction_id}} = Enum.find(chain_data_values, &match?(%{faction: %{id: _}}, &1))
 
     # The FactionChainWarfare struct would be provided from the active category of all
-    # chains in the game. As such, we should set the timestamp for the end of the chain
-    # to nil.
+    # chains in the game. If the chan end timestamp is before now, the chain is currently
+    # in cooldown and is effectively over. Otherwise, it should be set to nil as the chain
+    # is still in progress.
+    now = DateTime.utc_now()
+    chain_end_datetime = chain_end_timestamp |> DateTime.from_unix!(:second)
+    chain_ended? = DateTime.compare(chain_end_datetime, now) != :gt
+
     %__MODULE__{
       chain_id: chain_id,
       faction_id: faction_id,
       length: chain_length,
       start_timestamp: chain_start_timestamp |> DateTime.from_unix!(:second),
-      end_timestamp: nil
+      end_timestamp: if(chain_ended?, do: chain_end_datetime, else: nil)
     }
   end
 
@@ -85,12 +97,17 @@ defmodule Tornium.Schema.Chain do
         } = _chain_data,
         _faction_id
       ) do
+    chain_ended? =
+      chain_end_timestamp
+      |> DateTime.from_unix!()
+      |> DateTime.before?(DateTime.utc_now())
+
     %__MODULE__{
       chain_id: chain_id,
       faction_id: faction_id,
       length: chain_length,
       start_timestamp: chain_start_timestamp |> DateTime.from_unix!(:second),
-      end_timestamp: chain_end_timestamp |> DateTime.from_unix!(:second)
+      end_timestamp: if(chain_ended?, do: DateTime.from_unix!(chain_end_timestamp, :second), else: nil)
     }
   end
 
@@ -104,12 +121,17 @@ defmodule Tornium.Schema.Chain do
         faction_id
       )
       when is_integer(faction_id) do
+    chain_ended? =
+      chain_end_timestamp
+      |> DateTime.from_unix!()
+      |> DateTime.before?(DateTime.utc_now())
+
     %__MODULE__{
       chain_id: chain_id,
       faction_id: faction_id,
       length: chain_length,
       start_timestamp: chain_start_timestamp |> DateTime.from_unix!(:second),
-      end_timestamp: chain_end_timestamp |> DateTime.from_unix!(:second)
+      end_timestamp: if(chain_ended?, do: DateTime.from_unix!(chain_end_timestamp, :second), else: nil)
     }
   end
 

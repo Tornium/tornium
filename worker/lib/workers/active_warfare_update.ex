@@ -83,12 +83,13 @@ defmodule Tornium.Workers.ActiveWarfareUpdate do
 
     latest_start_timstamp =
       chain_data
-      |> Enum.max_by(fn %Torngen.Client.Schema.FactionChainWarfare{values: chain_data_values} ->
+      |> Enum.map(fn %Torngen.Client.Schema.FactionChainWarfare{values: chain_data_values} ->
         chain_data_values
         |> Enum.find(&match?(%Torngen.Client.Schema.FactionChain{}, &1))
         |> Map.get(:start)
       end)
-      |> Map.get(:start)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.max()
 
     # Since the database can de-duplicate existing chains when it's upserting the data, we
     # should use the latest timestamp instead of the timstamp plus one to avoid losing
@@ -96,7 +97,8 @@ defmodule Tornium.Workers.ActiveWarfareUpdate do
     schedule(from_timestamp: latest_start_timstamp, seen_chain_ids: seen_chain_ids)
   end
 
-  defp paginate(_chain_data, _number_chains, seen_chain_ids) do
+  defp paginate(chain_data, number_chains, seen_chain_ids)
+       when is_list(chain_data) and number_chains < @api_query_limit do
     # There are no more pages of chains to upsert into the database. Since we have sufficient
     # pages of chain data, we want to determine which chains were not updated as they are in
     # cooldown now. We should also update chain length when we're doing this.

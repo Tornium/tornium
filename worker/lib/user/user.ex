@@ -193,7 +193,7 @@ defmodule Tornium.User do
     * `Torngen.Client.Path.User.Profile`, `Torngen.Client.Path.User.Discord`, and `Torngen.Client.Path.User.Battlestats`
     * `Torngen.Client.Path.User.Id.Profile` and `Torngen.Client.Path.User.Id.Discord`
   """
-  @spec update_data(data :: map()) :: {:ok, Tornium.Schema.User.t()} | {:error, Tornium.API.Error.t()}
+  @spec update_data(data :: map()) :: {:ok, Tornium.Schema.User.t()}
   def update_data(
         %{
           Torngen.Client.Path.User.Profile => %{

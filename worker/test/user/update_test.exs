@@ -16,82 +16,73 @@
 defmodule Tornium.Test.User.Update do
   use Tornium.RepoCase
 
-  test "test_user_update_api_error" do
-    assert Tornium.User.update_user_data(%{"error" => %{"code" => 6, "error" => "Incorrect ID"}}, nil) ==
-             {:error, %Tornium.API.Error{code: 6, error: "Incorrect ID", message: "Wrong ID value."}}
-  end
-
   test "test_user_update" do
     update_return =
-      Tornium.User.update_user_data(
-        %{
-          "player_id" => 1,
-          "name" => "Chedburn",
-          "level" => 15,
-          "last_action" => %{"status" => "Offline", "timestamp" => 1_704_088_800},
-          "discord" => %{"discordID" => 317_719_897_578_799_114},
-          "faction" => %{
-            "faction_id" => 42_113,
-            "faction_name" => "TEs_t!.@&#039;",
-            "faction_tag" => "ÃÃ©â„",
-            "position" => "Leader"
+      Tornium.User.update_data(
+        Tornex.SpecQuery.parse(
+          %Tornex.SpecQuery{
+            paths: [Torngen.Client.Path.User.Id.Profile, Torngen.Client.Path.User.Id.Discord],
+            parameters: [id: 1]
+          },
+          %{
+            "profile" => %{
+              "id" => 1,
+              "name" => "Chedburn",
+              "level" => 15,
+              "last_action" => %{"status" => "Offline", "timestamp" => 1_704_088_800},
+              "faction_id" => 42_113
+            },
+            "discord" => %{"discord_id" => "317719897578799114", "user_id" => 1}
           }
-        },
-        :tid
+        )
       )
 
-    assert not is_nil(update_return)
-    assert update_return == {:ok, true}
+    assert {:ok, %Tornium.Schema.User{} = user} = update_return
 
-    db_user =
-      Tornium.Schema.User
-      |> where([u], u.tid == 1)
-      |> Repo.one()
-
-    assert db_user.level == 15
-    assert db_user.name == "Chedburn"
-
-    db_faction =
-      Tornium.Schema.Faction
-      |> where([f], f.tid == 42_113)
-      |> Repo.one()
-
-    assert db_faction.name == "TEs_t!.@&#039;"
+    assert user.level == 15
+    assert user.name == "Chedburn"
+    assert user.faction_id == 42_113
   end
 
   test "test_user_update_self" do
     update_return =
-      Tornium.User.update_user_data(
-        %{
-          "player_id" => 2,
-          "name" => "Quack",
-          "level" => 15,
-          "strength" => 10,
-          "defense" => 10,
-          "speed" => 10,
-          "dexterity" => 10,
-          "last_action" => %{"status" => "Offline", "timestamp" => 1_704_088_800},
-          "discord" => %{"discordID" => nil},
-          "faction" => %{
-            "faction_id" => 42_113,
-            "faction_name" => "TEs_t!.@&#039;",
-            "faction_tag" => "ÃÃ©â„",
-            "position" => "Co-leader"
+      Tornium.User.update_data(
+        Tornex.SpecQuery.parse(
+          %Tornex.SpecQuery{
+            paths: [
+              Torngen.Client.Path.User.Profile,
+              Torngen.Client.Path.User.Discord,
+              Torngen.Client.Path.User.Battlestats
+            ]
+          },
+          %{
+            "profile" => %{
+              "id" => 2,
+              "name" => "Quack",
+              "level" => 15,
+              "last_action" => %{"status" => "Offline", "timestamp" => 1_704_088_800},
+              "faction_id" => 42_113
+            },
+            "discord" => %{"discord_id" => "", "user_id" => 2},
+            "battlestats" => %{
+              "strength" => %{"value" => 10, "modifiers" => [], "modifier" => 0},
+              "defense" => %{"value" => 10, "modifiers" => [], "modifier" => 0},
+              "speed" => %{"value" => 10, "modifiers" => [], "modifier" => 0},
+              "dexterity" => %{"value" => 10, "modifiers" => [], "modifier" => 0},
+              "total" => 40
+            }
           }
-        },
-        :self
+        )
       )
 
-    assert not is_nil(update_return)
-    assert update_return == {:ok, true}
+    assert {:ok, %Tornium.Schema.User{} = user} = update_return
 
-    db_user =
-      Tornium.Schema.User
-      |> where([u], u.tid == 2)
-      |> Repo.one()
+    assert user.level == 15
+    assert user.name == "Quack"
+    assert user.faction_id == 42_113
 
-    assert db_user.strength == 10
-    assert db_user.battlescore == 4 * :math.sqrt(10)
+    assert user.strength == 10
+    assert user.battlescore == 4 * :math.sqrt(10)
   end
 
   test "fedded_status" do

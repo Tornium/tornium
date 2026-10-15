@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+import functools
+import typing
+
 from peewee import CharField, DeferredForeignKey, SmallIntegerField, TextField
 from playhouse.postgres_ext import UUIDField
 
@@ -33,3 +37,8 @@ class OrganizedCrimeType(BaseModel):
     # spawn level values: [lambda: 1, sigma: 2, phi: 3, psi: 4, omega: 5])
 
     prerequisite = DeferredForeignKey("OrganizedCrimeSlotType", default=None, null=True)
+
+    @staticmethod
+    @functools.lru_cache
+    def get_by_name(name: str) -> typing.Optional[OrganizedCrimeType]:
+        return OrganizedCrimeType.select().where(OrganizedCrimeType.name == name).first()

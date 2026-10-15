@@ -300,6 +300,11 @@ mod.add_url_rule("/api/v1/faction/<int:faction_id>/armory/logs", view_func=facti
 mod.add_url_rule("/api/v1/faction/<int:faction_id>/overdose", view_func=faction.overdose.get_events, methods=["GET"])
 mod.add_url_rule("/api/v1/faction/<int:faction_id>/crime/delays", view_func=faction.crimes.get_delays, methods=["GET"])
 mod.add_url_rule(
+    "/api/v1/faction/<int:faction_id>/crime/scenarios",
+    view_func=faction.crimes.upload_crime_scenarios,
+    methods=["POST"],
+)
+mod.add_url_rule(
     "/api/v1/faction/<int:faction_id>/crime/cpr/<oc_name>",
     view_func=faction.crimes.get_members_cpr_oc,
     methods=["GET"],

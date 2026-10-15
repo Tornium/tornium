@@ -26,6 +26,9 @@ from .oauth_token import OAuthToken
 from .oban_job import ObanJob
 from .organized_crime import OrganizedCrime
 from .organized_crime_cpr import OrganizedCrimeCPR
+from .organized_crime_graph_edge import OrganizedCrimeGraphEdge
+from .organized_crime_graph_node import OrganizedCrimeGraphNode
+from .organized_crime_graph_node_variant import OrganizedCrimeGraphNodeVariant
 from .organized_crime_slot import OrganizedCrimeSlot
 from .organized_crime_slot_type import OrganizedCrimeSlotType
 from .organized_crime_type import OrganizedCrimeType
@@ -62,8 +65,11 @@ __all__ = [
     "OAuthClient",
     "OAuthToken",
     "ObanJob",
-    "OrganizedCrimeCPR",
     "OrganizedCrime",
+    "OrganizedCrimeCPR",
+    "OrganizedCrimeGraphEdge",
+    "OrganizedCrimeGraphNode",
+    "OrganizedCrimeGraphNodeVariant",
     "OrganizedCrimeSlot",
     "OrganizedCrimeSlotType",
     "OrganizedCrimeType",

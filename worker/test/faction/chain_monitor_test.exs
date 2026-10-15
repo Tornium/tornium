@@ -19,6 +19,8 @@ defmodule Tornium.Test.Faction.ChainMonitor do
 
   @api_key Application.compile_env(:tornium, :api_key)
 
+  doctest Tornium.Faction.ChainMonitor.State
+
   defp setup do
     start_supervised!(Tornium.Faction.ChainMonitor.Supervisor)
 
@@ -92,5 +94,25 @@ defmodule Tornium.Test.Faction.ChainMonitor do
 
     ChainMonitor.State.cancel_existing_timer(new_state)
     GenServer.stop(pid)
+  end
+
+  @tag :integration
+  test "update state from API call" do
+    setup()
+    state = %Tornium.Faction.ChainMonitor.State{faction_id: 0}
+
+    %Tornex.SpecQuery{} = chain_query = Tornium.Faction.ChainMonitor.query(state)
+    chain_data = Tornex.API.get(chain_query)
+    parsed_chain_data = Tornex.SpecQuery.parse(chain_query, chain_data)
+
+    %Tornium.Faction.ChainMonitor.State{} =
+      updated_state =
+      Tornium.Faction.ChainMonitor.State.from_data!(parsed_chain_data,
+        faction_id: state.faction_id,
+        timer_ref: state.timer_ref
+      )
+
+    assert updated_state.faction_id == state.faction_id
+    assert updated_state.timer_ref == state.timer_ref
   end
 end

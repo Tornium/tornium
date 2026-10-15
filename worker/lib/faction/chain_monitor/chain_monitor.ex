@@ -31,8 +31,9 @@ defmodule Tornium.Faction.ChainMonitor do
   import Ecto.Query
   alias Tornium.Repo
 
-  # During the initial testing period, these are the only factions the feature will run for.
-  @permitted_factions [7_652, 52_355, 24_218, 15_644, 12_894]
+  # During the initial testing period, these are the only factions the feature will run
+  # for. The 0 faction ID is used for testing.
+  @permitted_factions [0, 7_652, 52_355, 24_218, 15_644, 12_894]
 
   @doc """
   Start a ChainMonitor for a specific faction.
@@ -84,7 +85,7 @@ defmodule Tornium.Faction.ChainMonitor do
     |> GenServer.call(:check, timeout)
   end
 
-  @spec via(faction_id :: pos_integer()) :: tuple()
+  @spec via(faction_id :: pos_integer()) :: GenServer.server()
   defp via(faction_id) when is_integer(faction_id) do
     {:via, Horde.Registry, {Tornium.Faction.ChainMonitor.Registry, faction_id}}
   end
@@ -156,6 +157,22 @@ defmodule Tornium.Faction.ChainMonitor do
       when chain_length == 0 do
     # Since the chain is still at 0, we can ignore the chain timer and just wait until it's started.
     try_timer({:ok, nil}, state)
+  end
+
+  @impl true
+  def handle_continue(
+        :message,
+        %Tornium.Faction.ChainMonitor.State{
+          chain_id: chain_id,
+          last_updated: last_updated,
+          last_attack: last_attack
+        } = state
+      )
+      when not is_nil(last_updated) and is_nil(last_attack) do
+    # If the state has been previously set (when the last_updated timestamp is not nil) and the
+    # chain is in cooldown (when the last_attack is nil), then the chain is over and we can stop
+    # the chain monitor for the faction.
+    {:stop, {:shutdown, "Stopped ChainMonitor as the chain #{chain_id} ended"}, state}
   end
 
   @impl true
@@ -357,8 +374,9 @@ defmodule Tornium.Faction.ChainMonitor do
     {:noreply, Tornium.Faction.ChainMonitor.State.set_timer(state)}
   end
 
+  @doc false
   @spec query(state :: Tornium.Faction.ChainMonitor.State.t()) :: Tornex.SpecQuery.t() | nil
-  defp query(%Tornium.Faction.ChainMonitor.State{faction_id: faction_id} = _state) do
+  def query(%Tornium.Faction.ChainMonitor.State{faction_id: faction_id} = _state) do
     case Tornium.Faction.get_key(faction_id) do
       %Tornium.Schema.TornKey{api_key: api_key, user_id: api_key_owner} ->
         # Since monitoring the chain is typically extremely high priority to prevent chain drops, we should use

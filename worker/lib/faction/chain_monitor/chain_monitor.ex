@@ -185,7 +185,7 @@ defmodule Tornium.Faction.ChainMonitor do
         } = state
       )
       when is_integer(chain_length) and chain_length < 100 do
-    if not is_nil(last_attack) and DateTime.diff(last_attack, DateTime.utc_now(), :second) > 300 do
+    if not is_nil(last_attack) and last_attack |> DateTime.diff(DateTime.utc_now(), :second) |> abs() > 300 do
       # Since there were more than 300 seconds since the last attack of the chain, the
       # chain is now over. We can now end the ChainMonitor for this chain.
       {:stop, {:shutdown, "Stopped ChainMonitor as the chain #{chain_id} ended"}, state}
@@ -392,37 +392,33 @@ defmodule Tornium.Faction.ChainMonitor do
     end
   end
 
-  @spec send_message(faction_id :: pos_integer(), message :: Nostrum.Struct.Message.t()) ::
-          Nostrum.Api.error() | {:ok, Nostrum.Struct.Message.t()}
-  defp send_message(faction_id, message)
+  @spec send_message(
+          faction :: pos_integer() | Tornium.Schema.Server.ServerAttackConfig.t(),
+          message :: Nostrum.Struct.Message.t()
+        ) :: Nostrum.Api.error() | {:ok, Nostrum.Struct.Message.t()}
+  defp send_message(faction, message)
 
   if Application.compile_env(:tornium, :env, :test) == :test do
     # We want to override send_message for test cases to avoid Discord API calls. This will
     # fallback to the `:test` environment so that notification_inator can work as expected
     # without having a config.
-    defp send_message(_faction_id, message) do
+    defp send_message(faction, message) do
+      send(self(), {:chain_monitor_message, faction, message})
       {:ok, message}
     end
   else
-    defp send_message(faction_id, %Nostrum.Struct.Message{} = message) when is_integer(faction_id) do
-      faction_id
+    defp send_message(faction, %Nostrum.Struct.Message{} = message) when is_integer(faction) do
+      faction
       |> Tornium.Schema.ServerAttackConfig.config()
       |> send_message(message)
     end
 
-    @spec send_message(faction_config :: Tornium.Schema.ServerAttackConfig.t(), message :: Nostrum.Struct.Message.t()) ::
-            Nostrum.Api.error() | {:ok, Nostrum.Struct.Message.t()}
     defp send_message(
-           %Tornium.Schema.ServerAttackConfig{chain_alert_channel: chain_alert_channel} = _faction_config,
+           %Tornium.Schema.ServerAttackConfig{chain_alert_channel: chain_alert_channel} = _faction,
            %Nostrum.Struct.Message{} = message
          )
-         when not is_nil(chain_alert_channel) and chain_alert_channel != 0 do
-      Nostrum.Api.Message.create(
-        chain_alert_channel,
-        message
-        |> Map.from_struct()
-        |> Map.to_list()
-      )
+         when is_integer(chain_alert_channel) and chain_alert_channel != 0 do
+      Nostrum.Api.Message.create(chain_alert_channel, message |> Map.from_struct() |> Map.to_list())
     end
   end
 

@@ -234,7 +234,7 @@ let
 
       castore =
         let
-          version = "1.0.21";
+          version = "1.0.22";
           drv = buildMix {
             inherit version;
             name = "castore";
@@ -243,7 +243,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "castore";
-              sha256 = "e42e22723e25dbd46876d056a03f685513d6e98f6b5e555dc551321decd76c5c";
+              sha256 = "c2a4d42723b4affbc1c3e15d8f6df3f7d8f1f627c84de643383634cce58493d5";
             };
           };
         in

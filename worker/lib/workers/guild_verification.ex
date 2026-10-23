@@ -255,12 +255,12 @@ defmodule Tornium.Workers.GuildVerification do
 
   @spec requires_api_call?(user :: Tornium.Schema.User.t()) :: boolean()
   defp requires_api_call?(%Tornium.Schema.User{last_refresh: last_refresh} = _user) do
-    one_hour_ago = DateTime.utc_now() |> DateTime.add(-1, :hour)
+    earliest_required_update = DateTime.utc_now() |> DateTime.add(Tornium.User.minimum_update_period(), :second)
 
     # If the user was updated less than one hour ago, we can verify the user without trying to
     # make an API call to update the user's data. Otherwise, the user was updated too far in
     # the past, so we should update the user's data before verifying.
-    DateTime.compare(last_refresh, one_hour_ago) != :gt
+    DateTime.compare(last_refresh, earliest_required_update) != :gt
   end
 
   @spec verify_or_schedule(
@@ -288,7 +288,7 @@ defmodule Tornium.Workers.GuildVerification do
       else
         # The user was updated less than one hour ago, so we can verify the user without trying to
         # make an API call to update the user's data.
-        {true, Tornium.Guild.Verify.verify(guild, member)}
+        {true, Tornium.Guild.Verify.verify(guild, member, minimum_update_period: _second = 3_600)}
       end
     end
   end

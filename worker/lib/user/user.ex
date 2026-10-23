@@ -34,6 +34,12 @@ defmodule Tornium.User do
   @type user_id() :: {id_type :: :torn | :discord, id :: pos_integer()}
 
   @doc """
+  The minmum number of seconds before a user's is considered outdated.
+  """
+  @spec minimum_update_period() :: pos_integer()
+  def minimum_update_period(), do: @minimum_update_seconds
+
+  @doc """
   Update a user by the struct.
 
   The user can be updated through the struct of the user or the struct of a user's API key. When
@@ -42,6 +48,8 @@ defmodule Tornium.User do
   ## Options
     * `:force?` - Update a user regardless of when the user was last updated (default: `false`)
     * `:niceness` - Priority of the Tornex API call (default: `10`)
+    * `:minimum_update_period` - The minimum number of seconds before a user's data is considered
+      outdated and would be updated without `force?: true` (default: `@minimum_update_seconds`)
   """
   @spec update(user :: Tornium.Schema.User.t() | Tornium.Schema.TornKey.t(), opts :: keyword()) ::
           {:ok, Tornium.Schema.User.t()} | {:error, Tornium.API.Error.t()}
@@ -64,6 +72,8 @@ defmodule Tornium.User do
   ## Options
     * `:force?` - Update a user regardless of when the user was last updated (default: `false`)
     * `:niceness` - Priority of the Tornex API call (default: `10`)
+    * `:minimum_update_period` - The minimum number of seconds before a user's data is considered
+      outdated and would be updated without `force?: true` (default: `@minimum_update_seconds`)
   """
   @spec update_by_id(
           user :: user_id(),
@@ -113,8 +123,9 @@ defmodule Tornium.User do
         opts
       ) do
     force_update? = Keyword.get(opts, :force?, false)
+    minimum_update_period = Keyword.get(opts, :minimum_update_period, nil)
 
-    if force_update? or update_user?(user) do
+    if force_update? or update_user?(user, minimum_update_period) do
       query = update_query(user_id, api_key, opts)
       response = Tornex.API.get(query)
 
@@ -292,7 +303,9 @@ defmodule Tornium.User do
   @doc """
   Determine if a user's data should be updated with an API call.
 
-  If the user was last updated more than the minimum period ago, the user should be updated again.
+  If the user was last updated more than the minimum period ago, the user should be updated
+  again. If no `:minimum_period` was provided, the `@minimum_update_seconds` will be used
+  instead.
   """
   @spec update_user?(user :: user_id(), minimum_period :: pos_integer()) :: boolean()
   def update_user?({id_type, id} = _user, minimum_period \\ @minimum_update_seconds)

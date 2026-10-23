@@ -58,9 +58,13 @@ defmodule Tornium.Workers.GuildVerification do
   defp do_perform(%Tornium.Schema.Server{sid: guild_id, admins: guild_admins} = guild, after_id) do
     # We want to maximize the number of users updated at once. We should overfetch the list of
     # server members as many members should have been updated recently and not require a Torn
-    # API call to verify. However, for larger servers with more admins, we need to cap the
-    # chunk size to 1000 as that's Discord's limit.
-    chunk_size = min(length(guild_admins) * 50, 1000)
+    # API call to verify. However, for larger servers with more admins, we would need to cap the
+    # chunk size to 1000 as that's Discord's limit. But that does not work well when there are too
+    # many users that need to be updated as the job will end up timing out due to the sequential
+    # verification of server members which may take time due to Discord and Torn API ratelimiting;
+    # as such, we will cap the chunk size to 200.
+    # NOTE: The chunk size may need to be further reduced in the future.
+    chunk_size = min(length(guild_admins) * 50, 200)
 
     {:ok, members} = Nostrum.Api.Guild.members(guild_id, limit: chunk_size, after: after_id)
     member_ids = Enum.map(members, & &1.user_id)

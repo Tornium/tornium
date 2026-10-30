@@ -23,13 +23,30 @@
           };
         });
       };
+      # overlay that bumps peewee to 4.5.3 to fix a bug with JOINs in previous version not
+      # yet in nixpkgs.
+      peeweeOverlay = final: prev: {
+        pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+          (pyfinal: pyprev: {
+            peewee = pyprev.peewee.overridePythonAttrs (old: rec {
+              version = "4.5.3";
+              src = prev.fetchFromGitHub {
+                owner = "coleifer";
+                repo = "peewee";
+                tag = version;
+                hash = "sha256-hBZITssTdjXg8zqJfvhyI7aHoPKYxnJ0E8AHHrrncT4=";
+              };
+            });
+          })
+        ];
+      };
     in
       {
       colmenaHive = colmena.lib.makeHive {
         meta = {
           nixpkgs = import nixpkgs {
             system = "x86_64-linux";
-            overlays = [ pgbackrestOverlay ];
+            overlays = [ pgbackrestOverlay peeweeOverlay ];
           };
         };
         defaults = {

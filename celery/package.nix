@@ -1,4 +1,4 @@
-{ lib, python3, python3Packages, src, tornium_commons, ...}:
+{ lib, python3Packages, src, tornium_commons, ...}:
 
 python3Packages.buildPythonPackage {
   pname = "tornium_celery";
@@ -30,7 +30,7 @@ python3Packages.buildPythonPackage {
     license = licenses.gpl3Only;
   };
 
-  pythonEnv = python3.withPackages (packages: with packages; [
+  pythonEnv = python3Packages.python.withPackages (packages: with packages; [
     authlib
     celery
     redis

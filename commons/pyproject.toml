@@ -18,7 +18,7 @@ classifiers = [
 dependencies = [
     "boltons",
     "pydantic",
-    "peewee",
+    "peewee >= 4.5.2",
     "redis",
     "tornium-oc-graph ~= 0.2.0"
 ]

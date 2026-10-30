@@ -47,6 +47,12 @@ in {
       description = "Torn API URL to make API calls against.";
       default = "https://api.torn.com";
     };
+
+    gunicornSocket = lib.mkOption {
+      type = lib.types.str;
+      description = "The path to the UNIX socket used for Gunicorn";
+      default = "/run/tornium-web/gunicorn.sock";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -106,7 +112,7 @@ in {
         Restart = "on-failure";
         RestartSec = "2s";
 
-        ExecStart = "${tornium_application.gunicornCmd} --worker-class gthread --workers 8 --threads 8 --capture-output --bind unix:/run/tornium-web/gunicorn.sock ${tornium_application.wsgi}";
+        ExecStart = "${tornium_application.gunicornCmd} --worker-class gthread --workers 8 --threads 8 --capture-output --bind unix:${cfg.gunicornSocket} ${tornium_application.wsgi}";
 
         NoNewPrivileges = true;
         PrivateTmp = true;
@@ -124,7 +130,7 @@ in {
       partOf = [ "tornium-web.service" ];
       wantedBy = [ "sockets.target" ];
 
-      listenStreams = ["/run/tornium-web/gunicorn.sock"];
+      listenStreams = [ cfg.gunicornSocket ];
 
       socketConfig = {
         DirectoryMode = "0755";
@@ -153,8 +159,21 @@ in {
       sslCertificate = config.sops.secrets."nginx/cloudflare_origin_cert".path;
       sslCertificateKey = config.sops.secrets."nginx/cloudflare_origin_key".path;
 
+      locations."^~ /metrics" = {
+        proxyPass = "http://unix:${cfg.gunicornSocket}";
+
+        # We want to block requests to the metrics endpoint from external sources to avoid
+        # potentially leaking data.
+        extraConfig = ''
+          allow 127.0.0.1;
+          allow ::1;
+          allow 10.0.0.0/8;
+          deny all;
+        '';
+      };
+
       locations."/" = {
-        proxyPass = "http://unix:/run/tornium-web/gunicorn.sock";
+        proxyPass = "http://unix:${cfg.gunicornSocket}";
         recommendedProxySettings = false;
 
         extraConfig = ''
@@ -179,6 +198,24 @@ in {
 
     networking.firewall.allowedTCPPorts = lib.mkAfter [ 443 ];
     networking.firewall.extraCommands = lib.mkAfter cloudflare.firewallRules;
+
+    services.prometheus.scrapeConfigs = lib.mkAfter [
+      {
+        job_name = "Tornium Web Exporter";
+        static_configs = [
+          { targets = [ "localhost" ]; }
+        ];
+        relabel_configs = [{
+          # We need to replace localhost with the UNIX socket for the gunicorn process to get
+          # Prometheus to scrape the correct location. See
+          #  - https://github.com/prometheus/prometheus/pull/18091
+          #  - https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config
+          target_label = "__unix_socket__";
+          replacement = cfg.gunicornSocket;
+        }];
+        scrape_interval = "5s";
+      }
+    ];
 
     environment.systemPackages = lib.mkAfter [
       (pkgs.writeShellScriptBin "tornium-gunicornc" ''

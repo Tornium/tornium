@@ -26,5 +26,7 @@
   services.tornium-worker.environment = "prod";
   services.tornium-worker.node = "tornium@10.0.0.4";
 
+  disko.devices.disk.disk1.device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_105282315";
+
   deployment.tags = ["tornium-proxy-db" "prod" "proxy" "db" "prometheus"];
 }

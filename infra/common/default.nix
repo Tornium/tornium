@@ -25,24 +25,6 @@
     vim
   ];
 
-  # Limit the systemd journal to 100 MB of disk or the
-  # last 7 days of logs, whichever happens first.
-  services.journald.extraConfig = ''
-    SystemMaxUse=100M
-    MaxFileSec=7day
-  '';
-
-  # See https://github.com/NixOS/nixpkgs/issues/576485
-  security.pki.caCertificateBlacklist = [
-    # CVE-2026-111943
-    "Comodo AAA Services root"
-    # https://hg-edge.mozilla.org/projects/nss/rev/26d38a0c3fb81e7fb2acedbaf4c42dd21dce0517
-    "emSign ECC Root CA - G3"
-    # https://hg-edge.mozilla.org/projects/nss/rev/8159223c48ceeb1273a1915bca95a517294ab0e0
-    "emSign Root CA - C1"
-    "emSign ECC Root CA - C3"
-  ];
-
   services.openssh.enable = true;
   # OpenSSH settings come from https://saylesss88.github.io/nix/hardening_NixOS.html#openssh-server
   services.openssh.settings = {

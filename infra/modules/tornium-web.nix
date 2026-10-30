@@ -5,6 +5,8 @@ let
   cloudflare = import ./cloudflare.nix { inherit lib; };
   tornium_oc_graph = import ./tornium-oc-graph.nix { inherit pkgs; };
 
+  prometheusMultiprocDir = "tornium-web-prometheus";
+
   tornium_commons_pkg = pkgs.callPackage ../../commons/package.nix {
     python3Packages = pkgs.python313Packages;
     tornium_oc_graph = tornium_oc_graph.tornium_oc_graph_pkg;
@@ -92,12 +94,13 @@ in {
         Environment = [
           "RESULT_BACKEND_CELERY=file"
           "RESULT_FILE_CELERY=/run/tornium-celery"
+          "PROMETHEUS_MULTIPROC_DIR=/run/${prometheusMultiprocDir}"
           "TORNIUM_SETTINGS_FILE=${config.sops.templates."tornium-settings.json".path}"
           "PYTHONPATH=${tornium_application.srcDir}/${pkgs.python313.sitePackages}"
         ];
 
         WorkingDirectory = "${tornium_application.srcDir}";
-        RuntimeDirectory = "tornium-web";
+        RuntimeDirectory = [ prometheusMultiprocDir ];
         RuntimeDirectoryMode = "0775";
 
         Restart = "on-failure";
@@ -112,15 +115,23 @@ in {
         LockPersonality = true;
         RestrictSUIDSGID = true;
 
-        ReadWritePaths = [ "/run/tornium-web" "/run/tornium-celery" ];
+        ReadWritePaths = [ "/run/tornium-celery" ];
       };
     };
 
     systemd.sockets.tornium-web = {
       description = "UNIX socket for tornium-web.service";
       partOf = [ "tornium-web.service" ];
+      wantedBy = [ "sockets.target" ];
 
       listenStreams = ["/run/tornium-web/gunicorn.sock"];
+
+      socketConfig = {
+        DirectoryMode = "0755";
+        SocketUser = "tornium-web";
+        SocketGroup = "nginx";
+        SocketMode = "0660";
+      };
     };
 
     services.nginx.virtualHosts."tornium-web" = {

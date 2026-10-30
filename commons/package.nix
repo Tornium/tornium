@@ -16,7 +16,7 @@ python3Packages.buildPythonPackage {
     flask
     pydantic
     peewee
-    psycopg2
+    psycopg
     redis
     requests
     tornium_oc_graph

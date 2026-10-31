@@ -40,6 +40,8 @@ defmodule Tornium.MixProject do
     [
       {:ecto, "~> 3.0"},
       {:ecto_sql, "~> 3.10"},
+      # Nostrum >= 0.9.0-rc1 requires certifi ~> 2.13 and hackney >= 1.21.0 requires certifi ~> 2.14
+      {:certifi, "~> 2.14", override: true},
       # {:nostrum, "~> 0.10"},
       # {:nostrum, github: "Kraigie/nostrum", ref: "c95d702e476513253a0eff3910fa88fb52e91602"},
       {:nostrum, github: "dssecret/nostrum", branch: "test"},

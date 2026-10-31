@@ -93,7 +93,8 @@ config :tornium, Oban,
         {"*/5 * * * *", Tornium.Workers.VerificationDiscordNotifications},
         {"*/15 * * * *", Tornium.Workers.DailyVerificationScheduler},
         {"0 */12 * * *", Tornium.Workers.OCTypeUpdate},
-        {"*/5 * * * *", Tornium.Workers.ActiveWarfareUpdate}
+        {"*/5 * * * *", Tornium.Workers.ActiveWarfareUpdate},
+        {"10 * * * *", Tornium.Workers.ServerRefreshScheduler}
       ]
     },
     {Oban.Plugins.Pruner, max_age: 60 * 60},

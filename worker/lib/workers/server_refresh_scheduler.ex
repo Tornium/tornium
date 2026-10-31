@@ -41,7 +41,7 @@ defmodule Tornium.Workers.ServerRefreshScheduler do
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do
-    guilds = Tornium.Discord.fetch_all_guilds(limit: 1000, with_counts: true)
+    guilds = Tornium.Discord.fetch_all_guilds([], limit: 200, with_counts: true)
     guild_ids = Enum.map(guilds, & &1.id)
 
     guild_ids

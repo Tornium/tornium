@@ -330,7 +330,7 @@ class Withdrawal(BaseModel):
                     "embeds": [
                         {
                             "title": "Vault Request Fulfilled",
-                            "description": f"Your vault request #{updated_withdrawal.wid} has been fulfilled by someone.",
+                            "description": f"Your vault request #{updated_withdrawal.wid} has been fulfilled by {fulfiller_string}.",
                             "timestamp": now.isoformat(),
                             "color": SKYNET_GOOD,
                         }

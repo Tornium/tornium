@@ -15,6 +15,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 import { limitConcurrency } from "../api.js";
 import { fairFight } from "./common.js";
+import { Config } from "../config.js";
+import { CONCURRENCY_LIMIT } from "../constants.js";
 import { waitForElement } from "../dom.js";
 import { log } from "../logging.js";
 import { getUserEstimate, getUserStats } from "../stats.js";
@@ -44,7 +46,7 @@ function hashChangeCallback(event) {
     });
 }
 
-const concurrencyLimiter = limitConcurrency(10);
+const concurrencyLimiter = limitConcurrency(CONCURRENCY_LIMIT);
 
 function injectStats(addedNode) {
     if (addedNode.nodeName.toLowerCase() != "li") {
@@ -78,7 +80,7 @@ function injectStats(addedNode) {
         } else if (statsData.code != undefined) {
             log(`Tornium Error: [${statsData.code}] - ${statsData.message}`);
             statSpan.innerText = `ERR`;
-        } else if (new Date(statsData.timestamp * 1000) > Date.now() - 1000 * 60 * 60 * 24 * 30) {
+        } else if (new Date(statsData.timestamp * 1000) > Date.now() - 1000 * 60 * 60 * 24 * Config.maximumStatDays) {
             statSpan.innerText = fairFight(statsData.stat_score);
         } else {
             // The data is too old. We want to use an estimate instead
@@ -88,9 +90,7 @@ function injectStats(addedNode) {
 }
 
 function injectEstimate(statSpan, userID) {
-    concurrencyLimiter(() => {
-        return getUserEstimate(userID);
-    }).then((estimateData) => {
+    getUserEstimate(userID, concurrencyLimiter).then((estimateData) => {
         if (estimateData.error != undefined) {
             log(`OAuth Error: ${estimateData.error_description}`);
             statSpan.innerText = `ERR`;

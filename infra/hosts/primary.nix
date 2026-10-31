@@ -6,7 +6,8 @@
     ../modules/nginx.nix
     ../modules/nginx-prometheus-exporter.nix
     ../modules/postgresql.nix
-    # ../modules/postgresql-pgbackrest.nix
+    ../modules/postgresql-pgbackrest.nix
+    ../modules/postgresql-pgbackrest-exporter.nix
     ../modules/redis.nix
     ../modules/tornium-web.nix
     ../modules/tornium-celery.nix
@@ -18,16 +19,16 @@
     ../common/users/default.nix
   ];
 
-  # This needs to be overriden from the boot device in ./common.nix as the Hetzner volume will take up sda
-  boot.loader.grub.device = "/dev/sdb";
-  fileSystems."/" = {
-    device = "/dev/sdb1";
-  };
-
   services.nginx.enable = true;
   services.tornium-nginx.enable-proxy = true;
   services.tornium-nginx.enable-proxy-gateway = true;
   services.tornium-nginx.enable-status = true;
+
+  services.postgresql-pgbackrest.enable = true;
+  services.postgresql-pgbackrest.primaryHost = null;
+
+  services.prometheus.exporters.pgbackrest.enable = true;
+  services.prometheus.exporters.pgbackrest.logLevel = "debug";
 
   services.prometheus.enable = true;
 
@@ -42,6 +43,8 @@
   services.tornium-worker.environment = "prod";
   services.tornium-worker.node = "tornium@10.0.0.5";
   services.tornium-worker.db_ip = "127.0.0.1";
+
+  disko.devices.disk.disk1.device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_113406207";
 
   deployment.tags = ["tornium-primary" "prod" "db" "prometheus"];
 }

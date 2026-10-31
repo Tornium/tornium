@@ -14,6 +14,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Schema.ServerAttackConfig do
+  @moduledoc """
+  The configuration for attack notifications of a faction in a server.
+  """
+
   use Ecto.Schema
   import Ecto.Query
   alias Tornium.Repo
@@ -36,8 +40,8 @@ defmodule Tornium.Schema.ServerAttackConfig do
 
   @primary_key false
   schema "serverattackconfig" do
-    belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
-    belongs_to(:server, Tornium.Schema.Server, references: :sid)
+    belongs_to(:faction, Tornium.Schema.Faction, references: :tid, primary_key: true)
+    belongs_to(:server, Tornium.Schema.Server, references: :sid, primary_key: true)
 
     field(:retal_channel, :integer)
     field(:retal_roles, {:array, :integer})
@@ -60,8 +64,9 @@ defmodule Tornium.Schema.ServerAttackConfig do
     Tornium.Schema.ServerAttackConfig
     |> where([c], c.faction_id == ^faction_id)
     |> join(:inner, [c], f in assoc(c, :faction), on: c.faction_id == f.tid)
-    |> join(:inner, [c, f], s in assoc(f, :guild), on: f.guild_id == s.sid)
-    |> where([c, f, s], ^faction_id in s.factions)
+    |> join(:inner, [c, f], s in assoc(c, :server), on: c.server_id == s.sid)
+    |> where([c, f, s], f.tid in s.factions and f.guild_id == s.sid)
+    |> preload([c, f, s], [:faction, :server])
     |> first()
     |> Repo.one()
   end

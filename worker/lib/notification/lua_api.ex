@@ -70,4 +70,90 @@ defmodule Tornium.Notification.Lua.API do
   deflua to_boolean(_value) do
     nil
   end
+
+  @doc """
+  Convert a comma-seperated (with `,` or `, `) value to a list of items.
+
+  The items of the provided list will be cast to the provided type. If an item of the
+  list does not match the provided type, the item will be silently dropped.
+  """
+  deflua to_list(value, type), state do
+    list =
+      case Lua.decode!(state, value) do
+        decoded_value when is_binary(decoded_value) ->
+          decoded_value
+          |> String.split(",")
+          |> Enum.map(&String.trim/1)
+          |> Enum.flat_map(fn item ->
+            case to_list_cast(item, type) do
+              {:ok, cast_item} -> [cast_item]
+              :error -> []
+            end
+          end)
+
+        _ ->
+          []
+      end
+
+    Lua.encode!(state, list)
+  end
+
+  @doc """
+  Convert a comma-seperated (with `,` or `, `) value to a list of items with a runtime
+  exception if an item cannot be cst.
+
+  The items of the provided list will be cast to the provided type. If an item of the
+  list does not match that type, a runtime Lua exception will be thrown.
+  """
+  deflua to_list_strict(value, type), state do
+    list =
+      case Lua.decode!(state, value) do
+        decoded_value when is_binary(decoded_value) ->
+          decoded_value
+          |> String.split(",")
+          |> Enum.map(&String.trim/1)
+          |> Enum.map(fn item ->
+            case to_list_cast(item, type) do
+              {:ok, cast_item} -> cast_item
+              :error -> runtime_exception!("Cannot convert #{inspect(item)} to #{type}")
+            end
+          end)
+
+        _ ->
+          []
+      end
+
+    Lua.encode!(state, list)
+  end
+
+  @spec to_list_cast(item :: String.t(), type :: String.t()) :: term()
+  defp to_list_cast(item, "string" = _type) do
+    item
+  end
+
+  defp to_list_cast(item, "integer" = _type) do
+    case Integer.parse(item) do
+      {cast_item, ""} -> {:ok, cast_item}
+      _ -> :error
+    end
+  end
+
+  defp to_list_cast(item, "number" = _type) do
+    case Float.parse(item) do
+      {cast_item, ""} -> {:ok, cast_item}
+      _ -> :error
+    end
+  end
+
+  defp to_list_cast("true", "boolean") do
+    {:ok, true}
+  end
+
+  defp to_list_cast("false", "boolean") do
+    {:ok, false}
+  end
+
+  defp to_list_cast(_, _) do
+    :error
+  end
 end

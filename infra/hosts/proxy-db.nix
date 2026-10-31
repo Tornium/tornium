@@ -6,7 +6,8 @@
     ../modules/nginx.nix
     ../modules/nginx-prometheus-exporter.nix
     ../modules/postgresql-replica.nix
-    # ../modules/postgresql-pgbackrest.nix
+    ../modules/postgresql-replica-service.nix
+    ../modules/postgresql-pgbackrest.nix
     ../modules/prometheus.nix
     ../modules/tornium-worker.nix
     ../common/default.nix
@@ -16,11 +17,16 @@
   services.nginx.enable = true;
   services.tornium-nginx.enable-proxy = true;
 
+  services.postgresql-pgbackrest.enable = true;
+  services.postgresql-pgbackrest.replicaHost = null;
+
   services.prometheus.enable = true;
 
   services.tornium-worker.enable = true;
   services.tornium-worker.environment = "prod";
   services.tornium-worker.node = "tornium@10.0.0.4";
+
+  disko.devices.disk.disk1.device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_105282315";
 
   deployment.tags = ["tornium-proxy-db" "prod" "proxy" "db" "prometheus"];
 }

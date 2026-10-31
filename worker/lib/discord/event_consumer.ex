@@ -33,7 +33,7 @@ defmodule Tornium.Discord.Consumer do
   def handle_event({:GUILD_MEMBER_ADD, {guild_id, %Nostrum.Struct.Guild.Member{} = new_member}, _ws_state}) do
     guild_id
     |> Tornium.Guild.Verify.handle_on_join(new_member)
-    |> verification_jail_message(new_member)
+    |> send_verification_jail_message(new_member)
 
     # TODO: Convert this to log via Alloy
     # {:ok, user} = Nostrum.Cache.UserCache.get(new_member.user_id)
@@ -76,41 +76,54 @@ defmodule Tornium.Discord.Consumer do
 
   def handle_event(_event), do: :ok
 
-  @spec verification_jail_message(
-          {:ok, Nostrum.Struct.Guild.Member.t(), Tornium.Schema.Server.t()}
-          | {:error,
-             Nostrum.Error.ApiError
-             | Tornium.API.Error
-             | :unverified
-             | :nochanges
-             | :api_key
-             | :exclusion_role
-             | {:config, String.t()}, Tornium.Schema.Server.t()},
-          Nostrum.Struct.Guild.Member.t()
+  @spec send_verification_jail_message(
+          verification_result :: Tornium.Guild.Verify.verification_result(),
+          new_member :: Nostrum.Struct.Guild.Member.t()
         ) :: nil
-  defp verification_jail_message({:error, :api_key}, _) do
+  defp send_verification_jail_message({_status_atom, _result, server}, _new_member) when is_nil(server) do
+    # The server can be nil when the server doesn't exist in the database or verification
+    # isn't configured. As such, we can ignore this verification run.
+
     nil
   end
 
-  defp verification_jail_message({:error, :exclusion_role}, _) do
+  defp send_verification_jail_message({:error, :api_key, _server}, _new_member) do
+    # To avoid sending too many extraneous messages, we will not be sending any log message
+    # for this error.
+
     nil
   end
 
-  defp verification_jail_message({:error, {:config, _}}, _) do
+  defp send_verification_jail_message({:error, :exclusion_role, _server}, _new_member) do
+    # To avoid sending too many extraneous messages, we will not be sending any log message
+    # for this error.
+
     nil
   end
 
-  defp verification_jail_message(
-         {_, _, %Tornium.Schema.Server{verify_jail_channel: verify_jail_channel} = _server},
+  defp send_verification_jail_message({:error, {:config, _}, _server}, _new_member) do
+    # To avoid sending too many extraneous messages, we will not be sending any log message
+    # for this error.
+
+    nil
+  end
+
+  defp send_verification_jail_message(
+         {_status_atom, _result, %Tornium.Schema.Server{verify_jail_channel: verify_jail_channel} = _server},
          _new_member
        )
        when verify_jail_channel == 0 or is_nil(verify_jail_channel) do
+    # As there is no verification jail channel configured for this Discord server, we can
+    # skip sending the message.
+
+    nil
   end
 
-  defp verification_jail_message({status_atom, result, server}, new_member) do
-    # TODO: Rename the message method
-    # TODO: Provide reasons for skipping certain errors
+  defp send_verification_jail_message(
+         {status_atom, result, %Tornium.Schema.Server{verify_jail_channel: verify_jail_channel}},
+         new_member
+       ) do
     embed = Tornium.Guild.Verify.Message.message({status_atom, result}, new_member)
-    Nostrum.Api.Message.create(server.verify_jail_channel, %{embeds: [embed]})
+    Nostrum.Api.Message.create(verify_jail_channel, %{embeds: [embed]})
   end
 end

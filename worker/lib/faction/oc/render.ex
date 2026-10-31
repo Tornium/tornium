@@ -245,7 +245,7 @@ defmodule Tornium.Faction.OC.Render do
           %Nostrum.Struct.Embed{
             title: "OC CPR Extra-Range",
             description:
-              "#{crime.faction.name} member #{user.name} [#{user.tid}] in the #{crime.oc_name} (T#{crime.oc_difficulty}) OC has a CPR of #{chance}%. The expected CPR bounds are #{expected_minimum}% to #{expected_maximum}%.",
+              "#{crime.faction.name} member #{user.name} [#{user.tid}] as #{slot.crime_position} ##{slot.crime_position_index} in the #{crime.oc_name} (T#{crime.oc_difficulty}) OC has a CPR of #{chance}%. The expected CPR bounds of that OC slot are #{expected_minimum}% to #{expected_maximum}%.",
             color: Tornium.Discord.Constants.colors()[:warning],
             footer: %Nostrum.Struct.Embed.Footer{text: "OC ID: #{crime.oc_id}"}
           }

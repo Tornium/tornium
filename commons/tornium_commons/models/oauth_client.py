@@ -92,7 +92,7 @@ class OAuthClient(BaseModel):
         return self.client_metadata.get("token_endpoint_auth_method", "client_secret_basic")
 
     @property
-    def grant_types(self):
+    def grant_types(self) -> typing.List[str]:
         return self.client_metadata.get("grant_types", [])
 
     @property

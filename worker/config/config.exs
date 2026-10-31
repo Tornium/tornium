@@ -72,7 +72,7 @@ config :tornium, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,
   queues: [faction_processing: 50, user_processing: 20, notifications: 20, guild_processing: 50, scheduler: 5],
-  repo: Tornium.ObanRepo,
+  repo: {Tornium.ObanRepo, dynamic_repo: {Tornium.Repo, :oban_repo, []}},
   get_dynamic_repo: {Tornium.Repo, :oban_repo, []},
   shutdown_grace_period: :timer.seconds(30),
   plugins: [
@@ -92,10 +92,11 @@ config :tornium, Oban,
         {"* * * * *", Tornium.Workers.UserUpdateScheduler},
         {"*/5 * * * *", Tornium.Workers.VerificationDiscordNotifications},
         {"*/15 * * * *", Tornium.Workers.DailyVerificationScheduler},
-        {"0 */12 * * *", Tornium.Workers.OCTypeUpdate}
+        {"0 */12 * * *", Tornium.Workers.OCTypeUpdate},
+        {"*/5 * * * *", Tornium.Workers.ActiveWarfareUpdate}
       ]
     },
-    {Oban.Plugins.Pruner, max_age: 60 * 60 * 6},
+    {Oban.Plugins.Pruner, max_age: 60 * 60},
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(1), interval: 30_000}
   ]
 

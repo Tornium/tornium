@@ -54,6 +54,8 @@ defmodule Tornium.Guild.Verify do
   ## Options
     * `:force?` - Force an update of the user's API data (default: `false`)
     * `:niceness` - Priority of the Tornex API call (default: `10`)
+    * `:minimum_update_period` - The minimum number of seconds before the user's data is considered
+      outdated and would be updated without `force?: true` (default: 10 minutes)
 
   ## Returns
     - OK with the updated member struct
@@ -179,7 +181,8 @@ defmodule Tornium.Guild.Verify do
       %Tornium.Guild.Verify.Config{} = config ->
         Tornium.User.update_by_id({:discord, member_id}, api_key,
           force: Keyword.get(opts, :force?, false),
-          niceness: Keyword.get(opts, :niceness, 10)
+          niceness: Keyword.get(opts, :niceness, 10),
+          minimum_update_period: Keyword.get(opts, :minimum_update_period, Tornium.User.minimum_update_period())
         )
         |> build_changes(config, member)
         |> perform_changes(guild, member)
@@ -416,6 +419,31 @@ defmodule Tornium.Guild.Verify do
       discord_id: discord_id,
       error_type: :discord_api,
       error_code: error_code,
+      error_message: nil
+    })
+
+    verification_result
+  end
+
+  def log(
+        {:error, %Tornium.API.Error{code: 6} = _error, %Tornium.Schema.Server{sid: guild_id} = _guild} =
+          verification_result,
+        %Nostrum.Struct.Guild.Member{user_id: discord_id} = _original_member
+      ) do
+    # When the error code is 6, this is the same thing as the user not being verified,
+    # but something didn't handle it as such.
+    user_id =
+      Tornium.Schema.User
+      |> select([u], u.tid)
+      |> where([u], u.discord_id == ^discord_id)
+      |> Repo.one()
+
+    :telemetry.execute([:tornium, :guild, :verify, :failure], %{}, %{
+      guild_id: guild_id,
+      user_id: user_id,
+      discord_id: discord_id,
+      error_type: :unverified,
+      error_code: nil,
       error_message: nil
     })
 

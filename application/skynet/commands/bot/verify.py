@@ -89,30 +89,26 @@ def verify(interaction: dict, *args, **kwargs):
 
     try:
         member_discord_id = int(find_list(interaction["data"]["options"], "name", "member")["value"])
+        member_roles = interaction["data"]["resolved"]["members"][str(member_discord_id)]["roles"]
     except Exception:
         member_discord_id = int(interaction["member"]["user"]["id"])
+        member_roles = interaction["member"]["roles"]
 
-    try:
-        # TODO: Remove from try/except once we can make sure this works in slash commands
-        member_roles = interaction["data"]["resolved"]["members"][str(member_discord_id)]["roles"]
-
-        if set(member_roles) & set(map(str, guild.exclusion_roles)):  # Exclusion role in member's roles
-            return {
-                "type": 4,
-                "data": {
-                    "embeds": [
-                        {
-                            "title": "Verification Failed",
-                            "description": "The user has an exclusion role which prevents automatic verification. "
-                            "Contact a server admin to remove this exclusion role or to manually set roles.",
-                            "color": SKYNET_ERROR,
-                        }
-                    ],
-                    "flags": 64,
-                },
-            }
-    except Exception:
-        pass
+    if set(member_roles) & set(map(str, guild.exclusion_roles)):  # Exclusion role in member's roles
+        return {
+            "type": 4,
+            "data": {
+                "embeds": [
+                    {
+                        "title": "Verification Failed",
+                        "description": "The user has an exclusion role which prevents automatic verification. "
+                        "Contact a server admin to remove this exclusion role or to manually set roles.",
+                        "color": SKYNET_ERROR,
+                    }
+                ],
+                "flags": 64,
+            },
+        }
 
     ObanJob.new(
         worker="Tornium.Workers.GuildMemberVerification",

@@ -1,9 +1,11 @@
-{ lib, ... }:
+{ lib, modulesPath, ... }:
 
 {
   imports = [
+    (modulesPath + "/profiles/qemu-guest.nix")
     ../common/default.nix
     ../modules/fail2ban-ssh.nix
+    ../disk-config.nix
   ];
 
   deployment.replaceUnknownProfiles = false;
@@ -15,10 +17,5 @@
     user = "root";
     group = "root";
     permissions = "0600";
-  };
-
-  boot.loader.grub.device = lib.mkDefault "/dev/sda";
-  fileSystems."/" = lib.mkDefault {
-    device = "/dev/sda1";
   };
 }

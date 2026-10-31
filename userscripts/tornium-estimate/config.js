@@ -29,6 +29,7 @@ export const Config = new Proxy(
             exactStat: false,
             pages: [],
             statScore: null,
+            maximumStatDays: 90,
         };
     },
     {

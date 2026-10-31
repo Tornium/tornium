@@ -26,20 +26,54 @@ defmodule Tornium.Test.Guild.Verify.Config do
              gateway_verify_enabled: true,
              verify_template: "{{ name }} [{{ tid }}]",
              verified_roles: [123],
-             exclusion_roles: [],
+             exclusion_roles: [456],
              faction_verify: %{},
-             verify_log_channel: 0,
-             verify_jail_channel: 0
+             verify_log_channel: 1,
+             verify_jail_channel: 2
            }) == %Tornium.Guild.Verify.Config{
              verify_enabled: true,
              auto_verify_enabled: true,
              gateway_verify_enabled: true,
              verify_template: "{{ name }} [{{ tid }}]",
              verified_roles: [123],
-             exclusion_roles: [],
+             exclusion_roles: [456],
              faction_verify: %{},
+             verify_log_channel: 1,
+             verify_jail_channel: 2
+           }
+  end
+
+  test "config validatation with string position roles" do
+    position_id = Ecto.UUID.generate()
+
+    parsed_config =
+      Tornium.Guild.Verify.Config.validate(%Tornium.Schema.Server{
+        sid: 1,
+        name: "Test server",
+        admins: [1],
+        verify_enabled: true,
+        auto_verify_enabled: true,
+        gateway_verify_enabled: true,
+        verify_template: "{{ name }} [{{ tid }}]",
+        verified_roles: [],
+        exclusion_roles: [],
+        faction_verify: %{"1" => %{"roles" => [1], "enabled" => true, "positions" => %{position_id => [123, "456"]}}},
+        verify_log_channel: 0,
+        verify_jail_channel: 0
+      })
+
+    assert %Tornium.Guild.Verify.Config{
+             verify_enabled: true,
+             auto_verify_enabled: true,
+             gateway_verify_enabled: true,
+             verify_template: "{{ name }} [{{ tid }}]",
+             verified_roles: [],
+             exclusion_roles: [],
+             faction_verify: %{
+               "1" => %{"roles" => [1], "enabled" => true, "positions" => %{^position_id => [123, 456]}}
+             },
              verify_log_channel: 0,
              verify_jail_channel: 0
-           }
+           } = parsed_config
   end
 end

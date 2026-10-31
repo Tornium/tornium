@@ -167,13 +167,9 @@ Get a list of members of the authenticated user's faction who have delayed organ
 **Scopes Required:** `faction:crimes` (or `faction`)
 
 ```http
-GET /api/v1/faction/<int:faction_id>/crime/delays HTTP/1.1
+GET /api/v1/faction/<int:faction_id>/crime/delays?limit=50 HTTP/1.1
 Authorization: Bearer {{ access_token }}
 Content-Type: application/json
-
-{
-    "limit": 50
-}
 
 [
     {
@@ -194,6 +190,29 @@ Content-Type: application/json
 | `after`  | Integer | Maximum OC ID for pagination |         | False    |
 | `limit`  | Integer | Maximum number of delays     | 100     | False    |
 
+### Get Organized Crime CPRs
+Get a list of known CPRs for every member in the faction for each position in the OC for a given OC.
+
+NOTE: The OC name may need to be URL encoded. For example, `Guardian Ángels` would be `Guardian%20%C3%81ngels`.
+
+**Scopes Required:** `faction:crimes` (or `faction`)
+
+```http
+GET /api/v1/faction/<int:faction_id>/crime/cpr/<str:oc_name>
+Authorization: Bearer {{ access_token }}
+Content-Type: application/json
+
+{
+    "position": [
+        {
+            "cpr": 80,
+            "id": 2383326,
+            "name": "tiksan",
+            "updated_at": 1788377416
+        }
+    ]
+}
+```
 
 ### Get Faction Members
 Get a list of members of a specific faction.
@@ -213,6 +232,91 @@ Authorization: Bearer {{ access_token }}
     }
 ]
 ```
+
+### Get Faction Member Overdoses
+Get a list of overdose events for members of a specific faction.
+
+Unless a drug is taken from the faction armory or the member shares that data with Tornium, the overdosed drug will be returned as `null`.
+
+**Scopes Required:** `faction`
+
+```http
+GET /api/v1/faction/<int:faction_id>/overdose?limit=10&offset=100 HTTP/1.1
+Authorization: Bearer {{ access_token }}
+Content-Type: application/json
+
+{
+    "count": 2,
+    "overdoses": [
+        {
+            "id": "1e4794e2-4c90-41af-9477-fb82dba1e664",
+            "user": {
+                "id": 2383326,
+                "name": "tiksan"
+            },
+            "timestamp": 1789573041
+            "drug": None
+        },
+        {
+            "id": "91091829-2454-4f13-9bf6-2da4ee3f48f9",
+            "user": {
+                "id": 1,
+                "name": "Chedburn"
+            },
+            "timestamp": 1789456040,
+            "drug": {
+                "id": 196,
+                "name": "Cannabis"
+            }
+        }
+    ]
+}
+```
+
+**Query String Parameters**
+
+| Field     | Type            | Description                                    | Default | Required |
+| --------- | --------------- | ----------------------------------------------- | ------- | -------- |
+| `limit`   | Integer         | Maximum number of events (1 to 99)             | 25      | False    |
+| `offset`  | Integer         | Offset from the first value                    | 0       | False    |
+| `from`    | Integer         | Earliest timestamp of events                   | 0       | False    |
+| `to`      | Integer         | Latest timestamp of events                     | now     | False    |
+| `sort`    | String          | Sort order (`timestamp-desc`, `timestamp-asc`) | `timestamp-desc` | False    |
+| `members` | List\[Integer\] | List of member IDs                             | everyone  | False   |
+| `items`   | List\[Integer\] | List of item IDs                               | all items | False   |
+
+### Get Faction Member Overdoses (CSV)
+Get a list of overdose events for members of a specific faction as a CSV file.
+
+Unless a drug is taken from the faction armory or the member shares that data with Tornium, the overdosed drug will be returned as `null`.
+
+**Scopes Required:** `faction`
+
+```http
+GET /api/v1/faction/<int:faction_id>/overdose?limit=10&offset=100 HTTP/1.1
+Authorization: Bearer {{ access_token }}
+Content-Type: text/csv
+
+timestamp, user, user_name, drug
+1789531641,1,Chedburn,
+1789511840,148747,Bogie,
+1789499241,2383326,tiksan,
+1789463241,2383326,tiksan,
+1771301328,2215463,Lightor,206
+1771141142,2167612,Jairyll,206
+```
+
+**Query String Parameters**
+
+| Field     | Type            | Description                                    | Default | Required |
+| --------- | --------------- | ----------------------------------------------- | ------- | -------- |
+| `limit`   | Integer         | Maximum number of events (1 to 99)             | 25      | False    |
+| `offset`  | Integer         | Offset from the first value                    | 0       | False    |
+| `from`    | Integer         | Earliest timestamp of events                   | 0       | False    |
+| `to`      | Integer         | Latest timestamp of events                     | now     | False    |
+| `sort`    | String          | Sort order (`timestamp-desc`, `timestamp-asc`) | `timestamp-desc` | False    |
+| `members` | List\[Integer\] | List of member IDs                             | everyone  | False   |
+| `items`   | List\[Integer\] | List of item IDs                               | all items | False   |
 
 ### [DEPRECATED] Get Faction Positions
 Get a mapping of faction positions for the authenticated user's faction.

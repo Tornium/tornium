@@ -13,15 +13,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
 
-def pytest_configure(config):
-    # PyTest run detection: https://stackoverflow.com/a/25188424
-    import sys
+from prometheus_flask_exporter import PrometheusMetrics
+from prometheus_flask_exporter.multiprocess import GunicornInternalPrometheusMetrics
 
-    sys._called_from_test = True
+if os.environ.get("PROMETHEUS_MULTIPROC_DIR"):
+    MetricsClass = GunicornInternalPrometheusMetrics
+else:
+    MetricsClass = PrometheusMetrics
 
 
-def pytest_unconfigure(config):
-    import sys
-
-    del sys._called_from_test
+metrics = MetricsClass.for_app_factory(group_by="endpoint")

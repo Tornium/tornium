@@ -58,9 +58,13 @@ defmodule Tornium.Workers.GuildVerification do
   defp do_perform(%Tornium.Schema.Server{sid: guild_id, admins: guild_admins} = guild, after_id) do
     # We want to maximize the number of users updated at once. We should overfetch the list of
     # server members as many members should have been updated recently and not require a Torn
-    # API call to verify. However, for larger servers with more admins, we need to cap the
-    # chunk size to 1000 as that's Discord's limit.
-    chunk_size = min(length(guild_admins) * 50, 1000)
+    # API call to verify. However, for larger servers with more admins, we would need to cap the
+    # chunk size to 1000 as that's Discord's limit. But that does not work well when there are too
+    # many users that need to be updated as the job will end up timing out due to the sequential
+    # verification of server members which may take time due to Discord and Torn API ratelimiting;
+    # as such, we will cap the chunk size to 200.
+    # NOTE: The chunk size may need to be further reduced in the future.
+    chunk_size = min(length(guild_admins) * 50, 200)
 
     {:ok, members} = Nostrum.Api.Guild.members(guild_id, limit: chunk_size, after: after_id)
     member_ids = Enum.map(members, & &1.user_id)
@@ -82,7 +86,10 @@ defmodule Tornium.Workers.GuildVerification do
     else
       # We want to spawn a new job to perform verification from the provided next_after_id
       # using Oban's recursive jobs. See https://oban.hexdocs.pm/recursive-jobs.html
-      schedule(guild, after: next_after_id, schedule_in: _seconds = 60)
+      # This should be done after some time to give the Torn and Discord API API calls some
+      # time to be performed, hopefully even if the Discord ratelimiter has entered the global
+      # ratelimited state.
+      schedule(guild, after: next_after_id, schedule_in: _seconds = min(length(guild_admins) * 60, 300))
     end
   end
 
@@ -251,12 +258,12 @@ defmodule Tornium.Workers.GuildVerification do
 
   @spec requires_api_call?(user :: Tornium.Schema.User.t()) :: boolean()
   defp requires_api_call?(%Tornium.Schema.User{last_refresh: last_refresh} = _user) do
-    one_hour_ago = DateTime.utc_now() |> DateTime.add(-1, :hour)
+    earliest_required_update = DateTime.utc_now() |> DateTime.add(Tornium.User.minimum_update_period(), :second)
 
     # If the user was updated less than one hour ago, we can verify the user without trying to
     # make an API call to update the user's data. Otherwise, the user was updated too far in
     # the past, so we should update the user's data before verifying.
-    DateTime.compare(last_refresh, one_hour_ago) != :gt
+    DateTime.compare(last_refresh, earliest_required_update) != :gt
   end
 
   @spec verify_or_schedule(
@@ -284,7 +291,7 @@ defmodule Tornium.Workers.GuildVerification do
       else
         # The user was updated less than one hour ago, so we can verify the user without trying to
         # make an API call to update the user's data.
-        {true, Tornium.Guild.Verify.verify(guild, member)}
+        {true, Tornium.Guild.Verify.verify(guild, member, minimum_update_period: _second = 3_600)}
       end
     end
   end

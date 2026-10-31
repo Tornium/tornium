@@ -16,11 +16,23 @@
 defmodule Tornium.Schema.OAuthToken do
   @moduledoc """
   OAuth 2.0 access/refresh token.
+
+  The `:family_id` of an OAuth token groups all tokens originating from the same OAuth
+  token after being refreshed. This is used to revoke all OAuth tokens of the same
+  family in the case of a compromised refresh token. See RFC 9700 Section 4.14.2.
+
+  The refresh token, if the client has the refresh token grant enabled, should have a greater
+  expiration than the access token to ensure that the client can refresh the access token with
+  sufficient time. By default the access token will expire after 30 minutes if the client has
+  refresh token grant or 7 days if not. If the client has refresh token grant, the refresh token
+  will expire after 24 hours.
+  See https://docs.cloud.google.com/apigee/docs/api-platform/antipatterns/oauth-long-expiration#best-practice
   """
+
   use Ecto.Schema
 
   @type t :: %__MODULE__{
-          id: integer(),
+          id: pos_integer(),
           client: Tornium.Schema.OAuthClient.t(),
           token_type: String.t(),
           access_token: String.t(),
@@ -29,8 +41,11 @@ defmodule Tornium.Schema.OAuthToken do
           issued_at: DateTime.t(),
           access_token_revoked_at: DateTime.t() | nil,
           refresh_token_revoked_at: DateTime.t() | nil,
-          expires_in: integer(),
-          user: Tornium.Schema.User.t()
+          expires_in: non_neg_integer(),
+          refresh_token_expires_in: pos_integer() | nil,
+          user_id: pos_integer(),
+          user: Tornium.Schema.User.t(),
+          family_id: Ecto.UUID.t()
         }
 
   @primary_key {:id, :id, autogenerate: true}
@@ -44,7 +59,9 @@ defmodule Tornium.Schema.OAuthToken do
     field(:access_token_revoked_at, :utc_datetime)
     field(:refresh_token_revoked_at, :utc_datetime)
     field(:expires_in, :integer)
+    field(:refresh_token_expires_in, :integer)
 
     belongs_to(:user, Tornium.Schema.User, references: :tid)
+    field(:family_id, Ecto.UUID)
   end
 end

@@ -72,8 +72,8 @@ class VerificationLog(BaseModel):
             "success": (
                 {
                     "nickname": [self.old_nickname, self.new_nickname],
-                    "roles_added": self.roles_added,
-                    "roles_removed": self.roles_removed,
+                    "roles_added": [str(role) for role in self.roles_added],
+                    "roles_removed": [str(role) for role in self.roles_removed],
                 }
                 if self.error_type is None
                 else None

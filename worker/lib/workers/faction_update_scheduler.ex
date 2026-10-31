@@ -28,7 +28,7 @@ defmodule Tornium.Workers.FactionUpdateScheduler do
     queue: :scheduler,
     tags: ["scheduler", "faction"]
 
-  @max_chunk if Application.compile_env!(:tornium, :env) == :dev, do: 5, else: 100
+  @max_chunk if Application.compile_env(:tornium, :env) == :dev, do: 5, else: 100
 
   @impl Oban.Worker
   def perform(%Oban.Job{} = _job) do

@@ -13,11 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import redis
+from prometheus_flask_exporter.multiprocess import GunicornInternalPrometheusMetrics
 
 
-def test_connect_redis():
-    redis_client = redis.Redis(host="127.0.0.1", port=6379, charset="utf-8", decode_responses=True)
-
-    assert isinstance(redis_client, redis.Redis)
-    assert redis_client.ping()
+def child_exit(server, worker):
+    GunicornInternalPrometheusMetrics.mark_process_dead_on_child_exit(worker.pid)

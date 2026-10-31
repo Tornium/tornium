@@ -13,6 +13,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+import { Config } from "../config.js";
 import { waitForElement } from "../dom.js";
 import { log } from "../logging.js";
 import { updateProfileStatsSpan, updateProfileEstimateSpan } from "./profile.js";
@@ -34,7 +35,7 @@ function injectStats(statsSpan, userID) {
         if (statsData.code === 1100) {
             // There is no data on this user. We want to use an estimate instead
             injectEstimate(statsSpan, userID);
-        } else if (new Date(statsData.timestamp * 1000) <= Date.now() - 1000 * 60 * 60 * 24 * 30) {
+        } else if (new Date(statsData.timestamp * 1000) <= Date.now() - 1000 * 60 * 60 * 24 * Config.maximumStatDays) {
             // The data is too old. We want to use an estimate instead
             injectEstimate(statsSpan, userID);
         } else {

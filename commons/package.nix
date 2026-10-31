@@ -13,9 +13,10 @@ python3Packages.buildPythonPackage {
   build-system = with python3Packages; [ setuptools wheel ];
   propagatedBuildInputs = with python3Packages; [
     boltons
+    flask
     pydantic
     peewee
-    psycopg2
+    psycopg
     redis
     requests
     tornium_oc_graph

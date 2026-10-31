@@ -19,29 +19,32 @@ defmodule Tornium.Schema.Withdrawal do
   """
   use Ecto.Schema
 
-  @type withdrawal_status :: :unfulfilled | :fulfilled | :cancelled | :timed_out
+  @type withdrawal_status() :: :unfulfilled | :fulfilled | :cancelled | :timed_out
   @type t :: %__MODULE__{
-          wid: integer(),
-          faction_tid: integer(),
-          amount: integer(),
+          wid: pos_integer(),
+          guid: Ecto.UUID.t(),
+          faction_id: pos_integer(),
+          faction: Tornium.Schema.Faction.t(),
+          amount: pos_integer(),
           cash_request: boolean(),
-          requester: integer(),
+          requester_id: pos_integer(),
+          requester: Tornium.Schema.User.t(),
           time_requested: DateTime.t(),
           expires_at: DateTime.t() | nil,
           status: withdrawal_status(),
-          fulfiller: integer() | nil,
+          fulfiller: pos_integer() | -1 | nil,
           time_fulfilled: DateTime.t() | nil,
-          withdrawal_message: integer()
+          withdrawal_message: pos_integer()
         }
 
   @primary_key {:wid, :id, autogenerate: true}
   schema "withdrawal" do
     field(:guid, Ecto.UUID)
-    field(:faction_tid, :integer)
+    belongs_to(:faction, Tornium.Schema.Faction, references: :tid)
     field(:amount, :integer)
     field(:cash_request, :boolean)
 
-    field(:requester, :integer)
+    belongs_to(:requester, Tornium.Schema.User, references: :tid)
     field(:time_requested, :utc_datetime)
     field(:expires_at, :utc_datetime)
 

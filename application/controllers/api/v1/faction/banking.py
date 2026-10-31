@@ -213,7 +213,7 @@ def all_requests(faction_id: int, *args, **kwargs):
 
     withdrawal_query = (
         Withdrawal.select()
-        .where(Withdrawal.faction_tid == faction_id)
+        .where(Withdrawal.faction_id == faction_id)
         .order_by(Withdrawal.time_requested.desc())
         .limit(limit)
     )
@@ -252,7 +252,7 @@ def cancel_request(faction_id: int, request_id: str, *args, **kwargs):
     ):
         return make_exception_response("0000", key, details={"message": "Faction vault configuration needs to be set."})
 
-    withdrawal_query = Withdrawal.select().where(Withdrawal.faction_tid == faction_id)
+    withdrawal_query = Withdrawal.select().where(Withdrawal.faction_id == faction_id)
 
     try:
         withdrawal_query = withdrawal_query.where(Withdrawal.guid == uuid.UUID(request_id))

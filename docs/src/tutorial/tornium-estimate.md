@@ -3,9 +3,9 @@ In this tutorial, we will be installing and setting up the Tornium stat estimati
 
 Before starting, ensure you have a userscript manager installed on your browser. The recommended and tested userscript managers are the following:
 - [Tampermonkey](https://www.tampermonkey.net/) - Chrome, Firefox, Edge, Opera, Safari, etc.
-- [Violentmonkey](https://violentmonkey.github.io/) - Chrome, Firefox, Edge, etc
+- [Violentmonkey](https://violentmonkey.github.io/) - Chrome, Firefox, Edge, etc.
 
-**NOTE:** TornPDA may work for you on the built-in userscript manager, but some people will have issues with TPDA injecting the userscript due to a bug with TPDA. Due to this and the lack of development tooling to debug issues on TPDA, support for TPDA is as-is. I will try to keep it running, but I can only say that it only works for me on my phone.
+**NOTE:** The userscript may work for you on TornPDA's built-in userscript manager, but some people will have issues with TornPDA injecting the userscript due to a bug with TornPDA. Due to this and the lack of development tooling to debug issues on TornPDA, support for TornPDA is as-is. I will try to keep it running, but I can only say that it only works for me on my phone.
 
 Once the userscript manager has been installed, on the browser with the userscript manager, navigate to the [userscript](https://github.com/Tornium/tornium/blob/master/userscripts/tornium-estimate.user.js) and press the `Raw` button (or visit [this link](https://github.com/Tornium/tornium/raw/refs/heads/master/userscripts/tornium-estimate.user.js)). If your userscript manager is installed properly, this will automatically install the userscript and show a confirmation page from the userscript manager. If you’re installing the userscript onto TornPDA, make sure that the injection time is set to the end.
 
@@ -23,6 +23,6 @@ You will need to press the `Connect` button to authenticate with Tornium. This w
 
 Once authorized, you will be redirected back to Torn. If the userscript has successfully authenticated with Tornium, the authentication status in the userscript's settings will say `Connected`.
 
-**WARNING**: Due to security limitations of userscripts and userscript managers, in an attempt to keep your Tornium account secure, you MUST re-authenticate every week. This can be done in the userscript's settings.
+**NOTE**: Due to security limitations of userscripts and userscript managers, in an attempt to keep your Tornium account secure, you may need to re-authenticate once in a while if the userscript is not able to refresh itself. This can be done in the userscript's settings. If you get a DM from Tornium's Discord bot indicating that someone else tried to re-use an OAuth refresh token belonging to you, please contact the developer on the [Discord support server](https://discord.gg/pPcqTRTRyF).
 
 For more information on this userscript, see the [Tornium estimate reference](../reference/tornium-estimate.md).

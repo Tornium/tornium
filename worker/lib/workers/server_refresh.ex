@@ -35,10 +35,10 @@ defmodule Tornium.Workers.ServerRefresh do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"guild_id" => guild_id} = _args} = _job) do
-    {:ok, %Nostrum.Struct.Guild{name: guild_name, owner_id: guild_owner_id, roles: guild_roles}} =
+    {:ok, %Nostrum.Struct.Guild{name: guild_name, icon: guild_icon, owner_id: guild_owner_id, roles: guild_roles}} =
       Nostrum.Api.Guild.get(guild_id)
 
-    Tornium.Schema.Server.new(guild_id, guild_name)
+    Tornium.Schema.Server.new(guild_id, guild_name, icon: guild_icon)
 
     guild_admins_discord_ids =
       guild_id

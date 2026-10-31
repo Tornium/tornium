@@ -2,7 +2,7 @@ defmodule Tornium.Repo.Migrations.AddServerAttackConfig do
   use Ecto.Migration
   
   def change do
-    create_if_not_exists table("server_attack_config", primary_key: false) do
+    create_if_not_exists table("serverattackconfig", primary_key: false) do
       add :faction_id, references(:faction, column: :tid, type: :integer), primary_key: true
       add :server_id, references(:server, column: :sid, type: :bigint), primary_key: true
 

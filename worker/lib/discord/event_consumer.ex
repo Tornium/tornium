@@ -43,33 +43,42 @@ defmodule Tornium.Discord.Consumer do
 
   @spec handle_event(event :: Nostrum.Consumer.guild_create()) :: term()
   def handle_event({
-        :GUILD_CREATE,
-        %Nostrum.Struct.Guild{id: guild_id, name: guild_name, owner_id: guild_owner_id, roles: roles} = _new_guild,
+        event,
+        %Nostrum.Struct.Guild{
+          id: guild_id,
+          name: guild_name,
+          icon: guild_icon,
+          owner_id: guild_owner_id,
+          roles: roles
+        } = _new_guild,
         _ws_state
-      }) do
-    :telemetry.execute([:tornium, :bot, :guild_joined], %{}, %{
-      guild_id: guild_id,
-      guild_name: guild_name
-    })
+      })
+      when event in [:GUILD_CREATE, :GUILD_AVAILABLE] do
+    if event == :GUILD_CREATE or not Repo.exists?(Tornium.Schema.Server, guild_id) do
+      :telemetry.execute([:tornium, :bot, :guild_joined], %{}, %{
+        guild_id: guild_id,
+        guild_name: guild_name
+      })
 
-    Tornium.Schema.Server.new(guild_id, guild_name)
+      Tornium.Schema.Server.new(guild_id, guild_name, icon: guild_icon)
 
-    guild_admins_discord_ids =
-      guild_id
-      |> Tornium.Guild.fetch_admins(roles)
-      |> List.insert_at(0, guild_owner_id)
-      |> Enum.uniq()
+      guild_admins_discord_ids =
+        guild_id
+        |> Tornium.Guild.fetch_admins(roles)
+        |> List.insert_at(0, guild_owner_id)
+        |> Enum.uniq()
 
-    guild_admins =
-      Tornium.Schema.User
-      |> where([u], u.discord_id in ^guild_admins_discord_ids)
-      |> select([u], u.tid)
-      |> Repo.all()
+      guild_admins =
+        Tornium.Schema.User
+        |> where([u], u.discord_id in ^guild_admins_discord_ids)
+        |> select([u], u.tid)
+        |> Repo.all()
 
-    Tornium.Schema.Server
-    |> update([s], set: [admins: ^guild_admins])
-    |> where([s], s.sid == ^guild_id)
-    |> Repo.update_all([])
+      Tornium.Schema.Server
+      |> update([s], set: [admins: ^guild_admins])
+      |> where([s], s.sid == ^guild_id)
+      |> Repo.update_all([])
+    end
 
     nil
   end

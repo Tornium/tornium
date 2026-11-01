@@ -154,7 +154,7 @@ defmodule Tornium.Guild do
       |> Enum.map(fn %Nostrum.Struct.Guild.Member{user_id: user_id} -> user_id end)
 
     if length(members) >= 1000 do
-      [do_fetch_admins(guild_id, admin_roles, largest_member_id) | admins]
+      do_fetch_admins(guild_id, admin_roles, largest_member_id) ++ admins
     else
       admins
     end

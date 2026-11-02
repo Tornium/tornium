@@ -51,6 +51,7 @@ in {
 
       process-max = 5;
 
+      archive-timeout = "10m";
       archive-push-queue-max = "20GiB";
     };
     systemd.tmpfiles.rules = [

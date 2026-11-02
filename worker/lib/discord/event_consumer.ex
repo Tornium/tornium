@@ -54,7 +54,7 @@ defmodule Tornium.Discord.Consumer do
         _ws_state
       })
       when event in [:GUILD_CREATE, :GUILD_AVAILABLE] do
-    if event == :GUILD_CREATE or not Repo.exists?(Tornium.Schema.Server, guild_id) do
+    if event == :GUILD_CREATE or not (Tornium.Schema.Server |> where([s], s.sid == ^guild_id) |> Repo.exists?()) do
       :telemetry.execute([:tornium, :bot, :guild_joined], %{}, %{
         guild_id: guild_id,
         guild_name: guild_name

@@ -21,6 +21,11 @@ mod = Blueprint("tornroutes", __name__)
 
 # OC Routes
 mod.add_url_rule("/torn/crimes/graphs", view_func=crimes.crime_graphs, methods=["GET"])
+mod.add_url_rule(
+    f"/torn/crimes/graphs/<oc_name>.<any({', '.join(crimes.GRAPH_MIMETYPES.keys())}):graph_extension>",
+    view_func=crimes.render_crime_graph,
+    methods=["GET"],
+)
 
 # Factions Routes
 mod.add_url_rule("/torn/faction/<int:tid>", view_func=factions.faction_data, methods=["GET"])

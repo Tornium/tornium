@@ -27,6 +27,7 @@ dependencies = [
     "psycopg[binary]",
     "pynacl",
     "xgboost",
+    "graphviz",
     "python-liquid ~= 2.1.0",
     "prometheus-flask-exporter",
     "git+https://github.com/Tornium/tornium_oc_graph.git"

@@ -14,7 +14,20 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Tornium.Test.Guild do
-  use Tornium.RepoCase
+  use Tornium.RepoCase, async: false
+
+  describe "Tornium.Schema.Server.new/3" do
+    test "insert single server" do
+      assert %Tornium.Schema.Server{sid: 1, name: "1", admins: []} = Tornium.Schema.Server.new(1, "1")
+    end
+
+    test "insert server with existing data" do
+      Tornium.Schema.Server.new(1, "1")
+
+      assert %Tornium.Schema.Server{sid: 1, name: "not 1", admins: [1], factions: [2]} =
+               Tornium.Schema.Server.new(1, "not 1", admins: [1], factions: [2])
+    end
+  end
 
   test "test_get_admin_keys_invalid" do
     assert Kernel.length(Tornium.Guild.get_admin_keys(0)) == 0

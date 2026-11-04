@@ -54,6 +54,8 @@ defmodule Tornium.Guild.Verify do
   ## Options
     * `:force?` - Force an update of the user's API data (default: `false`)
     * `:niceness` - Priority of the Tornex API call (default: `10`)
+    * `:minimum_update_period` - The minimum number of seconds before the user's data is considered
+      outdated and would be updated without `force?: true` (default: 10 minutes)
 
   ## Returns
     - OK with the updated member struct
@@ -179,7 +181,8 @@ defmodule Tornium.Guild.Verify do
       %Tornium.Guild.Verify.Config{} = config ->
         Tornium.User.update_by_id({:discord, member_id}, api_key,
           force: Keyword.get(opts, :force?, false),
-          niceness: Keyword.get(opts, :niceness, 10)
+          niceness: Keyword.get(opts, :niceness, 10),
+          minimum_update_period: Keyword.get(opts, :minimum_update_period, Tornium.User.minimum_update_period())
         )
         |> build_changes(config, member)
         |> perform_changes(guild, member)

@@ -38,8 +38,8 @@ defmodule Tornium.Faction.ChainMonitor.State do
 
   ## Examples
 
-    iex> from_opts!(chain_id: 1, faction_id: 1)
-    %Tornium.Faction.ChainMonitor.State{chain_id: 1, faction_id: 1)
+    iex> Tornium.Faction.ChainMonitor.State.from_opts!(chain_id: 1, faction_id: 1)
+    %Tornium.Faction.ChainMonitor.State{chain_id: 1, faction_id: 1, last_updated: nil, chain_length: nil, last_attack: nil, timer_ref: nil}
   """
   @spec from_opts!(opts :: keyword()) :: t()
   def from_opts!(opts \\ []) do
@@ -53,7 +53,6 @@ defmodule Tornium.Faction.ChainMonitor.State do
     }
   end
 
-  # TODO: add an integration test for this
   @doc """
   Convert the chain data from the APIv2 `faction/chain` endpoint to a state struct.
   """
@@ -66,6 +65,7 @@ defmodule Tornium.Faction.ChainMonitor.State do
                 id: chain_id,
                 current: chain_current,
                 end: chain_end,
+                cooldown: chain_cooldown_end,
                 timeout: chain_timeout
               }
             }
@@ -73,12 +73,14 @@ defmodule Tornium.Faction.ChainMonitor.State do
         },
         opts \\ []
       ) do
+    chain_cooldown? = chain_cooldown_end != 0
+
     %__MODULE__{
       chain_id: chain_id,
       faction_id: Keyword.fetch!(opts, :faction_id),
       last_updated: DateTime.utc_now(),
       chain_length: chain_current,
-      last_attack: DateTime.from_unix!(chain_end - chain_timeout),
+      last_attack: if(chain_cooldown?, do: nil, else: DateTime.from_unix!(chain_end - chain_timeout)),
       timer_ref: Keyword.get(opts, :timer_ref)
     }
   end

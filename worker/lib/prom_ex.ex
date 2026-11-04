@@ -27,13 +27,13 @@ defmodule Tornium.PromEx do
       Tornex.PromExPlugin,
       # {Plugins.Phoenix, router: .Web.Router, endpoint: .Web.Endpoint},
       Plugins.Ecto,
-      Plugins.Oban
+      Plugins.Oban,
       # Plugins.PhoenixLiveView,
       # Plugins.Absinthe,
       # Plugins.Broadway,
 
       # Add your own PromEx metrics plugins
-      # ..Users.PromExPlugin
+      Tornium.Nostrum.PromEx
     ]
   end
 

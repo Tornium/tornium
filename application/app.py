@@ -46,6 +46,7 @@ def init__app():
     from controllers.settings_routes import mod as settings_mod
     from controllers.statroutes import mod as stat_mod
     from controllers.torn import mod as torn_mod
+    from metrics import metrics
     from skynet import mod as skynet_mod
 
     init_db()
@@ -88,6 +89,8 @@ def init__app():
     oauth_server.init_app(app, query_client=OAuthClient.get_client, save_token=OAuthToken.save_token)
     oauth_server.register_grant(AuthorizationCodeGrant, [CodeChallenge(required=True)])
     oauth_server.register_grant(RefreshTokenGrant)
+
+    metrics.init_app(app)
 
     with app.app_context():
         app.register_blueprint(base_mod)

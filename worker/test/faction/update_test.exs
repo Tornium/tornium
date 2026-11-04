@@ -29,7 +29,7 @@ defmodule Tornium.Test.FactionUpdate do
 
     response = Tornex.API.get(query)
     faction_id = response |> Map.fetch!("basic") |> Map.fetch!("id")
-    assert :ok = Tornium.Workers.FactionUpdate.do_perform(response, faction_id, true)
+    assert :ok = Tornium.Workers.FactionUpdate.do_perform(response, true)
 
     members =
       Tornium.Schema.User
@@ -58,7 +58,7 @@ defmodule Tornium.Test.FactionUpdate do
       |> Tornex.SpecQuery.put_parameter!(:id, faction_id)
 
     response = Tornex.API.get(query)
-    assert :ok = Tornium.Workers.FactionUpdate.do_perform(response, faction_id, false)
+    assert :ok = Tornium.Workers.FactionUpdate.do_perform(response, false)
 
     members =
       Tornium.Schema.User

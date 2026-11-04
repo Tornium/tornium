@@ -60,6 +60,7 @@ def crimes_switchboard(interaction, *args, **kwargs):
                 u.name,
                 EXTRACT(epoch FROM (now() - oc.executed_at))
             FROM public."user" u
+            INNER JOIN public.faction_position fp ON u.faction_position_id = fp.pid
             LEFT JOIN (
                 SELECT
                     DISTINCT ON (ocs.user_id) oc.oc_id,
@@ -79,8 +80,9 @@ def crimes_switchboard(interaction, *args, **kwargs):
                 oc.user_id = u.tid
                 AND oc.faction_id = u.faction_id
             WHERE
-                u.faction_id = %s
-                AND (oc.user_id is null OR (oc.executed_at IS NOT NULL AND now() - oc.executed_at > interval %s))
+                fp.name != 'Recruit'
+                AND u.faction_id = %s
+                AND (oc.user_id is null OR (oc.executed_at IS NOT NULL AND now() - oc.executed_at > %s::interval))
             """,
             parameters,
         )

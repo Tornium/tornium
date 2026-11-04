@@ -10,6 +10,7 @@ let
     flask-login
     python-liquid
     pynacl
+    prometheus-flask-exporter
 
     pandas
     scikit-learn

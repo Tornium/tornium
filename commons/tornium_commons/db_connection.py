@@ -15,7 +15,7 @@
 
 from functools import wraps
 
-from playhouse.pool import PooledPostgresqlExtDatabase
+from playhouse.postgres_ext import PooledPostgresqlExtDatabase
 
 from .config import Config
 
@@ -24,7 +24,7 @@ db = PooledPostgresqlExtDatabase(None)
 
 def init_db() -> None:
     _s = Config.from_json()
-    db.init("Tornium", max_connections=16, stale_timeout=300, dsn=_s.db_dsn.unicode_string())
+    db.init("Tornium", max_connections=16, stale_timeout=300, conninfo=_s.db_dsn.unicode_string(), prefer_psycopg3=True)
 
 
 def with_db_connection(f):

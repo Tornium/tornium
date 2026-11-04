@@ -35,7 +35,7 @@ defmodule Tornium.Workers.UserUpdateScheduler do
     queue: :scheduler,
     tags: ["scheduler", "user"]
 
-  @max_chunk if Application.compile_env!(:tornium, :env) == :dev, do: 10, else: 100
+  @max_chunk if Application.compile_env(:tornium, :env) == :dev, do: 10, else: 250
   @update_niceness 10
 
   @impl Oban.Worker
@@ -54,7 +54,8 @@ defmodule Tornium.Workers.UserUpdateScheduler do
       |> join(:inner, [k], u in assoc(k, :user), on: u.tid == k.user_id)
       |> where(
         [k, u],
-        is_nil(u.last_refresh) or u.last_refresh < ^one_hour_ago or u.battlescore_update < ^one_day_ago
+        is_nil(u.last_refresh) or u.last_refresh < ^one_hour_ago or is_nil(u.battlescore_update) or
+          u.battlescore_update < ^one_day_ago
       )
       |> select([k, u], k)
       |> order_by([k, u], asc_nulls_first: u.last_refresh)

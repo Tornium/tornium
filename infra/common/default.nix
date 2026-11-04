@@ -25,13 +25,6 @@
     vim
   ];
 
-  # Limit the systemd journal to 100 MB of disk or the
-  # last 7 days of logs, whichever happens first.
-  services.journald.extraConfig = ''
-    SystemMaxUse=100M
-    MaxFileSec=7day
-  '';
-
   services.openssh.enable = true;
   # OpenSSH settings come from https://saylesss88.github.io/nix/hardening_NixOS.html#openssh-server
   services.openssh.settings = {
@@ -63,6 +56,12 @@
   users.users.postgres.openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBhqfFOoJQcayzpvR26r5meBtq4N5nezHPgy+9T2tANi pgbackrest-key"
   ];
+
+  nix.gc = {
+    automatic = true;
+    dates = "daily";
+    options = "--delete-older-than 7d";
+  };
 
   # This is added to the server by colmena in ../hosts/common.nix
   sops.age.keyFile = "/run/keys/sops-age-key.secret";

@@ -18,6 +18,7 @@ import { CACHE_ENABLED } from "./constants.js";
 
 const CACHE_NAME = "tornium-estimate-cache";
 export const CACHE_EXPIRATION = 1000 * 60 * 60 * 24; // 1 day
+const CACHE_HEADER_KEYS = new Set(["content-encoding", "content-type", "date", "etag"]);
 
 let cacheInstance = null;
 async function getCacheInstance() {
@@ -40,32 +41,35 @@ export async function getCache(url) {
         const expirationTime = new Date(parseInt(cachedResponse.headers.get("cache-expiry")));
 
         if (Date.now() < expirationTime) {
-            log(`HIT ${url}`);
+            log(`HIT ${url}`, true);
             return await cachedResponse.json();
         }
 
-        log(`EXPIRE ${url}`);
+        log(`EXPIRE ${url}`, true);
         await cache.delete(url);
     }
 
-    log(`MISS ${url}`);
+    log(`MISS ${url}`, true);
     return null;
 }
 
 export async function putCache(url, response, ttl = CACHE_EXPIRATION) {
     const newHeaders = new Headers();
-    if (response.responseHeaders) {
-        response.responseHeaders
-            .trim()
-            .split(/[\r\n]+/)
-            .forEach((line) => {
-                const parts = line.split(": ");
-                const key = parts.shift();
-                const value = parts.join(": ");
-                if (key) {
-                    newHeaders.append(key, value);
-                }
-            });
+
+    for (const line of (response.responseHeaders || "").trim().split(/[\r\n]+/)) {
+        const seperatorIndex = line.indexOf(":");
+
+        if (seperatorIndex <= 0) {
+            continue;
+        }
+
+        const headerKey = line.slice(0, seperatorIndex).trim().toLowerCase();
+
+        if (!CACHE_HEADER_KEYS.has(headerKey)) {
+            continue;
+        }
+
+        newHeaders.set(headerKey, line.slice(0, seperatorIndex + 1).trim());
     }
 
     newHeaders.set("cache-expiry", String(Date.now() + ttl));

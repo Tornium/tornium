@@ -136,15 +136,6 @@ class OAuthToken(BaseModel):
             OAuthToken.family_id == self.family_id
         ).execute()
 
-        AuthLog.insert(
-            user=self.user.tid,
-            timestamp=now,
-            ip=None,
-            action=AuthAction.OAUTH_TOKEN_REFRESH_REUSE.value,
-            login_key=str(self.family_id),
-            details=self.client.client_id,
-        ).execute()
-
     def alert_token_family_revocation(self) -> None:
         from tornium_celery.tasks.misc import send_dm
 

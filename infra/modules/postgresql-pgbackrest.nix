@@ -8,6 +8,7 @@ let
   };
 
   cfg = config.services.postgresql-pgbackrest;
+  repo = import ./pgbackrest-repo.nix;
 in {
   options.services.postgresql-pgbackrest = {
     enable = lib.mkEnableOption {
@@ -26,38 +27,40 @@ in {
       default = pgbackrestDefaults.replicaHost;
       description = "IP of the replica PostgreSQL host (or null)";
     };
+
+    scheduleFullBackup = lib.mkOption {
+      type = lib.types.bool;
+      # Only the primary (where primaryHost is null) should take the daily backup. Both the primary
+      # and the replica import this module, and the stanza is shared, so scheduling it everywhere
+      # starts two full backups of the same stanza at 03:30.
+      default = cfg.enable && cfg.primaryHost == null;
+      defaultText = lib.literalExpression "cfg.enable && cfg.primaryHost == null";
+      description = "Run the daily full backup from this host.";
+    };
   };
 
   config = {
     services.pgbackrest.enable = cfg.enable;
     services.pgbackrest.settings = {
       backup-standby = "y";
-      # archive-async = "y";
+      archive-async = "y";
+      spool-path = "/var/spool/pgbackrest";
 
       compress-type = "zst";
       compress-level = 3;
 
       process-max = 5;
-    };
-    services.pgbackrest.repos = {
-      b2 = {
-        type = "s3";
-        block = "y";
-        bundle = "y";
-        s3-bucket = "tornium-backups";
-        s3-uri-style = "path";
-        s3-endpoint = "s3.eu-central-003.backblazeb2.com";
-        s3-region = "eu-central-003";
-        storage-verify-tls = true;
 
-        cipher-type = "aes-256-cbc";
-
-        path = "/";
-        retention-full = 3;
-      };
+      archive-timeout = "10m";
+      archive-push-queue-max = "20GiB";
     };
+    systemd.tmpfiles.rules = [
+      "d /var/spool/pgbackrest 0750 postgres postgres -"
+    ];
+
+    services.pgbackrest.repos = repo.repos;
     services.pgbackrest.stanzas = {
-      tornium = {
+      ${repo.stanza} = {
         settings = {
           recovery-option = "primary_conninfo=host=${pgbackrestDefaults.primaryHost} user=replicator";
         };
@@ -76,9 +79,8 @@ in {
       };
     };
 
-    systemd.services."postgresql-pgbackrest-daily-full" = {
+    systemd.services."postgresql-pgbackrest-daily-full" = lib.mkIf cfg.scheduleFullBackup {
       description = "Service to perform full backups with pgbackrest";
-      wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
       requires = [ "postgresql.service" ];
       path = [ pkgs.pgbackrest ];
@@ -93,7 +95,7 @@ in {
         ExecStart = "${pkgs.pgbackrest}/bin/pgbackrest --type=full --stanza=tornium backup";
       };
     };
-    systemd.timers."postgresql-pgbackrest-daily-full" = {
+    systemd.timers."postgresql-pgbackrest-daily-full" = lib.mkIf cfg.scheduleFullBackup {
       description = "Timer to start the daily full backup with pgbackrest";
       wantedBy = [ "timers.target" ];
 

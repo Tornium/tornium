@@ -31,4 +31,55 @@ defmodule Tornium.Test.Notification.Lua.API do
     assert {[true], _} = Lua.eval!(vm, ~LUA[return tornium.to_boolean("true")]c)
     assert {[true], _} = Lua.eval!(vm, ~LUA[return tornium.to_boolean("True")]c)
   end
+
+  test "validate to_list/1 with valid values" do
+    vm = Tornium.Notification.Lua.setup_vm()
+
+    assert {[["1", "2", "3"]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list("1,2,3")]c)
+    assert {[["1", "2", "3"]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list("1, 2, 3")]c)
+    assert {[[]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list("")]c)
+  end
+
+  test "validate to_list/2 with valid values and types" do
+    vm = Tornium.Notification.Lua.setup_vm()
+
+    assert {[[1, 2, 3]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list("1,2,3", "integer")]c)
+    assert {[[1, 2, 3]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list("1, 2, 3", "integer")]c)
+    assert {[[]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list("", "integer")]c)
+
+    assert {[["1", "2", "3"]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list("1,2,3", "string")]c)
+    assert {[["1", "2", "3"]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list("1, 2, 3", "string")]c)
+    assert {[[]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list("", "string")]c)
+  end
+
+  test "validate to_list/2 with invalid values/types" do
+    vm = Tornium.Notification.Lua.setup_vm()
+
+    assert {[[1, 2, 3]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list("foo, bar, 1, 2, 3, foo, bar", "integer")]c)
+    assert {[[]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list("foo, bar, 1, 2, 3, foo, bar", "boolean")]c)
+  end
+
+  test "validate to_list_strict/2 with valid values" do
+    vm = Tornium.Notification.Lua.setup_vm()
+
+    assert {[[1, 2, 3]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list_strict("1,2,3", "integer")]c)
+    assert {[[1, 2, 3]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list_strict("1, 2, 3", "integer")]c)
+    assert {[[]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list_strict("", "integer")]c)
+
+    assert {[["1", "2", "3"]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list_strict("1,2,3", "string")]c)
+    assert {[["1", "2", "3"]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list_strict("1, 2, 3", "string")]c)
+    assert {[[]], _} = Lua.eval!(vm, ~LUA[return tornium.to_list_strict("", "string")]c)
+  end
+
+  test "validate to_list_strict/2 with invalid values/types" do
+    vm = Tornium.Notification.Lua.setup_vm()
+
+    assert_raise Lua.RuntimeException, "Cannot convert foo to integer", fn ->
+      Lua.eval!(vm, ~LUA[return tornium.to_list_strict("foo, bar, 1, 2, 3, foo, bar", "integer")]c)
+    end
+
+    assert_raise Lua.RuntimeException, "Cannot convert 5 to boolean", fn ->
+      Lua.eval!(vm, ~LUA[return tornium.to_list_strict("5, foo, bar, 1, 2, 3, foo, bar", "boolean")]c)
+    end
+  end
 end

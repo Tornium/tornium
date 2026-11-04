@@ -140,6 +140,7 @@ defmodule Tornium.Guild do
     largest_member_id =
       members
       |> Enum.max_by(fn %Nostrum.Struct.Guild.Member{user_id: user_id} -> user_id end)
+      |> Map.fetch!(:user_id)
       |> max(largest_member_id)
 
     admins =

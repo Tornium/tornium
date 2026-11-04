@@ -129,6 +129,16 @@ defmodule Tornium.Faction.ChainMonitor do
   @impl true
   def handle_continue(
         :initial_message,
+        %Tornium.Faction.ChainMonitor.State{chain_id: chain_id, last_attack: nil, chain_length: chain_length} = state
+      )
+      when is_integer(chain_length) and chain_length > 0 do
+    # The chain is already in cooldown when the monitor starts, so there's nothing to monitor.
+    {:stop, {:shutdown, "Stopped ChainMonitor as the chain #{chain_id} is already in cooldown"}, state}
+  end
+
+  @impl true
+  def handle_continue(
+        :initial_message,
         %Tornium.Faction.ChainMonitor.State{faction_id: faction_id, chain_length: chain_length} = state
       )
       when is_integer(chain_length) and chain_length == 0 do
@@ -172,6 +182,12 @@ defmodule Tornium.Faction.ChainMonitor do
     # If the state has been previously set (when the last_updated timestamp is not nil) and the
     # chain is in cooldown (when the last_attack is nil), then the chain is over and we can stop
     # the chain monitor for the faction.
+    # First we want to update the chain's end timestamp to avoid having the Discovery Genserver
+    # repeatedly respawn this ChainMonitor.
+    Tornium.Schema.Chain
+    |> where([c], c.chain_id == ^chain_id and is_nil(c.end_timestamp))
+    |> Repo.update_all(set: [end_timestamp: DateTime.utc_now() |> DateTime.truncate(:second)])
+
     {:stop, {:shutdown, "Stopped ChainMonitor as the chain #{chain_id} ended"}, state}
   end
 

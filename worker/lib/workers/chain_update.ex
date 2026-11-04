@@ -94,11 +94,16 @@ defmodule Tornium.Workers.ChainUpdate do
       }
     } = Tornex.SpecQuery.parse(base_query, api_call_result)
 
-    chains
-    |> Enum.find(&(&1.id == chain_id))
-    |> Tornium.Schema.Chain.upsert(faction_id)
+    case Enum.find(chains, &(&1.id == chain_id)) do
+      nil ->
+        # The chain ID can't be found in the default page of the chain history.
+        {:cancel, :chain_not_found}
 
-    :ok
+      chain ->
+        Tornium.Schema.Chain.upsert(chain, faction_id)
+
+        :ok
+    end
   end
 
   @doc """

@@ -8,6 +8,7 @@ defmodule Tornium.Repo.Migrations.AddOcGraph do
 
       add :scene_id, :integer, null: false
       add :scene_slug, :string, null: false
+      add :terminal, :boolean, default: false, null: false
 
       add :last_seen_at, :utc_datetime, null: false
       add :last_seen_by_id, references(:user, column: :tid, type: :integer), null: false

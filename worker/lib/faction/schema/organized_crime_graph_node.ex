@@ -26,6 +26,7 @@ defmodule Tornium.Schema.OrganizedCrimeGraphNode do
           oc_type: Tornium.Schema.OrganizedCrimeType.t(),
           scene_id: pos_integer(),
           scene_slug: String.t(),
+          terminal: boolean(),
           last_seen_at: DateTime.t(),
           last_seen_by_id: pos_integer(),
           last_seen_by: Tornium.Schema.User.t(),
@@ -40,6 +41,7 @@ defmodule Tornium.Schema.OrganizedCrimeGraphNode do
 
     field(:scene_id, :integer)
     field(:scene_slug, :string)
+    field(:terminal, :boolean)
 
     field(:last_seen_at, :utc_datetime)
     belongs_to(:last_seen_by, Tornium.Schema.User, references: :tid)

@@ -119,6 +119,7 @@ defmodule Tornium.Workers.ActiveWarfareUpdate do
     |> Tornex.SpecQuery.put_parameter!(:cat, "active")
     |> Tornex.SpecQuery.put_parameter!(:limit, @api_query_limit)
     |> Tornex.SpecQuery.put_parameter!(:from, from_timestamp)
+    |> Tornex.SpecQuery.put_parameter!(:sort, "asc")
   end
 
   @spec schedule(opts :: keyword()) :: {:ok, Oban.Job.t()} | {:error, Oban.Job.changeset() | term()}

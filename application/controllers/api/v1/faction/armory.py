@@ -18,7 +18,7 @@ import datetime
 import io
 
 from flask import make_response, request
-from peewee import fn
+from peewee import SQL, fn
 from tornium_commons.formatters import timestamp
 from tornium_commons.models import ArmoryAction, ArmoryUsage, Item, User
 
@@ -220,7 +220,7 @@ def get_cumulative(faction_id: int, *args, **kwargs):
         )
     # TODO: Validate item IDs
 
-    total_count_expression = fn.COUNT("cumulative_usage").over().alias("total_count")
+    total_count_expression = fn.COUNT(SQL("*")).over().alias("total_count")
     cumulative = (
         ArmoryUsage.select(
             ArmoryUsage.action,

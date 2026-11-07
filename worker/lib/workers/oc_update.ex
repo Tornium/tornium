@@ -25,7 +25,7 @@ defmodule Tornium.Workers.OCUpdate do
     unique: [
       period: :infinity,
       fields: [:worker, :args],
-      keys: [:faction_tid],
+      keys: [:faction_id],
       states: :incomplete
     ]
 

@@ -61,7 +61,7 @@ defmodule Tornium.Workers.OCUpdateScheduler do
 
   @impl Oban.Worker
   def timeout(%Oban.Job{} = _job) do
-    :timer.minutes(1)
+    :timer.minutes(2)
   end
 
   @spec query(faction_id :: pos_integer()) :: Tornex.SpecQuery.t()

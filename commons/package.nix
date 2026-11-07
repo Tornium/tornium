@@ -19,6 +19,7 @@ python3Packages.buildPythonPackage {
     psycopg
     redis
     requests
+    graphviz
     tornium_oc_graph
   ];
 

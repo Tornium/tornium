@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Crimes
 // @namespace    https://tornium.com
-// @version      0.1.0
+// @version      0.1.1-dev
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/factions.php*
@@ -39,18 +39,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 (async () => {
 (() => {
   // constants.js
-  var DEBUG = true;
-  var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
+  var DEBUG = false;
+  var BASE_URL = "https://tornium.com";
   var ENABLE_LOGGING = true;
-  var VERSION = "0.1.0";
+  var VERSION = "0.1.1-dev";
   var APP_ID = "97884c32bb18b41224f482390d9f712268e1240082cdc6b9";
   var APP_SCOPE = "identity faction:crimes";
-  var CACHE_ENABLED = false;
+  var CACHE_ENABLED = !DEBUG && "caches" in window;
   var GM_PREFIX = "tornium-crimes";
   var CACHE_NAME = `${GM_PREFIX}-cache`;
   GM_setValue(`${GM_PREFIX}:test`, "1");
   var localGMValue = localStorage.getItem(`${GM_PREFIX}:test`);
-  var clientLocalGM = localGMValue === "1" || localGMValue === `GMV2_"1"`;
   var clientMobile = (() => {
     let check = false;
     (function(a) {
@@ -126,8 +125,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   // oauth.js
   var accessToken = GM_getValue(`${GM_PREFIX}:access-token`, null);
   var accessTokenExpiration = GM_getValue(`${GM_PREFIX}:access-token-expires`, 0);
-  var redirectURI = clientLocalGM ? `https://www.torn.com/tornium/${APP_ID}/oauth/callback` : `${BASE_URL}/oauth/${APP_ID}/callback`;
+  var accessRefreshToken = GM_getValue(`${GM_PREFIX}:refresh-token`, null);
+  var redirectURI = `https://www.torn.com/tornium/${APP_ID}/oauth/callback`;
+  var REFRESH_TOKEN_HASH_ALGORITHM = "SHA-256";
+  var REFRESH_TOKEN_LOCAL_STORAGE_KEY = `${GM_PREFIX}:refresh-token-hash`;
+  var tokenBroadcastChannel = new BroadcastChannel(`${GM_PREFIX}:access-token-updates`);
+  tokenBroadcastChannel.onmessage = (event) => {
+    accessToken = event.data.accessToken;
+    accessTokenExpiration = event.data.accessTokenExpiration;
+    accessRefreshToken = event.data.accessRefreshToken;
+    updateRefreshTokenHash();
+    log("Updated access token from another tab via broadcast channel...");
+  };
   function isAuthExpired() {
+    accessToken = GM_getValue(`${GM_PREFIX}:access-token`, null);
+    accessTokenExpiration = GM_getValue(`${GM_PREFIX}:access-token-expires`, 0);
     if (accessToken == null || accessTokenExpiration == 0) {
       return true;
     } else if (Math.floor(Date.now() / 1e3) >= accessTokenExpiration) {
@@ -136,7 +148,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     return false;
   }
   function hasRefreshToken() {
-    return GM_getValue(`${GM_PREFIX}:refresh-token`) != null;
+    accessRefreshToken = GM_getValue(`${GM_PREFIX}:refresh-token`, null);
+    return accessRefreshToken != null;
   }
   function authStatus() {
     if (accessToken == null) {
@@ -178,20 +191,67 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
   function resolveTokenCallback(response) {
     let responseJSON = response.response;
     if (response.responseType === void 0) {
-      responseJSON = JSON.parse(response.responseText);
-      response.responseType = "json";
+      try {
+        responseJSON = JSON.parse(response.responseText);
+        response.responseType = "json";
+      } catch (error) {
+        log("Failed to parse token response: " + error);
+        return;
+      }
+    }
+    if (response.status !== 200 || responseJSON.error) {
+      log(`Failed to update access token with an OAuth error: ${responseJSON.error || response.statusText}`);
+      if (responseJSON.error === "invalid_grant") {
+        GM_deleteValue(`${GM_PREFIX}:access-token`);
+        GM_deleteValue(`${GM_PREFIX}:access-token-expires`);
+        GM_deleteValue(`${GM_PREFIX}:refresh-token`);
+        localStorage.removeItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY);
+        accessToken = null;
+        accessTokenExpiration = 0;
+        accessRefreshToken = null;
+        tokenBroadcastChannel.postMessage({
+          accessToken,
+          accessTokenExpiration,
+          accessRefreshToken
+        });
+      }
+      return;
     }
     accessToken = responseJSON.access_token;
     accessTokenExpiration = Math.floor(Date.now() / 1e3) + responseJSON.expires_in;
-    const refreshToken = responseJSON.refresh_token ?? null;
+    accessRefreshToken = responseJSON.refresh_token ?? null;
     GM_setValue(`${GM_PREFIX}:access-token`, accessToken);
     GM_setValue(`${GM_PREFIX}:access-token-expires`, accessTokenExpiration);
-    if (refreshToken == null) {
+    if (accessRefreshToken == null) {
       GM_deleteValue(`${GM_PREFIX}:refresh-token`);
+      localStorage.removeItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY);
     } else {
-      GM_setValue(`${GM_PREFIX}:refresh-token`, refreshToken);
+      GM_setValue(`${GM_PREFIX}:refresh-token`, accessRefreshToken);
+      updateRefreshTokenHash();
     }
+    tokenBroadcastChannel.postMessage({
+      accessToken,
+      accessTokenExpiration,
+      accessRefreshToken
+    });
     return;
+  }
+  async function getRefreshTokenHash() {
+    if (accessRefreshToken == null) {
+      return null;
+    }
+    const encoder = new TextEncoder();
+    const encodedRefreshToken = encoder.encode(accessRefreshToken);
+    const hashedRefreshToken = await window.crypto.subtle.digest(REFRESH_TOKEN_HASH_ALGORITHM, encodedRefreshToken);
+    const hashedRefreshTokenHex = new Uint8Array(hashedRefreshToken).toHex();
+    return hashedRefreshTokenHex;
+  }
+  async function updateRefreshTokenHash() {
+    if (window.location.host != "www.torn.com") {
+      return;
+    }
+    const hashedRefreshToken = await getRefreshTokenHash();
+    localStorage.setItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY, hashedRefreshToken);
   }
 
   // api.js

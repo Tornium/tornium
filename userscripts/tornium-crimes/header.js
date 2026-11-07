@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Crimes
 // @namespace    https://tornium.com
-// @version      0.1.0
+// @version      0.1.1-dev
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/factions.php*

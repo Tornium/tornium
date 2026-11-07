@@ -47,16 +47,16 @@ function executeCrimes() {
             //     factionID,
             //     waitForElement(`#faction-crimes-root [class*="buttonsContainer__"]`),
             // ]);
-        })
-        // .then(([data, userID, factionID, memberSelectorContainer]) => {
-        //     if (memberSelectorContainer == null) {
-        //         log("Failed to load container .buttonsContainer for the memberSelector");
-        //         throw new Error("Failed to find container for memberSelector");
-        //     }
+        });
+    // .then(([data, userID, factionID, memberSelectorContainer]) => {
+    //     if (memberSelectorContainer == null) {
+    //         log("Failed to load container .buttonsContainer for the memberSelector");
+    //         throw new Error("Failed to find container for memberSelector");
+    //     }
 
-        //     // injectMemberSelector(memberSelectorContainer, userID, factionID);
-        //     //updateMemberOptimums(data);
-        // });
+    //     // injectMemberSelector(memberSelectorContainer, userID, factionID);
+    //     //updateMemberOptimums(data);
+    // });
 }
 
 if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {

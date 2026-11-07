@@ -36,7 +36,8 @@ defmodule Tornium.Schema.OrganizedCrime do
           ready_at: DateTime.t() | nil,
           expires_at: DateTime.t(),
           executed_at: DateTime.t() | nil,
-          slots: [Tornium.Schema.OrganizedCrimeSlot.t()]
+          slots: [Tornium.Schema.OrganizedCrimeSlot.t()],
+          scenario_ingested_at: DateTime.t() | nil
         }
 
   @primary_key {:oc_id, :integer, autogenerate: false}
@@ -55,6 +56,8 @@ defmodule Tornium.Schema.OrganizedCrime do
     field(:executed_at, :utc_datetime)
 
     has_many(:slots, Tornium.Schema.OrganizedCrimeSlot, foreign_key: :oc_id)
+
+    field(:scenario_ingested_at, :utc_datetime)
   end
 
   # TODO: Add documentation
@@ -109,7 +112,8 @@ defmodule Tornium.Schema.OrganizedCrime do
            planning_started_at: planning_started_at,
            ready_at: ready_at,
            expires_at: expires_at,
-           executed_at: executed_at
+           executed_at: executed_at,
+           scenario_ingested_at: scenario_ingested_at
          } ->
         %{
           oc_id: oc_id,
@@ -121,7 +125,8 @@ defmodule Tornium.Schema.OrganizedCrime do
           planning_started_at: planning_started_at,
           ready_at: ready_at,
           expires_at: expires_at,
-          executed_at: executed_at
+          executed_at: executed_at,
+          scenario_ingested_at: scenario_ingested_at
         }
       end
     )

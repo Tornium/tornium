@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import itertools
+import json
 import typing
 
 from flask import jsonify, request
@@ -28,6 +29,10 @@ from tornium_commons.models import (
     ServerOCConfig,
     ServerOCRangeConfig,
     User,
+)
+from tornium_commons.organized_crime_graph import (
+    ingest_crime_data,
+    parse_scenario_outcome,
 )
 
 from controllers.api.v1.decorators import (
@@ -467,3 +472,86 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
             )
 
     return possible_slots, 200, api_ratelimit_response(key)
+
+
+@require_oauth()
+@ratelimit
+def upload_crime_scenarios(faction_id: int, *args, **kwargs):
+    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    data = json.loads(request.get_data().decode("utf-8"))
+
+    if kwargs["user"].faction_id != faction_id:
+        return make_exception_response("4022", key)
+    elif not Faction.select().where(Faction.tid == faction_id).exists():
+        return make_exception_response("1102", key)
+
+    if not isinstance(data["success"], bool) or not data["success"]:
+        # The data provided by Torn is not something the user can control, so let us just
+        # do an early, quiet exit.
+        return make_exception_response("0000", key, details={"message": "Invalid Torn data"})
+
+    crimes = data.get("data") or []
+    provided_oc_ids = [crime_data["ID"] for crime_data in crimes]
+    crimes_found = {
+        crime.oc_id
+        for crime in OrganizedCrime.select(OrganizedCrime.oc_id).where(
+            (OrganizedCrime.oc_id.in_(provided_oc_ids))
+            & (OrganizedCrime.faction_id == faction_id)
+            & (OrganizedCrime.scenario_ingested_at.is_null(True))
+        )
+    }
+
+    for crime_data in crimes:
+        oc_id: int = crime_data["ID"]
+
+        if oc_id not in crimes_found:
+            # This OC isn't the database, so we are unable to verify the data provided.
+            continue
+        elif crime_data["status"] not in ("Failed", "Successful"):
+            # Presumably this OC is still in planning, so we should skip it.
+            continue
+
+        oc_type: typing.Optional[OrganizedCrimeType] = OrganizedCrimeType.get_by_name(crime_data["scenario"]["name"])
+        if oc_type is None:
+            continue
+
+        crime_slots_base_query = OrganizedCrimeSlot.select().where(OrganizedCrimeSlot.oc_id == oc_id)
+        crime_slots_is_valid = True
+        crime_slot_assignments = []
+
+        crime_slot: dict
+        for crime_slot in crime_data["playerSlots"]:
+            # The slot index is zero-indexed in Tornium but one-indexed by Torn, so we
+            # need to remove one to ensure the DB query is correct.
+            slot_member_id = int(crime_slot["player"]["ID"])
+            slot_index = int(crime_slot["key"][1]) - 1
+            slot_position_name, slot_position_index = OrganizedCrimeSlotType.parse_slot(crime_slot["name"])
+            crime_slot_assignments.append((slot_position_name, slot_position_index, slot_member_id))
+
+            print(slot_member_id, slot_index, slot_position_name, slot_position_index)
+            valid_member = crime_slots_base_query.where(
+                (OrganizedCrimeSlot.user_id == slot_member_id)
+                & (OrganizedCrimeSlot.slot_index == slot_index)
+                & (OrganizedCrimeSlot.crime_position == slot_position_name)
+                & (OrganizedCrimeSlot.crime_position_index == slot_position_index)
+            ).exists()
+
+            if not valid_member:
+                crime_slots_is_valid = False
+                break
+
+        if not crime_slots_is_valid:
+            # Some member in the provided data did not match the values in the database,
+            # so we should skip it.
+            continue
+
+        ingest_crime_data(
+            oc_type=oc_type,
+            oc_id=oc_id,
+            scenes=crime_data["scenario"]["scenes"],
+            crime_slot_assignments=crime_slot_assignments,
+            outcome=parse_scenario_outcome(crime_data),
+            user_id=kwargs["user"].tid,
+        )
+
+    return make_exception_response("0001", key)

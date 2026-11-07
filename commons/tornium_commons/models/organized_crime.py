@@ -52,6 +52,8 @@ class OrganizedCrime(BaseModel):
     expires_at = DateTimeField(default=None, null=True)
     executed_at = DateTimeField(default=None, null=True)
 
+    scenario_ingested_at = DateTimeField(default=None, null=True)
+
     @classmethod
     @lru_cache
     def oc_names(cls) -> typing.List[str]:

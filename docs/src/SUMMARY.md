@@ -41,3 +41,4 @@
     - [Tornium Estimate](reference/tornium-estimate.md)
 
 # Explanation
+- [OC Scenario Graphing](explanation/oc-scenario-graphing.md)

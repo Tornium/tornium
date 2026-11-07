@@ -14,6 +14,7 @@
 // @grant        GM_setValue
 // @grant        GM_deleteValue
 // @grant        GM_addStyle
+// @grant        unsafeWindow
 // @connect      tornium.com
 // @downloadURL  https://github.com/Tornium/tornium/raw/refs/heads/master/userscripts/tornium-crimes.user.js
 // @updateURL    https://github.com/Tornium/tornium/raw/refs/heads/master/userscripts/tornium-crimes.user.js
@@ -34,10 +35,12 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. */
+
+(async () => {
 (() => {
   // constants.js
   var DEBUG = true;
-  var BASE_URL = "https://tornium.com";
+  var BASE_URL = DEBUG ? "http://127.0.0.1:5000" : "https://tornium.com";
   var ENABLE_LOGGING = true;
   var VERSION = "0.1.0";
   var APP_ID = "97884c32bb18b41224f482390d9f712268e1240082cdc6b9";
@@ -56,38 +59,68 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     return check;
   })();
 
+  // logging.js
+  function log(string, debug_log = false) {
+    if (debug_log && !DEBUG) {
+      return;
+    }
+    if (ENABLE_LOGGING || DEBUG) {
+      console.log(`[${GM_PREFIX}] ${window.location.pathname} - ${string}`);
+    }
+  }
+
   // cache.js
   var CACHE_EXPIRATION = 1e3 * 60 * 60 * 24;
+  var CACHE_HEADER_KEYS = /* @__PURE__ */ new Set(["content-encoding", "content-type", "date", "etag"]);
+  var cacheInstance = null;
+  async function getCacheInstance() {
+    if (cacheInstance == null) {
+      cacheInstance = await caches.open(CACHE_NAME);
+    }
+    return cacheInstance;
+  }
   async function getCache(url) {
     if (!CACHE_ENABLED) {
       return null;
     }
-    const cache = await caches.open(CACHE_NAME);
+    const cache = await getCacheInstance();
     const cachedResponse = await cache.match(url);
     if (cachedResponse) {
       const expirationTime = new Date(parseInt(cachedResponse.headers.get("cache-expiry")));
       if (Date.now() < expirationTime) {
+        log(`HIT ${url}`, true);
         return await cachedResponse.json();
       }
+      log(`EXPIRE ${url}`, true);
       await cache.delete(url);
     }
+    log(`MISS ${url}`, true);
     return null;
   }
   async function putCache(url, response, ttl = CACHE_EXPIRATION) {
-    const headers = parseHeaders(response.responseHeaders);
-    headers["cache-expiry"] = String(Date.now() + ttl);
-    const cache = await caches.open(CACHE_NAME);
-    await cache.put(url, new Response(response.responseText, { headers }));
-  }
-  function parseHeaders(headerString) {
-    let headers = {};
-    headerString.split("\r\n").forEach((line) => {
-      const [key, value] = line.split(": ").map((item) => item.trim());
-      if (key && value) {
-        headers[key] = value;
+    if (!CACHE_ENABLED) {
+      return null;
+    }
+    const newHeaders = new Headers();
+    for (const line of (response.responseHeaders || "").trim().split(/[\r\n]+/)) {
+      const seperatorIndex = line.indexOf(":");
+      if (seperatorIndex <= 0) {
+        continue;
       }
+      const headerKey = line.slice(0, seperatorIndex).trim().toLowerCase();
+      if (!CACHE_HEADER_KEYS.has(headerKey)) {
+        continue;
+      }
+      newHeaders.set(headerKey, line.slice(0, seperatorIndex + 1).trim());
+    }
+    newHeaders.set("cache-expiry", String(Date.now() + ttl));
+    const modifiedResponse = new Response(response.responseText, {
+      status: response.status,
+      statusText: response.statusText || "",
+      headers: newHeaders
     });
-    return headers;
+    const cache = await getCacheInstance();
+    await cache.put(url, modifiedResponse);
   }
 
   // oauth.js
@@ -102,11 +135,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     }
     return false;
   }
+  function hasRefreshToken() {
+    return GM_getValue(`${GM_PREFIX}:refresh-token`) != null;
+  }
   function authStatus() {
     if (accessToken == null) {
       return "Disconnected";
+    } else if (isAuthExpired() && hasRefreshToken()) {
+      return "Expired (refreshable)";
     } else if (isAuthExpired()) {
       return "Expired";
+    } else if (hasRefreshToken()) {
+      return "Connected (refreshable)";
     }
     return "Connected";
   }
@@ -129,7 +169,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       },
       data: tokenData.toString(),
       responseType: "json",
-      onload: resolveTokenCallback
+      onload: (response) => {
+        resolveTokenCallback(response);
+        window.location.href = "https://www.torn.com";
+      }
     });
   }
   function resolveTokenCallback(response) {
@@ -138,186 +181,76 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
       responseJSON = JSON.parse(response.responseText);
       response.responseType = "json";
     }
-    const accessToken2 = responseJSON.access_token;
-    const accessTokenExpiration2 = Math.floor(Date.now() / 1e3) + responseJSON.expires_in;
-    GM_setValue(`${GM_PREFIX}:access-token`, accessToken2);
-    GM_setValue(`${GM_PREFIX}:access-token-expires`, accessTokenExpiration2);
-    window.location.href = "https://torn.com";
+    accessToken = responseJSON.access_token;
+    accessTokenExpiration = Math.floor(Date.now() / 1e3) + responseJSON.expires_in;
+    const refreshToken = responseJSON.refresh_token ?? null;
+    GM_setValue(`${GM_PREFIX}:access-token`, accessToken);
+    GM_setValue(`${GM_PREFIX}:access-token-expires`, accessTokenExpiration);
+    if (refreshToken == null) {
+      GM_deleteValue(`${GM_PREFIX}:refresh-token`);
+    } else {
+      GM_setValue(`${GM_PREFIX}:refresh-token`, refreshToken);
+    }
     return;
   }
 
   // api.js
-  function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXPIRATION }) {
-    return new Promise(async (resolve, reject) => {
-      const cachedResponse = await getCache(endpoint);
-      if (cachedResponse != null && cachedResponse != void 0) {
-        resolve(cachedResponse);
+  function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXPIRATION, limiter: null }) {
+    const cacheable = options.method == "GET";
+    const cacheRequest = cacheable ? getCache(endpoint) : Promise.resolve(null);
+    return cacheRequest.then((cachedResponse) => {
+      if (cachedResponse != null) {
         return cachedResponse;
       }
-      return GM_xmlhttpRequest({
-        method: options.method,
-        url: `${BASE_URL}/api/v1/${endpoint}`,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`
-        },
-        responseType: "json",
-        onload: async (response) => {
-          let responseJSON = response.response;
-          if (response.responseType === void 0) {
-            try {
-              responseJSON = JSON.parse(response.responseText);
-              response.responseType = "json";
-            } catch (err) {
-              console.log(response.responseText);
-              console.log(err);
-              reject(err);
+      const makeRequest = () => new Promise((resolve, reject) => {
+        GM_xmlhttpRequest({
+          method: options.method,
+          url: `${BASE_URL}/api/v1/${endpoint}`,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`
+          },
+          data: options.body ? JSON.stringify(options.body) : void 0,
+          responseType: "json",
+          onload: async (response) => {
+            let responseJSON = response.response;
+            if (response.responseType === void 0) {
+              try {
+                responseJSON = JSON.parse(response.responseText);
+                response.responseType = "json";
+              } catch (err) {
+                log(response.responseText, true);
+                log(err, true);
+                reject(err);
+                return;
+              }
+            }
+            if (responseJSON.error !== void 0) {
+              GM_deleteValue("tornium-estimate:access-token");
+              GM_deleteValue("tornium-estimate:access-token-expires");
+              resolve(responseJSON);
               return;
             }
-          }
-          if (responseJSON.error !== void 0) {
-            GM_deleteValue(`${GM_PREFIX}:access-token`);
-            GM_deleteValue(`${GM_PREFIX}:access-token-expires`);
+            if (cacheable && !("code" in responseJSON)) {
+              await putCache(endpoint, response, options.ttl);
+            }
             resolve(responseJSON);
-            return responseJSON;
+            return;
+          },
+          onerror: (error) => {
+            reject(error);
+            return;
           }
-          if (!("code" in responseJSON)) {
-            putCache(endpoint, response, options.ttl);
-          }
-          resolve(responseJSON);
-          return responseJSON;
-        },
-        onerror: (error) => {
-          reject(error);
-          return;
-        }
+        });
       });
-    });
-  }
-
-  // dom.js
-  async function waitForElement(querySelector, timeout) {
-    const existingElement = document.querySelector(querySelector);
-    if (existingElement) return existingElement;
-    return new Promise((resolve) => {
-      let timer;
-      const observer = new MutationObserver(() => {
-        const element = document.querySelector(querySelector);
-        if (element) {
-          cleanup();
-          resolve(element);
-        }
-      });
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
-      if (timeout) {
-        timer = setTimeout(() => {
-          cleanup();
-          resolve(null);
-        }, timeout);
+      if (options.limiter == null) {
+        return makeRequest();
       }
-      function cleanup() {
-        observer.disconnect();
-        if (timer) clearTimeout(timer);
-      }
+      return options.limiter(makeRequest);
     });
-  }
-
-  // logging.js
-  function log(string) {
-    if (ENABLE_LOGGING || DEBUG) {
-      console.log(`[${GM_PREFIX}] ${window.location.pathname} - ${string}`);
-    }
   }
 
   // crime-page.js
-  function injectMemberSelector(container, userID, factionID) {
-    if (container == null) {
-      return;
-    }
-    const wrapper = document.createElement("div");
-    container.after(wrapper);
-    const seperator = document.createElement("hr");
-    seperator.classList.add("page-head-delimiter", "m-top10", "m-bottom10");
-    wrapper.append(seperator);
-    torniumFetch(`faction/${factionID}/members`, {}).then((memberData) => {
-      const label = document.createElement("label");
-      label.setAttribute("for", "tornium-crimes-optimum-member");
-      label.textContent = "Faction Member (Optimum OC): ";
-      wrapper.append(label);
-      const selector = document.createElement("select");
-      selector.setAttribute("name", "tornium-crimes-optimum-member");
-      wrapper.append(selector);
-      for (const member of memberData) {
-        const option = document.createElement("option");
-        option.setAttribute("value", member.ID);
-        option.textContent = member.name;
-        selector.append(option);
-      }
-      selector.value = userID;
-      selector.addEventListener("change", onSelectedMemberChange);
-    });
-  }
-  function waitForRoot() {
-    return Promise.any([
-      waitForElement(".tt-oc2-list"),
-      waitForElement(`#faction-crimes-root hr.page-head-delimiter + div:has(> div[class^="wrapper___"][data-oc-id])`)
-    ]);
-  }
-  function updateMemberOptimums(optimumData) {
-    waitForRoot().then((root) => {
-      if (!root.classList.contains("tt-oc2-list")) {
-        root.classList.add("tt-oc2-list");
-      }
-      const crimeElements = root.querySelectorAll(`[class*="wrapper___"][data-oc-id]`);
-      for (const crimeElement of crimeElements) {
-        const crimeID = parseInt(crimeElement.getAttribute("data-oc-id"));
-        const slotElements = crimeElement.querySelectorAll(
-          `[class*="wrapper___"]:has(> button[class*="slotHeader___"])`
-        );
-        if (crimeID == null || slotElements.length === 0) {
-          continue;
-        }
-        for (const slotElement of slotElements) {
-          const titleElement = slotElement.querySelector(`span[class*="title___"]`);
-          const badgeContainer = slotElement.querySelector(
-            `[class*="badgeContainer___"], [class*="joinContainer___"]`
-          );
-          if (badgeContainer == null || titleElement == null) {
-            continue;
-          }
-          badgeContainer.classList.add("tornium-crimes-slot-badge-container");
-          const slotData = optimumData.find((optimumSlotData) => {
-            return optimumSlotData.oc_id == crimeID && `${optimumSlotData.oc_position} #${optimumSlotData.oc_position_index}` == titleElement.textContent || optimumSlotData.oc_position == titleElement.textContent;
-          });
-          if (slotData == null) {
-            continue;
-          }
-          let slotInfo = badgeContainer.querySelector(".tornium-crimes-slot-info");
-          if (slotInfo == null) {
-            slotInfo = document.createElement("div");
-            slotInfo.classList.add("tornium-crimes-slot-info");
-            badgeContainer.prepend(slotInfo);
-          }
-          slotInfo.textContent = `\u0394EV: ${(slotData.team_expected_value_change * 100).toFixed(2)}%; \u0394EV': ${(slotData.user_expected_value_change * 100).toFixed(2)}%; \u0394P: ${(slotData.team_probability_change * 100).toFixed(2)}%`;
-        }
-      }
-    });
-  }
-  function loadMemberData(userID) {
-    torniumFetch("user", { ttl: 1e3 * 60 * 60 }).then((identityData) => {
-      return [identityData.factiontid, identityData.tid];
-    }).then(([factionID, identityUserID]) => {
-      return torniumFetch(`faction/${factionID}/crime/member/${userID || identityUserID}/optimum`, { ttl: 60 });
-    }).then((optimumData) => {
-      return updateMemberOptimums(optimumData);
-    });
-  }
-  function onSelectedMemberChange(event) {
-    loadMemberData(event.target.value);
-  }
   function injectStyles() {
     GM_addStyle(".tornium-crimes-slot-info {padding-top: 0.5em; padding-bottom: 0.5em; margin: 0.25em;}");
     GM_addStyle(".tornium-crimes-slot-badge-container {flex-wrap: wrap; padding-bottom: 0.25em;}");
@@ -326,12 +259,56 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
     );
     GM_addStyle(`div[class*="planningTime___"] {display: none !important;}`);
   }
-  function startCrimeTabListener() {
-    waitForRoot().then(() => {
-      const tabButtonContainer = document.querySelector(`div[class*="buttonsContainer___"]`);
-      tabButtonContainer.addEventListener("click", () => {
-        loadMemberData(null);
-      });
+
+  // scenario-exporter.js
+  async function startScenarioExporterListener() {
+    const factionID = GM_getValue(`${GM_PREFIX}:factionID`);
+    if (factionID == null) {
+      log("Unable to get faction ID of user... aborting.");
+      return;
+    }
+    const originalFetch = (unsafeWindow || window).fetch;
+    (unsafeWindow || window).fetch = async function(resource, options) {
+      if (!document.hasFocus()) {
+        return originalFetch.call(this, resource, options);
+      }
+      let url = null;
+      let body = null;
+      if (typeof resource === "string" || resource instanceof String) {
+        url = new URL(resource, window.location.origin);
+        body = options.body;
+      } else if (resource instanceof Request) {
+        url = new URL(resource.url);
+        body = resource.body || options.body;
+      } else {
+        log("Unable to determine type of request... defaulting to window.fetch.");
+        return await originalFetch.call(this, resource, options);
+      }
+      if (!(url instanceof URL) || !(url.searchParams instanceof URLSearchParams)) {
+        log("Unable to determine URL of request... defaulting to window.fetch.");
+        return await originalFetch.call(this, resource, options);
+      } else if (url.hostname != "www.torn.com" || url.pathname != "/page.php") {
+        return await originalFetch.call(this, resource, options);
+      } else if (url.searchParams.get("sid") != "organizedCrimesData" || url.searchParams.get("step") != "crimeList") {
+        return await originalFetch.call(this, resource, options);
+      } else if (!(body instanceof FormData)) {
+        log("Unable to determine body of request... defaulting to window.fetch.");
+        return await originalFetch.call(this, resource, options);
+      } else if (body.get("group")?.toLowerCase() != "completed") {
+        return await originalFetch.call(this, resource, options);
+      }
+      const response = await originalFetch.call(this, resource, options);
+      const responseExportCopy = response.clone();
+      setTimeout(() => {
+        exportScenarios(responseExportCopy, factionID);
+      }, 0);
+      return response;
+    };
+  }
+  async function exportScenarios(scenarioResponse, factionID) {
+    const scenarioData = await scenarioResponse.json();
+    torniumFetch(`faction/${factionID}/crime/scenarios`, { method: "POST", body: scenarioData }).then((response) => {
+      log(`Uploaded OC scenarios resulting in code ${response.code}: ${response.message}`);
     });
   }
 
@@ -485,24 +462,12 @@ margin: 8px 6px 0 0;
   function executeCrimes() {
     createSettingsButton();
     injectStyles();
-    startCrimeTabListener();
+    startScenarioExporterListener();
     torniumFetch("user", { ttl: 1e3 * 60 * 60 }).then((identityData) => {
       return [identityData.factiontid, identityData.tid];
     }).then(([factionID, userID]) => {
       GM_setValue(`${GM_PREFIX}:userID`, userID);
-      return Promise.all([
-        torniumFetch(`faction/${factionID}/crime/member/${userID}/optimum`, { ttl: 60 }),
-        userID,
-        factionID,
-        waitForElement(`#faction-crimes-root [class*="buttonsContainer__"]`)
-      ]);
-    }).then(([data, userID, factionID, memberSelectorContainer]) => {
-      if (memberSelectorContainer == null) {
-        log("Failed to load container .buttonsContainer for the memberSelector");
-        throw new Error("Failed to find container for memberSelector");
-      }
-      injectMemberSelector(memberSelectorContainer, userID, factionID);
-      updateMemberOptimums(data);
+      GM_setValue(`${GM_PREFIX}:factionID`, factionID);
     });
   }
   if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
@@ -562,4 +527,5 @@ margin: 8px 6px 0 0;
       executeCrimes();
     });
   }
+})();
 })();

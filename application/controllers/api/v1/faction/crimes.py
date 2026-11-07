@@ -13,30 +13,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import dataclasses
-import datetime
 import itertools
 import json
-import re
 import typing
-import uuid
 
 from flask import jsonify, request
 from peewee import DoesNotExist
-from tornium_commons.db_connection import db
 from tornium_commons.models import (
     Faction,
     OrganizedCrime,
     OrganizedCrimeCPR,
-    OrganizedCrimeGraphEdge,
-    OrganizedCrimeGraphNode,
-    OrganizedCrimeGraphNodeVariant,
     OrganizedCrimeSlot,
     OrganizedCrimeSlotType,
     OrganizedCrimeType,
     ServerOCConfig,
     ServerOCRangeConfig,
     User,
+)
+from tornium_commons.organized_crime_graph import (
+    ingest_crime_data,
+    parse_scenario_outcome,
 )
 
 from controllers.api.v1.decorators import (
@@ -554,266 +550,8 @@ def upload_crime_scenarios(faction_id: int, *args, **kwargs):
             oc_id=oc_id,
             scenes=crime_data["scenario"]["scenes"],
             crime_slot_assignments=crime_slot_assignments,
+            outcome=parse_scenario_outcome(crime_data),
             user_id=kwargs["user"].tid,
         )
 
     return make_exception_response("0001", key)
-
-
-class InvalidScenarioData(Exception):
-    pass
-
-
-@dataclasses.dataclass(frozen=True)
-class ScenarioPathNode:
-    scene_id: int
-    slug: str
-    text: typing.Optional[str]
-    success: bool
-    terminal: bool = False
-
-
-SCENARIO_OUTCOME_SLUG_REGEX = re.compile(r"^(?P<base>.+)(?P<outcome>[PF])$")
-SCENARIO_OUTCOME_TYPES = {"P": "success", "F": "failed"}
-USER_ID_RE = re.compile(r"userId-(\d+)")
-
-# Synthetic, text-less root shared by every crime of an OC type. It is not a scene (the prelude/objective
-# is not a decision node so it isn't stored); it only exists so the edge into the first decision node
-# competes and decays like any other edge.
-ROOT_SCENE_ID = 0
-ROOT_SCENE_SLUG = "__root__"
-
-# Update rule for every element x in a competing group (variants of one node, or edges sharing
-# (from_node, success)):   i_x <- DECAY_FACTOR * i_x + [x was verified by this push]
-# An element verified on every push converges to 1 / (1 - DECAY_FACTOR) = 5.
-DECAY_FACTOR = 0.8
-# A freshly seen element has weight 1.0, so this must be < 1. With DECAY_FACTOR = 0.8, an element seen
-# once is pruned after 7 contradicting pushes; a fully established one (~5.0) after ~14.
-PRUNE_THRESHOLD = 0.25
-# Elements not seen at all for this long are pruned (e.g. scenes Torn has since removed).
-MAX_UNSEEN_AGE = datetime.timedelta(days=90)
-
-
-def normalize_scene_text(scene_text: str, crime_slot_assignments: typing.List[tuple]) -> str:
-    # Replace member-specific IDs with position placeholders so narrations from different
-    # crews of the same scene compare equal, e.g. "userId-2636775 glances up" ->
-    # "{Cat Burglar:1} glances up".
-
-    placeholders = {
-        member_id: f"{{{position_name}:{position_index}}}"
-        for position_name, position_index, member_id in crime_slot_assignments
-    }
-
-    def replace(match: re.Match) -> str:
-        member_id = int(match.group(1))
-        if member_id not in placeholders:
-            # Referencing someone not in the crew means the data is bogus; don't store it.
-            raise InvalidScenarioData(f"Unknown member {member_id} referenced in scene text")
-        return placeholders[member_id]
-
-    return " ".join(USER_ID_RE.sub(replace, scene_text).split())
-
-
-def _scene_text(scene: dict, crime_slot_assignments: typing.List[tuple]) -> str:
-    raw = " ".join(dialogue["description"] for dialogue in scene["dialogues"])
-    return normalize_scene_text(raw, crime_slot_assignments)
-
-
-def parse_scenario_path(
-    scenes: typing.List[dict], crime_slot_assignments: typing.List[tuple]
-) -> typing.List[ScenarioPathNode]:
-    # Turn the linear list of scenes into the path root -> decision nodes -> terminal node.
-
-    # Raises InvalidScenarioData instead of returning partial results, so a bad push never
-    # writes a broken path to the graph.
-
-    if not scenes:
-        raise InvalidScenarioData("Scenario has no scenes")
-
-    scenes_by_slug = {scene["slug"]: scene for scene in scenes}
-    path = [
-        ScenarioPathNode(
-            scene_id=ROOT_SCENE_ID,
-            slug=ROOT_SCENE_SLUG,
-            text=None,
-            success=True,  # The root has exactly one outgoing transition; by convention it's a "success"
-        )
-    ]
-
-    for scene in scenes:
-        # Only outcome scenes (eg A2-C1P / A7-C1F) identify decision nodes. Everything else, including the
-        # prelude/objective and narration-only events, is skipped unless it has an outcome scene of its own.
-        # Torn uses "failed", not "failure", for the scene type.
-        if scene["type"] not in SCENARIO_OUTCOME_TYPES.values():
-            continue
-
-        match = SCENARIO_OUTCOME_SLUG_REGEX.match(scene["slug"])
-        if match is None:
-            # Outcome-typed scene that isn't a check result, eg the terminal A9S.
-            continue
-        elif scene["type"] != SCENARIO_OUTCOME_TYPES[match["outcome"]]:
-            raise InvalidScenarioData(f"Outcome scene {scene['slug']} has type {scene['type']}")
-
-        decision = scenes_by_slug.get(match["base"])
-        if decision is None or decision["type"] not in ("event", "objective"):
-            raise InvalidScenarioData(f"No valid decision scene for {scene['slug']}")
-
-        path.append(
-            ScenarioPathNode(
-                scene_id=decision["ID"],
-                slug=decision["slug"],
-                text=_scene_text(decision, crime_slot_assignments),
-                success=match["outcome"] == "P",
-            )
-        )
-
-    if len(path) == 1:
-        raise InvalidScenarioData("Scenario has no decision nodes")
-
-    # The final scene (eg A9S, or a failure ending) is the terminal node the last decision leads to.
-    terminal = scenes[-1]
-    path.append(
-        ScenarioPathNode(
-            scene_id=terminal["ID"],
-            slug=terminal["slug"],
-            text=_scene_text(terminal, crime_slot_assignments),
-            success=None,
-            terminal=True,
-        )
-    )
-    return path
-
-
-def _lock_oc_type(oc_type: OrganizedCrimeType) -> None:
-    # Row lock on the OC type serializes all ingestion and pruning for this graph, which is what makes
-    # the decay well-defined (and avoids deadlocks between pushes that touch rows in different orders).
-    OrganizedCrimeType.select().where(OrganizedCrimeType.guid == oc_type.guid).for_update().get()
-
-
-def ingest_crime_data(
-    oc_type: OrganizedCrimeType,
-    oc_id: int,
-    scenes: typing.List[dict],
-    crime_slot_assignments: typing.List[tuple],
-    user_id: int,
-) -> None:
-    # Parse and validate everything before touching the database.
-    path = parse_scenario_path(scenes, crime_slot_assignments)
-    seen = {
-        "last_seen_at": datetime.datetime.utcnow(),
-        "last_seen_by": user_id,
-        "last_seen_in": oc_id,
-    }
-
-    with OrganizedCrimeGraphNode._meta.database.atomic():
-        _lock_oc_type(oc_type)
-
-        # Each OC counts once, no matter how many faction members upload it (or how often).
-        claimed = (
-            OrganizedCrime.update(scenario_ingested_at=seen["last_seen_at"])
-            .where((OrganizedCrime.oc_id == oc_id) & (OrganizedCrime.scenario_ingested_at.is_null()))
-            .execute()
-        )
-        if claimed == 0:
-            return
-
-        node_guids = [_upsert_node(oc_type, node, seen) for node in path]
-
-        for node, node_guid in zip(path, node_guids):
-            if node.text is not None:
-                _observe_variant(node_guid, node.text, seen)
-
-        # The edge out of a node is labelled with *that* node's outcome, since the outcome is what
-        # decides which node comes next. zip() stops before the terminal node.
-        for node, from_guid, to_guid in zip(path, node_guids, node_guids[1:]):
-            _observe_edge(from_guid, to_guid, node.success, seen)
-
-
-def _upsert_node(oc_type: OrganizedCrimeType, node: ScenarioPathNode, seen: dict) -> uuid.UUID:
-    return (
-        OrganizedCrimeGraphNode.insert(
-            guid=uuid.uuid4(),
-            oc_type_id=oc_type.guid,
-            scene_id=node.scene_id,
-            scene_slug=node.slug,
-            terminal=node.terminal,
-            **seen,
-        )
-        .on_conflict(
-            conflict_target=[
-                OrganizedCrimeGraphNode.oc_type,
-                OrganizedCrimeGraphNode.scene_id,
-                OrganizedCrimeGraphNode.scene_slug,
-            ],
-            preserve=[
-                OrganizedCrimeGraphNode.last_seen_at,
-                OrganizedCrimeGraphNode.last_seen_by,
-                OrganizedCrimeGraphNode.last_seen_in,
-            ],
-        )
-        .returning(OrganizedCrimeGraphNode.guid)
-        .execute()[0]
-        .guid
-    )
-
-
-def _observe_variant(node_guid: uuid.UUID, text: str, seen: dict) -> None:
-    # Verified variant: i <- λi + 1 (or 1.0 if new)
-    OrganizedCrimeGraphNodeVariant.insert(
-        guid=uuid.uuid4(),
-        node_id=node_guid,
-        text=text,
-        effective_weight=1.0,
-        **seen,
-    ).on_conflict(
-        conflict_target=[OrganizedCrimeGraphNodeVariant.node, OrganizedCrimeGraphNodeVariant.text],
-        preserve=[
-            OrganizedCrimeGraphNodeVariant.last_seen_at,
-            OrganizedCrimeGraphNodeVariant.last_seen_by,
-            OrganizedCrimeGraphNodeVariant.last_seen_in,
-        ],
-        update={
-            OrganizedCrimeGraphNodeVariant.effective_weight: OrganizedCrimeGraphNodeVariant.effective_weight
-            * DECAY_FACTOR
-            + 1
-        },
-    ).execute()
-
-    # Competing variants of the same node: i <- λi
-    OrganizedCrimeGraphNodeVariant.update(
-        effective_weight=OrganizedCrimeGraphNodeVariant.effective_weight * DECAY_FACTOR
-    ).where(
-        (OrganizedCrimeGraphNodeVariant.node == node_guid) & (OrganizedCrimeGraphNodeVariant.text != text)
-    ).execute()
-
-
-def _observe_edge(from_guid: uuid.UUID, to_guid: uuid.UUID, success: bool, seen: dict) -> None:
-    # Verified edge: i <- λi + 1 (or 1.0 if new)
-    OrganizedCrimeGraphEdge.insert(
-        guid=uuid.uuid4(),
-        from_node=from_guid,
-        to_node=to_guid,
-        success=success,
-        effective_weight=1.0,
-        **seen,
-    ).on_conflict(
-        conflict_target=[
-            OrganizedCrimeGraphEdge.from_node,
-            OrganizedCrimeGraphEdge.to_node,
-            OrganizedCrimeGraphEdge.success,
-        ],
-        preserve=[
-            OrganizedCrimeGraphEdge.last_seen_at,
-            OrganizedCrimeGraphEdge.last_seen_by,
-            OrganizedCrimeGraphEdge.last_seen_in,
-        ],
-        update={OrganizedCrimeGraphEdge.effective_weight: OrganizedCrimeGraphEdge.effective_weight * DECAY_FACTOR + 1},
-    ).execute()
-
-    # Only edges for the same (from_node, success) transition are contradicted by this push. Decaying
-    # every other edge in G would steadily erode rarely-taken branches (e.g. failures) that are valid.
-    OrganizedCrimeGraphEdge.update(effective_weight=OrganizedCrimeGraphEdge.effective_weight * DECAY_FACTOR).where(
-        (OrganizedCrimeGraphEdge.from_node == from_guid)
-        & (OrganizedCrimeGraphEdge.success == success)
-        & (OrganizedCrimeGraphEdge.to_node != to_guid)
-    ).execute()

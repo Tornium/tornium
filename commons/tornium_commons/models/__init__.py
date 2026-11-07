@@ -29,6 +29,7 @@ from .organized_crime_cpr import OrganizedCrimeCPR
 from .organized_crime_graph_edge import OrganizedCrimeGraphEdge
 from .organized_crime_graph_node import OrganizedCrimeGraphNode
 from .organized_crime_graph_node_variant import OrganizedCrimeGraphNodeVariant
+from .organized_crime_graph_terminal_reward import OrganizedCrimeGraphTerminalReward
 from .organized_crime_slot import OrganizedCrimeSlot
 from .organized_crime_slot_type import OrganizedCrimeSlotType
 from .organized_crime_type import OrganizedCrimeType
@@ -70,6 +71,7 @@ __all__ = [
     "OrganizedCrimeGraphEdge",
     "OrganizedCrimeGraphNode",
     "OrganizedCrimeGraphNodeVariant",
+    "OrganizedCrimeGraphTerminalReward",
     "OrganizedCrimeSlot",
     "OrganizedCrimeSlotType",
     "OrganizedCrimeType",

@@ -44,6 +44,37 @@ defmodule Tornium.Repo.Migrations.AddOcGraph do
     end
     create_if_not_exists unique_index(:organized_crime_graph_edge, [:from_node_id, :to_node_id, :success])
 
+    create_if_not_exists table("organized_crime_graph_terminal_reward", primary_key: false) do
+      add :guid, :binary_id, primary_key: true
+      add :node_id, references(:organized_crime_graph_node, column: :guid, type: :binary_id), null: false
+
+      add :respect, :map, default: nil, null: true
+      add :money, :map, default: nil, null: true
+      add :item_sets, :map, default: nil, null: true
+
+      add :last_seen_at, :utc_datetime, null: false
+      add :last_seen_by_id, references(:user, column: :tid, type: :integer), null: false
+      add :last_seen_in_id, references(:organized_crime, column: :oc_id, type: :integer), null: false
+    end
+    create_if_not_exists unique_index(:organized_crime_graph_terminal_reward, [:node_id])
+    create constraint(
+      :organized_crime_graph_terminal_reward,
+      :terminal_reward_payout,
+      check: """
+      (respect IS NULL AND money is NULL AND item_sets IS NULL)
+      OR (respect IS NOT NULL AND (money is NULL) <> (item_sets IS NULL))
+      """
+    )
+    create constraint(
+      :organized_crime_graph_terminal_reward,
+      :terminal_reward_valid_json,
+      check: """
+      (respect IS NULL OR jsonb_typeof(respect) = 'array')
+      AND (money IS NULL OR jsonb_typeof(money) = 'array')
+      AND (item_sets IS NULL OR jsonb_typeof(item_sets) = 'array')
+      """
+    )
+
     alter table("organized_crime") do
       add :scenario_ingested_at, :utc_datetime, default: nil, null: true
     end

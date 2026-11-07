@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
 import datetime
 import typing
 from functools import lru_cache
@@ -24,6 +26,7 @@ from peewee import (
     SmallIntegerField,
     TextField,
     chunked,
+    fn,
 )
 
 from ..db_connection import db
@@ -156,3 +159,8 @@ class Item(BaseModel):
         redis_client.expire("tornium:items:name-map", 86400)
 
         return built_map
+
+    @staticmethod
+    @lru_cache
+    def get_by_name(name: str) -> typing.Optional[Item]:
+        return Item.select().where(fn.LOWER(Item.name) == name.lower()).first()

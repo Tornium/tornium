@@ -78,4 +78,9 @@ defmodule Tornium.Workers.ServerRefreshScheduler do
   defp get_servers_pending_deletion([] = _found_server_ids) do
     []
   end
+
+  @impl Oban.Worker
+  def timeout(%Oban.Job{} = _job) do
+    :timer.minutes(2)
+  end
 end

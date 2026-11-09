@@ -66,6 +66,7 @@ SCENARIO_OUTCOME_TYPES = {"P": "success", "F": "failed"}
 USER_ID_REGEX = re.compile(r"userId-(\d+)")
 SCENE_PRONOUN_REGEX = re.compile(r"\b(?:he|him|himself|his)\b", re.IGNORECASE)
 MASCULINE_TO_FEMININE = {"he": "she", "him": "her", "himself": "herself"}
+SCENARIO_CHECK_SLUG_REGEX = re.compile(r".+-C\d+")
 
 # Synthetic, text-less root shared by every crime of an OC type. It is not a scene (the prelude/objective
 # is not a decision node so it isn't stored); it only exists so the edge into the first decision node
@@ -173,6 +174,9 @@ def parse_scenario_path(
         if match is None:
             # Outcome-typed scene that isn't a check result, eg the terminal A9S.
             continue
+        elif not (SCENARIO_CHECK_SLUG_REGEX.fullmatch(match["base"]) or match["base"] == scenes[0]["slug"]):
+            # Ending scenes such as A9F end in F/P too, but they aren't check results
+            continue
         elif scene["type"] != SCENARIO_OUTCOME_TYPES[match["outcome"]]:
             raise InvalidScenarioData(f"Outcome scene {scene['slug']} has type {scene['type']}")
 
@@ -207,7 +211,7 @@ def parse_scenario_path(
 
 
 def parse_scenario_outcome(crime_data: dict) -> ScenarioOutcome:
-    if crime_data["status"] not in ("Successful", "Failed"):
+    if crime_data["status"] not in ("Successful", "Failed", "Failure"):
         raise InvalidScenarioData(f"Crime has not finished: {crime_data['status']}")
 
     faction_rewards = (crime_data.get("rewards") or {}).get("faction") or {}
@@ -489,10 +493,14 @@ def _weighted_median(pairs: typing.List[typing.Tuple[int, float]]) -> int:
     return pairs[-1][0]
 
 
-def _value_range_label(values: typing.List[dict], prefix: str = "") -> str:
+def _value_range_label(values: typing.Optional[typing.List[dict]], prefix: str = "") -> str:
+    if values is None:
+        return "None"
+
     pairs = [(entry["value"], entry["effective_weight"]) for entry in values]
     low, high = min(value for value, _ in pairs), max(value for value, _ in pairs)
     median = f"{prefix}{_weighted_median(pairs):,}"
+
     return median if low == high else f"{median} ({prefix}{low:,}–{prefix}{high:,})"
 
 

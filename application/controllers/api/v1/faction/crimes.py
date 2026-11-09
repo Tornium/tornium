@@ -507,7 +507,7 @@ def upload_crime_scenarios(faction_id: int, *args, **kwargs):
         if oc_id not in crimes_found:
             # This OC isn't the database, so we are unable to verify the data provided.
             continue
-        elif crime_data["status"] not in ("Failed", "Successful"):
+        elif crime_data["status"] not in ("Failure", "Failed", "Successful"):
             # Presumably this OC is still in planning, so we should skip it.
             continue
 

@@ -67,6 +67,7 @@ Tornium - Client Dashboard
         </div>
         {% endif %}
 
+        {% if "authorization-code" in client.grant_types %}
         <div class="col-sm-12 col-md-6 col-lg-4 mt-3">
             <div class="card">
                 <div class="card-header">Redirect URIs</div>
@@ -87,6 +88,7 @@ Tornium - Client Dashboard
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <div class="col-sm-12 col-md-6 col-lg-4 mt-3">
             <div class="card">
@@ -151,7 +153,14 @@ Tornium - Client Dashboard
                     </li>
                     <li class="list-group-item">
                         <label class="d-flex">
-                            <input type="checkbox" name="client-scope-selector" autocomplete="off" value="torn_key:usage" {% if "torn_key:usage" in client.scope_list() %}checked{% endif %} />
+                            <input
+                                type="checkbox"
+                                name="client-scope-selector"
+                                autocomplete="off"
+                                value="torn_key:usage"
+                                {% if "torn_key:usage" in client.scope_list() %}checked{% endif %}
+                                {% if "client_credentials" in client.grant_types %}disabled{% endif %}
+                            />
                             <p class="card-text px-3" style="width: 100%;">API Key: Usage</p>
                         </label>
                     </li>

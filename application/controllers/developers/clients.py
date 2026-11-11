@@ -98,15 +98,15 @@ def create_client():
         grant = ["authorization_code"]
         response_type = ["code"]
         auth_method = "none"
-    elif client_type == "device-authorization-grant":
-        grant = ["urn:ietf:params:oauth:grant-type:device_code"]
+    elif client_type == "client-credentials-grant":
+        grant = ["client_credentials"]
         response_type = []
-        auth_method = "none"
+        auth_method = "client_secret_basic"
     else:
         return make_exception_response(
             "1000",
             details={
-                "message": "Invalid client type. Must be authorization code grant (w/ optional PKCE) or device authorization grant."
+                "message": "Invalid client type. Must be authorization code grant (w/ optional PKCE) or client credentials grant."
             },
         )
 

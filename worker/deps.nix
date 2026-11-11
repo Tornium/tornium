@@ -11,6 +11,7 @@
   rustlerPrecompiledOverrides ? { },
   stdenv,
   pkg-config,
+  sqlite,
   vips,
   writeText,
 }:
@@ -267,7 +268,7 @@ let
 
       cowboy =
         let
-          version = "2.20.0";
+          version = "2.21.0";
           drv = buildRebar3 {
             inherit version;
             name = "cowboy";
@@ -275,7 +276,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "cowboy";
-              sha256 = "a0be47464a2887f71c061ce90723dc17441c9b81ba9569cd9b596eb0367d1edd";
+              sha256 = "90b4d6fe91806054538349dbeabcac86315a3fdaec4eb491f5445259668398f6";
             };
 
             beamDeps = [
@@ -309,7 +310,7 @@ let
 
       cowlib =
         let
-          version = "2.21.0";
+          version = "2.22.0";
           drv = buildRebar3 {
             inherit version;
             name = "cowlib";
@@ -317,7 +318,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "cowlib";
-              sha256 = "0960248773762a5319b3c17285028bc76f54f58ef0f9451367401bdf67b46274";
+              sha256 = "b1ea5995d8f1ab5086ae7afe710c2075c7872c7e1acaf45dd0db7595e900c0fc";
             };
           };
         in
@@ -513,7 +514,7 @@ let
 
       gun =
         let
-          version = "2.6.0";
+          version = "2.8.0";
           drv = buildRebar3 {
             inherit version;
             name = "gun";
@@ -521,7 +522,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "gun";
-              sha256 = "69bb957f4bd6c475b5714460fd65c26fc7eb85760aa64b74754de36ce5cced7d";
+              sha256 = "21a7c716f472fc5bc2c2bbcb2ec74ffa5d20d8073dc712acd054862b0a5176d8";
             };
 
             beamDeps = [
@@ -1202,7 +1203,7 @@ let
 
       ranch =
         let
-          version = "2.3.0";
+          version = "2.4.0";
           drv = buildRebar3 {
             inherit version;
             name = "ranch";
@@ -1210,7 +1211,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "ranch";
-              sha256 = "6168ec49409d982f7cfbd83dd083144f6cbe67caa4036551d2f0a3ad67c9d023";
+              sha256 = "64d98b8c61d39b7b9a2e2cf92ae659b8623a69766f415ae13dc726864ec04ab9";
             };
           };
         in
@@ -1273,7 +1274,7 @@ let
 
       ssl_verify_fun =
         let
-          version = "1.1.7";
+          version = "1.1.9";
           drv = buildMix {
             inherit version;
             name = "ssl_verify_fun";
@@ -1282,7 +1283,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "ssl_verify_fun";
-              sha256 = "fe4c190e8f37401d30167c8c405eda19469f34577987c76dde613e838bbc67f8";
+              sha256 = "19f24ad715ef6255d530b2f0db8b2d2191ae435b6527234e943f523e84ed0895";
             };
           };
         in

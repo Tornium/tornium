@@ -165,8 +165,6 @@ def generate_faction_stats_csv():
             for user_id, user_data in faction_members_data["members"].items()
         )
 
-    executor = ThreadPoolExecutor(max_workers=5)
-
     def _row(*values):
         output = io.StringIO()
         writer = csv.writer(output)
@@ -181,43 +179,46 @@ def generate_faction_stats_csv():
     def generate_csv():
         yield _row("tid", "name", "level", "estimated_stat_score", "stat_score", "stat_score_timestamp")
 
-        futures = {
-            executor.submit(estimate_user_with_context, user[0], current_user.key, current_user.key is not None): user
-            for user in faction_members
-        }
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futures = {
+                executor.submit(
+                    estimate_user_with_context, user[0], current_user.key, current_user.key is not None
+                ): user
+                for user in faction_members
+            }
 
-        for future in as_completed(futures):
-            user_id, user_name, user_level = futures[future]
+            for future in as_completed(futures):
+                user_id, user_name, user_level = futures[future]
 
-            estimated_stat_score: typing.Optional[int]
-            try:
-                result = future.result()
-                estimated_stat_score = int(result[0])
-            except Exception:
-                estimated_stat_score = None
+                estimated_stat_score: typing.Optional[int]
+                try:
+                    result = future.result()
+                    estimated_stat_score = int(result[0])
+                except Exception:
+                    estimated_stat_score = None
 
-            stat: typing.Optional[Stat]
-            if current_user.faction_id not in (None, 0):
-                stat = (
-                    Stat.select()
-                    .where(
-                        (Stat.tid == user_id)
-                        & ((Stat.added_group == 0) | (Stat.added_group == current_user.faction_id))
+                stat: typing.Optional[Stat]
+                if current_user.faction_id not in (None, 0):
+                    stat = (
+                        Stat.select()
+                        .where(
+                            (Stat.tid == user_id)
+                            & ((Stat.added_group == 0) | (Stat.added_group == current_user.faction_id))
+                        )
+                        .order_by(Stat.time_added.desc())
+                        .first()
                     )
-                    .order_by(Stat.time_added.desc())
-                    .first()
-                )
-            else:
-                stat = Stat.select().where((Stat.tid == user_id) & (Stat.added_group == 0)).first()
+                else:
+                    stat = Stat.select().where((Stat.tid == user_id) & (Stat.added_group == 0)).first()
 
-            yield _row(
-                user_id,
-                user_name,
-                user_level,
-                estimated_stat_score,
-                None if stat is None else int(stat.battlescore),
-                None if stat is None else int(stat.time_added.timestamp()),
-            )
+                yield _row(
+                    user_id,
+                    user_name,
+                    user_level,
+                    estimated_stat_score,
+                    None if stat is None else int(stat.battlescore),
+                    None if stat is None else int(stat.time_added.timestamp()),
+                )
 
     return Response(
         generate_csv(),

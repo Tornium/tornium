@@ -30,13 +30,15 @@ def init_db() -> None:
 def with_db_connection(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        try:
-            if db.is_closed():
-                db.connect()
+        opens_connection = db.is_closed()
 
+        if opens_connection:
+            db.connect()
+
+        try:
             return f(*args, **kwargs)
         finally:
-            if not db.is_closed():
+            if opens_connection and not db.is_closed():
                 db.close()
 
     return wrapper

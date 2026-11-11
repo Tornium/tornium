@@ -243,3 +243,9 @@ def after_request(response: flask.Response):
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
 
     return response
+
+
+@app.teardown_request
+def close_db_connection(exc):
+    if not db.is_closed():
+        db.close()

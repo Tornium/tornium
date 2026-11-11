@@ -4,7 +4,7 @@ Tornium includes an OAuth provider following [RFC 6749](https://datatracker.ietf
 ## Supported Flows
 Tornium supports the following [OAuth flows](https://datatracker.ietf.org/doc/html/rfc6749#section-1.2):
 - [Authorization Code Grant](#authorization-code-grant)
-- Device Authorization Grant (coming soon)
+- [Client Credentials Grant](#client-credentials-grant)
 - [Refresh Token Grant](#refresh-token-grant)
 
 ### Authorization Code Grant
@@ -47,6 +47,8 @@ Pragma: no-cache
     "refresh_token": "{{ refresh_token }}"
 }
 ```
+
+### Client Credentials Grant
 
 ### Refresh Token Grant
 When provided the refresh token from the original/previous token exchange, the refresh token grant will revoke the user's current access token for the client and grant a new access token (and a new refresh token if enabled) with an updated expiration. To utilize refresh token grant, the owner of the OAuth client must enable it which will result in refresh tokens being included in the token exchanges. Pursuant to [RFC 9700](https://www.rfc-editor.org/info/rfc9700/#section-4.14.2-5.2.1), all generated refresh tokens of a "family" (generated from the same series of refresh tokens) will be revoked if a refresh token is used more than once. This will also send a notification (as a Discord direct message) to the owner of the access token; it is **suggested** to indicate as such in your documentation/userscipt/etc. so that users will be aware of the circumstances resulting in that message.

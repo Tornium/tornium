@@ -89,7 +89,7 @@ function updateClient(event) {
     const clientName = document.getElementById("client-name").value;
     const selectedClientRedirectURIs = document.getElementsByClassName("client-redirect-uri");
     const clientRefreshGrant =
-        document.querySelector(`input[name="refresh-token-grant-toggle"]:checked`).value === "on";
+        document.querySelector(`input[name="refresh-token-grant-toggle"]:checked`)?.value === "on";
     const selectedClientScopes = document.querySelectorAll(`input[name="client-scope-selector"]:checked`);
     const clientURI = document.getElementById("client-uri").value;
     const clientTermsURI = document.getElementById("client-tos-uri").value;
@@ -121,14 +121,17 @@ function updateClient(event) {
 
 ready(() => {
     const regenerateClientSecretButton = document.getElementById("regenerate-client-secret");
+    const newClientRedirectURIButton = document.getElementById("client-redirect-uri-new");
 
     if (regenerateClientSecretButton != null) {
         regenerateClientSecretButton.addEventListener("click", regenerateClientSecret);
     }
+    if (newClientRedirectURIButton != null) {
+        newClientRedirectURIButton.addEventListener("click", createNewClientRedirectURI);
+    }
 
     document.getElementById("update-client").addEventListener("click", updateClient);
     document.getElementById("delete-client").addEventListener("click", createDeleteConfirmation);
-    document.getElementById("client-redirect-uri-new").addEventListener("click", createNewClientRedirectURI);
 
     Array.from(document.getElementsByClassName("remove-client-redirect-uri")).forEach((clientRedirectRemovalButton) => {
         clientRedirectRemovalButton.addEventListener("click", removeClientRedirectButton);

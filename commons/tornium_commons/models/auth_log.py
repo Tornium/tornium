@@ -61,6 +61,13 @@ class AuthAction(enum.Enum):
     # An OAuth token as unable to be refreshed as the refresh token had already been used
     OAUTH_TOKEN_REFRESH_REUSE = 65
 
+    # A user of sufficient permissions for a resource has granted consent to an OAuth
+    # client to access that resource
+    OAUTH_CONSENT_GRANT = 70
+    # A user of sufficient permissions for the resource has revoked consent to an OAuth
+    # client to prevent the client from accessing that resource.
+    OAUTH_CONSENT_REVOKE = 71
+
 
 class AuthLog(BaseModel):
     user = ForeignKeyField(User, null=True)

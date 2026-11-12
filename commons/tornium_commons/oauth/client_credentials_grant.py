@@ -56,10 +56,7 @@ from authlib.oauth2.rfc6749.errors import (
 
 from ..models import AuthAction, OAuthClient, OAuthClientResourceConsent
 from .log import log
-
-GENERIC_RESOURCE_SCOPES: typing.Set[str] = set()
-FACTION_RESOURCE_SCOPES: typing.Set[str] = {"faction", "faction:attacks", "faction:armory", "faction:crimes"}
-SERVER_RESOURCE_SCOPES: typing.Set[str] = set()
+from .scopes import GENERIC_RESOURCE_SCOPES, RESOURCE_SCOPES
 
 
 def parse_resource(resource: str) -> typing.Tuple[typing.Optional[str], typing.Optional[int]]:

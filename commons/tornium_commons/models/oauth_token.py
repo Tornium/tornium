@@ -127,7 +127,7 @@ class OAuthToken(BaseModel):
         ).execute()
 
         AuthLog.insert(
-            user=self.user.tid,
+            user=self.user.tid if self.user else None,
             timestamp=now,
             ip=None,
             action=AuthAction.OAUTH_TOKEN_REVOKE.value,
@@ -188,7 +188,7 @@ class OAuthToken(BaseModel):
     @staticmethod
     def save_token(token_data, request: FlaskOAuth2Request):
         user_id = request.user.get_user_id() if request.user else None
-        consent: typing.Optional[OAuthClientResourceConsent] = getattr(request, "consent_binding", None)
+        consent: typing.Optional[OAuthClientResourceConsent] = getattr(request, "resource_consent_binding", None)
 
         family_id = uuid.uuid4()
         if request.grant_type == "refresh_token":

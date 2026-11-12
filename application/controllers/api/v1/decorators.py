@@ -44,9 +44,12 @@ def allow_resource_tokens(func):
 def ratelimit(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if isinstance(current_token, OAuthToken) and current_token.client.check_grant_type("client_credentials"):
+        if isinstance(current_token, OAuthToken) and current_token.user_id is None:
             # As this OAuth token is of the client credentials grant, we need to check
-            # if this API endpoint allows these tokens to access it.
+            # if this API endpoint allows these tokens to access it. Checking if the user
+            # of the OAuth token is None checks this as CURRENTLY only client credentials
+            # grant doesn't set the user ID of a token.
+
             if not getattr(func, "allow_resource_tokens", False):
                 return make_exception_response(
                     "4004", details={"message": "This API endpoint does not support client credentials grant."}

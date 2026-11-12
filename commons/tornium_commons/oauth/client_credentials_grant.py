@@ -148,7 +148,7 @@ class ClientCredentialsGrant(grants.ClientCredentialsGrant):
         elif not requested_scopes <= set(scope_to_list(consent.scope)):
             raise InvalidScopeError()
 
-        self.request.consent_binding = consent
+        self.request.resource_consent_binding = consent
         return
 
     def create_token_response(self):

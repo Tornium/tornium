@@ -9,7 +9,7 @@ defmodule Tornium.Repo.Migrations.AddClientCredentialsGrant do
       add :scope, :text, default: "", null: false
 
       add :faction_id, references(:faction, column: :tid, type: :integer), default: nil, null: true
-      add :server_id, references(:server, column: :sid, type: :bigint), default: nil, null: true, on_delete: :delete_all
+      add :server_id, references(:server, column: :sid, type: :bigint, on_delete: :delete_all), default: nil, null: true
       # We can delete this as we should have logs for this elsewhere (eventually).
 
       add :consented_by_id, references(:user, column: :tid, type: :integer), null: false
@@ -24,7 +24,7 @@ defmodule Tornium.Repo.Migrations.AddClientCredentialsGrant do
     create unique_index("oauth_client_resource_consent", [:client_id, :server_id], where: "server_id IS NOT NULL AND revoked_at IS NULL")
 
     alter table("oauthtoken") do
-      add :consent_id, references(:oauth_client_resource_consent, column: :guid, type: :binary_id), default: nil, null: true
+      add :consent_id, references(:oauth_client_resource_consent, column: :guid, type: :binary_id, on_delete: :delete_all), default: nil, null: true
     end
     # The oauth token should only require a user ID when the client of the token is
     # not of client credentials grant as it wouldn't have a user ID.

@@ -26,8 +26,9 @@ from authlib.oauth2.rfc6749.errors import (
     InvalidRequestError,
 )
 from authlib.oauth2.rfc6749.grants import BaseGrant
-from flask import abort, render_template, request
+from flask import abort, redirect, render_template, request
 from flask_login import current_user, fresh_login_required
+from peewee import DoesNotExist
 from tornium_commons.models import OAuthClient, OAuthClientResourceConsent
 from tornium_commons.oauth.client_credentials_grant import parse_resource
 from tornium_commons.oauth.scopes import RESOURCE_SCOPES
@@ -150,11 +151,7 @@ def client_consent(client_id: str):
             400,
         )
 
-    # FIXME: Revert before deploying to prod
-    # if not OAuthClientResourceConsent.is_allowed_consent(current_user, resource_type, resource_id):
-    if current_user.tid != 2383326 and not OAuthClientResourceConsent.is_allowed_consent(
-        current_user, resource_type, resource_id
-    ):
+    if not OAuthClientResourceConsent.is_allowed_consent(current_user, resource_type, resource_id):
         return (
             render_template(
                 "errors/error.html",
@@ -212,3 +209,43 @@ def client_consent(client_id: str):
         resource_id=resource_id,
         consent=granted_consent,
     )
+
+
+@mod.route("/oauth/<client_id>/consent/<consent_id>/revoke", methods=["POST"])
+@fresh_login_required
+def revoke_consent(client_id: str, consent_id: str):
+    if flask.request.form.get("csrf-token") != flask.session.get("csrf_token"):
+        return abort(403)
+
+    try:
+        consent: OAuthClientResourceConsent = (
+            OAuthClientResourceConsent.select()
+            .where(
+                (OAuthClientResourceConsent.guid == consent_id)
+                & (OAuthClientResourceConsent.client == client_id)
+                & (OAuthClientResourceConsent.revoked_at.is_null(True))
+            )
+            .get()
+        )
+    except DoesNotExist:
+        return (
+            render_template("errors/error.html", title="Invalid Consent", error="No matching consent could be found."),
+            404,
+        )
+
+    consent_resource_type, consent_resource_id = consent.resource
+
+    if not OAuthClientResourceConsent.is_allowed_consent(current_user, consent_resource_type, consent_resource_id):
+        return (
+            render_template(
+                "errors/error.html",
+                title="Permission Denied",
+                error=f"You do not have sufficient permissions to revoke consent for this resource ({consent_resource_type} ID {consent_resource_id})",
+            ),
+            403,
+        )
+
+    consent.revoke(current_user)
+
+    if consent_resource_type == "faction":
+        return redirect("/faction/consent", code=303)

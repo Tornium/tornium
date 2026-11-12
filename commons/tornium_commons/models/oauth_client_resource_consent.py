@@ -154,7 +154,7 @@ class OAuthClientResourceConsent(BaseModel):
         return consent
 
     @db.atomic()
-    def revoke(self, user: User):
+    def revoke(self, user: User) -> None:
         from .oauth_token import OAuthToken
 
         now = datetime.datetime.utcnow()

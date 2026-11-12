@@ -22,7 +22,7 @@ from flask import Response, request, session
 from flask_login import current_user
 from tornium_commons import rds
 from tornium_commons.altjson import dumps, loads
-from tornium_commons.models import OAuthToken
+from tornium_commons.models import OAuthClientResourceConsent, OAuthToken
 from tornium_commons.oauth import BearerTokenValidator, ResourceProtector
 
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
@@ -34,11 +34,55 @@ API_MAX_RATELIMITS = {"oauth_client_credentials": 100, "oauth": 250, "session": 
 def allow_resource_tokens(func):
     """
     Mark an API endpoint as accepting requests from OAuth clients using client credential
-    grant with consent from the applicable resource.
+    grant with consent from the applicable resource. This is for endpoints that accept generic
+    requests from OAuth clients using client credentials grant without any resource consents.
     """
 
     func.allow_resource_tokens = True
     return func
+
+
+def require_resource_consent(resource_type: str, resource_id_key: str, scopes: typing.List[str]):
+    """
+    Require an OAuth client using client credentials grant on this API endpoint to need the
+    consent of some resource for matching scope. Any other method of authenticating to access
+    this API endpoint will pass through unmodified.
+
+    Must be placed directly below `@ratelimit`, which provides `method`, `token` and
+    `ratelimiting_key`.
+    """
+
+    scopes = frozenset(scopes)
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if kwargs["method"] != "oauth_client_credentials":
+                # As the request is authenticated through something else other than client
+                # credential grant, we don't need to check it.
+                return func(*args, **kwargs)
+
+            consent: typing.Optional[OAuthClientResourceConsent] = kwargs["token"].consent
+
+            if consent is None:
+                return make_exception_response(
+                    "4003",
+                    kwargs["ratelimiting_key"],
+                    details={"message": "This endpoint requires a token issued for a resource."},
+                )
+            elif consent.resource != (resource_type, kwargs[resource_id_key]):
+                return make_exception_response("4022", kwargs["ratelimiting_key"])
+            elif BearerTokenValidator.scope_insufficient(consent.scope, scopes):
+                return make_exception_response("4022", kwargs["ratelimiting_key"])
+
+            kwargs["consent"] = consent
+            return func(*args, **kwargs)
+
+        return wrapper
+
+        wrapper.allow_resource_tokens = True
+
+    return decorator
 
 
 def ratelimit(func):

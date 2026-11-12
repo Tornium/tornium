@@ -55,7 +55,6 @@ from playhouse.postgres_ext import BinaryJSONField
 
 from ..db_connection import db
 from .base_model import BaseModel
-from .oauth_client_resource_consent import OAuthClientResourceConsent
 from .user import User
 
 
@@ -69,8 +68,6 @@ class OAuthClient(BaseModel):
     deleted_at = DateTimeField(default=None, null=True)
 
     user = ForeignKeyField(User, null=False)
-
-    consent = ForeignKeyField(OAuthClientResourceConsent, default=None, null=True)
 
     @property
     def client_info(self):

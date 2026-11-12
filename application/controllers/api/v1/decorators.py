@@ -57,18 +57,21 @@ def ratelimit(func):
 
             kwargs["user"] = None
             kwargs["key"] = None
+            kwargs["token"] = current_token
         elif isinstance(current_token, OAuthToken):
             ratelimiting_key = f"tornium:ratelimit:{current_token.user.tid}"
             access_method = "oauth"
 
             kwargs["user"] = current_token.user
             kwargs["key"] = current_token.user.key
+            kwargs["token"] = current_token
         else:
             ratelimiting_key = f"tornium:ratelimit:{current_user.tid}"
             access_method = "session"
 
             kwargs["user"] = current_user
             kwargs["key"] = current_user.key
+            kwargs["token"] = None
 
         # We need to provide the ratelimiting key so that API endpoints can use the correct
         # key when returning data. Otherwise, when using client credentials grant, it'll
@@ -179,7 +182,7 @@ def global_cache(func=None, duration=3600):
                 "Content-Type": "application/json",
                 "Cache-Control": f"max-age={cache_ttl}, public",
                 "X-Cache": "HIT",
-                **api_ratelimit_response(f"tornium:ratelimit:{kwargs['user'].tid}", client),
+                **api_ratelimit_response(kwargs["ratelimiting_key"], client),
             },
         )
 

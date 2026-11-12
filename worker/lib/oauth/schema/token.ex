@@ -49,11 +49,11 @@ defmodule Tornium.Schema.OAuthToken do
           refresh_token_revoked_at: DateTime.t() | nil,
           expires_in: non_neg_integer(),
           refresh_token_expires_in: pos_integer() | nil,
-          user_id: pos_integer(),
-          user: Tornium.Schema.User.t(),
+          user_id: pos_integer() | nil,
+          user: Tornium.Schema.User.t() | nil,
           family_id: Ecto.UUID.t(),
-          consent_id: Ecto.UUID.t(),
-          consent: Tornium.Schema.OAuthClientResourceConsent.t()
+          consent_id: Ecto.UUID.t() | nil,
+          consent: Tornium.Schema.OAuthClientResourceConsent.t() | nil
         }
 
   @primary_key {:id, :id, autogenerate: true}

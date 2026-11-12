@@ -18,11 +18,12 @@ from __future__ import annotations
 import datetime
 import typing
 
-from peewee import DateTimeField, DeferredForeignKey, ForeignKeyField, TextField
+from peewee import DateTimeField, ForeignKeyField, TextField
 from playhouse.postgres_ext import UUIDField
 
 from .base_model import BaseModel
 from .faction import Faction
+from .oauth_client import OAuthClient
 from .server import Server
 from .user import User
 
@@ -33,7 +34,7 @@ class OAuthClientResourceConsent(BaseModel):
 
     guid = UUIDField(primary_key=True)
 
-    client = DeferredForeignKey("OAuthClient", null=False)
+    client = ForeignKeyField(OAuthClient, backref="consents", null=False)
     scope = TextField(default="", null=False)
 
     faction = ForeignKeyField(Faction, default=None, null=True)
@@ -41,8 +42,8 @@ class OAuthClientResourceConsent(BaseModel):
 
     consented_by = ForeignKeyField(User, null=False)
     consented_at = DateTimeField(default=datetime.datetime.utcnow, null=False)
-    revoked_by = ForeignKeyField(User, null=False)
-    revoked_at = DateTimeField(null=False)
+    revoked_by = ForeignKeyField(User, default=None, null=True)
+    revoked_at = DateTimeField(default=None, null=True)
 
     RESOURCE_TYPES = ("faction", "server")
 

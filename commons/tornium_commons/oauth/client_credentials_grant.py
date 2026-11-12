@@ -54,16 +54,10 @@ from authlib.oauth2.rfc6749.errors import (
     UnauthorizedClientError,
 )
 
-from ..models import (
-    AuthAction,
-    OAuthClient,
-    OAuthClientResourceConsent,
-    OAuthToken,
-    User,
-)
+from ..models import AuthAction, OAuthClient, OAuthClientResourceConsent
 from .log import log
 
-GENERIC_RESOURCE_SCOPES: typing.Set[str] = {"identity"}
+GENERIC_RESOURCE_SCOPES: typing.Set[str] = set()
 FACTION_RESOURCE_SCOPES: typing.Set[str] = {"faction", "faction:attacks", "faction:armory", "faction:crimes"}
 SERVER_RESOURCE_SCOPES: typing.Set[str] = set()
 
@@ -124,10 +118,10 @@ class ClientCredentialsGrant(grants.ClientCredentialsGrant):
         The authorization server MUST authenticate the client.
         """
 
+        super().validate_token_request()
+
         self.request: FlaskOAuth2Request
         client: OAuthClient = self.request.client
-
-        super().validate_token_request()
 
         # We need to now validate the resources and scopes requested for the client. We
         # can use authlib's implementation of validation as it does the basic checks
@@ -183,9 +177,11 @@ class ClientCredentialsGrant(grants.ClientCredentialsGrant):
         :returns: an :class:`~authlib.oauth2.rfc6749.OAuth2Response`
         """
 
-        token = self.generate_token(
-            user=self.request.user, scope=self.request.scope, include_refresh_token=False, expires_in=3600
-        )
-        log(user_id=self.request.user.tid, action=AuthAction.OAUTH_TOKEN_ISSUE, request=self.request)
+        # There is no user for client credentials grant as this is supposed to be for machine-to-
+        # machine authentication so there's not any person except for the person giving consent.
+        token = self.generate_token(user=None, scope=self.request.scope, include_refresh_token=False, expires_in=3600)
+        self.save_token(token)
+
+        log(user_id=None, action=AuthAction.OAUTH_TOKEN_ISSUE, request=self.request)
 
         return 200, token, self.TOKEN_RESPONSE_HEADER

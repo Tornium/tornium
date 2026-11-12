@@ -92,8 +92,8 @@ def init__app():
 
     oauth_server.init_app(app, query_client=OAuthClient.get_client, save_token=OAuthToken.save_token)
     oauth_server.register_grant(AuthorizationCodeGrant, [CodeChallenge(required=True)])
+    oauth_server.register_grant(ClientCredentialsGrant)
     oauth_server.register_grant(RefreshTokenGrant)
-    oauth_server.register_grant(ClientCredentialsGrant, [CodeChallenge(required=False)])
 
     metrics.init_app(app)
 

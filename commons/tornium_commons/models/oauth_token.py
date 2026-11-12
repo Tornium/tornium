@@ -80,7 +80,9 @@ class OAuthToken(BaseModel):
     expires_in = BigIntegerField(null=False, default=0)
     refresh_token_expires_in = BigIntegerField(null=True, default=None)
 
-    user = ForeignKeyField(User, null=False)
+    # The user of the an OAuth token should only be null when its client is of client
+    # credentials grant as it doesn't make sense for it to have a user in that case.
+    user = ForeignKeyField(User, default=None, null=True)
 
     family_id = UUIDField(null=False)
 

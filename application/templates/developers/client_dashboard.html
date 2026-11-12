@@ -67,7 +67,7 @@ Tornium - Client Dashboard
         </div>
         {% endif %}
 
-        {% if "authorization-code" in client.grant_types %}
+        {% if "client_credentials" not in client.grant_types %}
         <div class="col-sm-12 col-md-6 col-lg-4 mt-3">
             <div class="card">
                 <div class="card-header">Redirect URIs</div>
@@ -88,7 +88,6 @@ Tornium - Client Dashboard
                 </div>
             </div>
         </div>
-        {% endif %}
 
         <div class="col-sm-12 col-md-6 col-lg-4 mt-3">
             <div class="card">
@@ -116,6 +115,7 @@ Tornium - Client Dashboard
                 </ul>
             </div>
         </div>
+        {% endif %}
 
         <div class="col-sm-12 col-md-6 col-lg-4 mt-3">
             <div class="card">

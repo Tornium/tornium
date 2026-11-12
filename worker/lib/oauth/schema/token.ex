@@ -27,6 +27,12 @@ defmodule Tornium.Schema.OAuthToken do
   refresh token grant or 7 days if not. If the client has refresh token grant, the refresh token
   will expire after 24 hours.
   See https://docs.cloud.google.com/apigee/docs/api-platform/antipatterns/oauth-long-expiration#best-practice
+
+  An OAuth token for a client using client credentials grant can have a single resource consent
+  granting permission for the application utilizing the client to access some resource. As client
+  credential grant requires confidential clients, only a single application would be using the
+  OAuth client, so it is intended for each OAuth token to be scoped to a different resource of the
+  application so that a leaked OAuth token would only impact one resource.
   """
 
   use Ecto.Schema
@@ -45,7 +51,9 @@ defmodule Tornium.Schema.OAuthToken do
           refresh_token_expires_in: pos_integer() | nil,
           user_id: pos_integer(),
           user: Tornium.Schema.User.t(),
-          family_id: Ecto.UUID.t()
+          family_id: Ecto.UUID.t(),
+          consent_id: Ecto.UUID.t(),
+          consent: Tornium.Schema.OAuthClientResourceConsent.t()
         }
 
   @primary_key {:id, :id, autogenerate: true}
@@ -63,5 +71,7 @@ defmodule Tornium.Schema.OAuthToken do
 
     belongs_to(:user, Tornium.Schema.User, references: :tid)
     field(:family_id, Ecto.UUID)
+
+    belongs_to(:consent, Tornium.Schema.OAuthClientResourceConsent, references: :guid)
   end
 end

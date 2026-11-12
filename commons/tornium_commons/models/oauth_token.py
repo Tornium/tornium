@@ -64,6 +64,7 @@ from ..skyutils import SKYNET_WARNING
 from .auth_log import AuthAction, AuthLog
 from .base_model import BaseModel
 from .oauth_client import OAuthClient
+from .oauth_client_resource_consent import OAuthClientResourceConsent
 from .user import User
 
 
@@ -82,6 +83,8 @@ class OAuthToken(BaseModel):
     user = ForeignKeyField(User, null=False)
 
     family_id = UUIDField(null=False)
+
+    consent = ForeignKeyField(OAuthClientResourceConsent, null=True, default=None)
 
     def check_client(self, client: OAuthClient):
         return self.client_id == client.get_client_id()
@@ -183,6 +186,7 @@ class OAuthToken(BaseModel):
     @staticmethod
     def save_token(token_data, request: FlaskOAuth2Request):
         user_id = request.user.get_user_id() if request.user else None
+        consent: typing.Optional[OAuthClientResourceConsent] = getattr(request, "consent_binding", None)
 
         family_id = uuid.uuid4()
         if request.grant_type == "refresh_token":
@@ -199,7 +203,13 @@ class OAuthToken(BaseModel):
                 family_id = old_token.family_id
 
         return (
-            OAuthToken.insert(client_id=request.client.client_id, user_id=user_id, family_id=family_id, **token_data)
+            OAuthToken.insert(
+                client_id=request.client.client_id,
+                user_id=user_id,
+                family_id=family_id,
+                consent=None if consent is None else consent.guid,
+                **token_data,
+            )
             .returning(OAuthToken)
             .execute()[0]
         )

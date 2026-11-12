@@ -51,7 +51,7 @@ def openid_configuration():
                 "token_endpoint": "https://tornium.com/oauth/token",  # nosec B105
                 "scopes_supported": list(valid_scopes),
                 "response_types_supported": ["code"],
-                "grant_types_supported": ["authorization_code"],
+                "grant_types_supported": ["authorization_code", "client_credentials"],
                 "service_documentation": "https://docs.tornium.com/reference/api/oauth-provider.html",
                 "op_privacy_uri": "https://tornium.com/privacy",
                 "op_tos_uri": "https://tornium.com/terms",

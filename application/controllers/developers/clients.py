@@ -101,7 +101,7 @@ def create_client():
     elif client_type == "client-credentials-grant":
         grant = ["client_credentials"]
         response_type = []
-        auth_method = "client_secret_basic"
+        auth_method = "client_secret_post"
     else:
         return make_exception_response(
             "1000",
@@ -264,7 +264,11 @@ def update_client(client_id: str):
         "privacy_uri": client_privacy_uri,
     }
 
-    if "refresh_token" in client.grant_types and not client_refresh_grant:
+    if "client_credentials" in client.grant_types and client_refresh_grant:
+        return make_exception_response(
+            "1000", details={"message": "Client credentials grant MUST not use the refresh flow"}
+        )
+    elif "refresh_token" in client.grant_types and not client_refresh_grant:
         updated_client_metadata["grant_types"] = client.grant_types
         updated_client_metadata["grant_types"].remove("refresh_token")
     elif "refresh_token" not in client.grant_types and client_refresh_grant:

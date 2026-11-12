@@ -277,12 +277,14 @@ def revoke_client(client_id: str, *args, **kwargs):
         return make_exception_response("0000", details={"message": "Invalid OAuth client ID"})
 
     OAuthToken.update(access_token_revoked_at=datetime.datetime.utcnow()).where(
-        (OAuthToken.client == client_id) & (OAuthToken.access_token_revoked_at.is_null(True))
+        (OAuthToken.client == client_id)
+        & (OAuthToken.access_token_revoked_at.is_null(True) & (OAuthToken.user == current_user.tid))
     ).execute()
     OAuthToken.update(refresh_token_revoked_at=datetime.datetime.utcnow()).where(
         (OAuthToken.client == client_id)
         & (OAuthToken.refresh_token.is_null(False))
         & (OAuthToken.refresh_token_revoked_at.is_null(True))
+        & (OAuthToken.user == current_user.tid)
     ).execute()
 
     return make_exception_response("0001")

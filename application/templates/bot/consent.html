@@ -79,11 +79,13 @@ Tornium - Server Consents
                                     ({{ consent.consented_at | reltime }})
                                 </div>
 
+                                {% if can_revoke_consent %}
                                 <form class="mt-3" method="POST" action="/oauth/{{ consent.client_id }}/consent/{{ consent.guid }}/revoke">
                                     <button type="submit" class="btn btn-outline-danger">Revoke Consent</button>
 
                                     <input type="hidden" id="csrf-token" name="csrf-token" value="{{ session.csrf_token }}">
                                 </form>
+                                {% endif %}
                             </div>
 
                             <div class="col-sm-12 col-lg-8">

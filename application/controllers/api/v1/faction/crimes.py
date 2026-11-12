@@ -82,7 +82,7 @@ def get_oc_slots(*args, **kwargs):
     )
 
 
-@require_oauth("faction:crimes", "faction")
+@require_oauth(["faction:crimes", "faction"])
 @ratelimit
 def get_delays(faction_id: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -179,7 +179,7 @@ def get_members_cpr_slot(faction_id: int, oc_name: str, oc_position_name: str, *
     )
 
 
-@require_oauth("faction:crimes", "faction")
+@require_oauth(["faction:crimes", "faction"])
 @ratelimit
 def get_members_cpr_oc(faction_id: int, oc_name: str, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"
@@ -224,7 +224,7 @@ def get_members_cpr_oc(faction_id: int, oc_name: str, *args, **kwargs):
     )
 
 
-@require_oauth("faction:crimes", "faction")
+@require_oauth(["faction:crimes", "faction"])
 @ratelimit
 def get_cpr_ranges(faction_id: int, *args, **kwargs):
     user: User = kwargs["user"]
@@ -307,7 +307,7 @@ def get_cpr_ranges(faction_id: int, *args, **kwargs):
     )
 
 
-@require_oauth("faction:crimes", "faction")
+@require_oauth(["faction:crimes", "faction"])
 @ratelimit
 def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
     key = f"tornium:ratelimit:{kwargs['user'].tid}"

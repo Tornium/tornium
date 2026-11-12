@@ -21,7 +21,7 @@ from controllers.api.v1.decorators import ratelimit, require_oauth
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
-@require_oauth("faction:attacks", "faction")
+@require_oauth(["faction:attacks", "faction"])
 @ratelimit
 def get_faction_retaliations(faction_id: int, *args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'

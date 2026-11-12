@@ -200,13 +200,16 @@ class OAuthClient(BaseModel):
     def soft_delete(self):
         # For traceability, we want to soft-delete the OAuth client and revoke all related tokens and codes
         from .oauth_authorization_code import OAuthAuthorizationCode
+        from .oauth_client_resource_consent import OAuthClientResourceConsent
         from .oauth_token import OAuthToken
 
+        now = datetime.datetime.utcnow()
+
         with db.atomic():
-            OAuthToken.update(access_token_revoked_at=datetime.datetime.utcnow()).where(
+            OAuthToken.update(access_token_revoked_at=now).where(
                 (OAuthToken.client_id == self.client_id) & (OAuthToken.access_token_revoked_at.is_null(True))
             ).execute()
-            OAuthToken.update(refresh_token_revoked_at=datetime.datetime.utcnow()).where(
+            OAuthToken.update(refresh_token_revoked_at=now).where(
                 (OAuthToken.client_id == self.client_id)
                 & (OAuthToken.refresh_token.is_null(False))
                 & (OAuthToken.refresh_token_revoked_at.is_null(True))
@@ -217,6 +220,9 @@ class OAuthClient(BaseModel):
                 (OAuthAuthorizationCode.client_id == self.client_id) & (OAuthAuthorizationCode.used_at.is_null(True))
             ).execute()
 
-            OAuthClient.update(deleted_at=datetime.datetime.utcnow()).where(
-                OAuthClient.client_id == self.client_id
+            # We also need to revoke the client consents granted for this client as they're now useless.
+            OAuthClientResourceConsent.update(revoked_at=now, revoked_by=None).where(
+                OAuthClientResourceConsent.client == self.client_id
             ).execute()
+
+            OAuthClient.update(deleted_at=now).where(OAuthClient.client_id == self.client_id).execute()

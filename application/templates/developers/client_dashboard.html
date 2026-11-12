@@ -135,6 +135,12 @@ Tornium - Client Dashboard
                     </li>
                     <li class="list-group-item">
                         <label class="d-flex">
+                            <input type="checkbox" name="client-scope-selector" autocomplete="off" value="faction:armory" {% if "faction:armory" in client.scope_list() %}checked{% endif %} />
+                            <p class="card-text px-3" style="width: 100%;">Faction: Armory</p>
+                        </label>
+                    </li>
+                    <li class="list-group-item">
+                        <label class="d-flex">
                             <input type="checkbox" name="client-scope-selector" autocomplete="off" value="faction:attacks" {% if "faction:attacks" in client.scope_list() %}checked{% endif %} />
                             <p class="card-text px-3" style="width: 100%;">Faction: Attacks</p>
                         </label>

@@ -17,6 +17,6 @@ import typing
 
 GENERIC_RESOURCE_SCOPES: typing.Set[str] = set()
 RESOURCE_SCOPES: typing.Dict[str, typing.Set[str]] = {
-    "faction": {"faction", "faction:attacks", "faction:banking", "faction:crimes"},
+    "faction": {"faction", "faction:armory", "faction:attacks", "faction:banking", "faction:crimes"},
     "server": set(),
 }

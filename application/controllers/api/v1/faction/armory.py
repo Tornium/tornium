@@ -32,7 +32,7 @@ from controllers.api.v1.utils import (
 armory_action_values = [action.value for action in ArmoryAction]
 
 
-@require_oauth("faction:armory", "faction")
+@require_oauth(["faction:armory", "faction"])
 @ratelimit
 def get_logs(faction_id: int, *args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'
@@ -168,7 +168,7 @@ def get_logs(faction_id: int, *args, **kwargs):
         return make_exception_response("4012", key)
 
 
-@require_oauth("faction:armory", "faction")
+@require_oauth(["faction:armory", "faction"])
 @ratelimit
 def get_cumulative(faction_id: int, *args, **kwargs):
     key = f'tornium:ratelimit:{kwargs["user"].tid}'

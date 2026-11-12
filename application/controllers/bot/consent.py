@@ -51,6 +51,5 @@ def consent(guild_id: int, *args, **kwargs):
             (OAuthClientResourceConsent.server == guild.sid) & (OAuthClientResourceConsent.revoked_at.is_null(True))
         )
     ]
-    can_revoke_consent = current_user.faction_position.name in ("Leader", "Co-leader")
 
-    return render_template("bot/consent.html", consents=consents, can_revoke_consent=can_revoke_consent)
+    return render_template("bot/consent.html", consents=consents, can_revoke_consent=True)

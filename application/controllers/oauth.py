@@ -40,6 +40,7 @@ valid_scopes = (
     "identity",
     # Faction scopes
     "faction",
+    "faction:armory",
     "faction:attacks",
     "faction:banking",
     "faction:crimes",
@@ -181,7 +182,7 @@ def client_consent(client_id: str):
             resource_type=resource_type,
             resource_id=resource_id,
             requested_scopes=valid_requested_scopes,
-            existing_scopes=[] if existing_consent is None else existing_consent.scope,
+            existing_scopes=[] if existing_consent is None else existing_consent.scopes,
         )
 
     if flask.request.form.get("csrf-token") != flask.session.get("csrf_token"):
@@ -249,3 +250,5 @@ def revoke_consent(client_id: str, consent_id: str):
 
     if consent_resource_type == "faction":
         return redirect("/faction/consent", code=303)
+    elif consent_resource_type == "server":
+        return redirect(f"/bot/dashboard/{consent_resource_id}/consent", code=303)

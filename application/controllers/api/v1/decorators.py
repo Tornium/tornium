@@ -18,17 +18,14 @@ import typing
 from functools import partial, wraps
 
 from authlib.integrations.flask_oauth2 import current_token
-from flask import Response, request, session
+from flask import g, Response, request, session
 from flask_login import current_user
 from tornium_commons import rds
 from tornium_commons.altjson import dumps, loads
 from tornium_commons.models import OAuthClientResourceConsent, OAuthToken
 from tornium_commons.oauth import BearerTokenValidator, ResourceProtector
 
-from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
-
-API_ACCESS_METHODS = ("oauth_client_credentials", "oauth", "session")
-API_MAX_RATELIMITS = {"oauth_client_credentials": 100, "oauth": 250, "session": 250}
+from controllers.api.v1.utils import API_MAX_RATELIMITS, api_ratelimit_response, make_exception_response
 
 
 def allow_resource_tokens(func):
@@ -125,6 +122,10 @@ def ratelimit(func):
         # provide inaccurate data.
         kwargs["ratelimiting_key"] = ratelimiting_key
         kwargs["method"] = access_method
+        # We need to set the limit for the ratelimiter so that, at the end of the request,
+        # the correct maximum number of requests per minute can be attached to the headers
+        # of the response.
+        g.ratelimit_limit = API_MAX_RATELIMITS[access_method]
 
         client = rds()
         current_count = int(client.incr(ratelimiting_key))
@@ -138,7 +139,7 @@ def ratelimit(func):
     return wrapper
 
 
-def scoped_ratelimit(scope, maximum):
+def scoped_ratelimit(scope: str | typing.Callable, maximum: int):
     """
     A scoped ratelimiting decorator.
 

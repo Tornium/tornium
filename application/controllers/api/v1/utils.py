@@ -17,8 +17,11 @@ import time
 import typing
 
 import redis
-from flask import jsonify
+from flask import g, jsonify
 from tornium_commons import rds
+
+API_ACCESS_METHODS = ("oauth_client_credentials", "oauth", "session")
+API_MAX_RATELIMITS = {"oauth_client_credentials": 100, "oauth": 250, "session": 250}
 
 API_EXCEPTIONS = {
     "0000": {
@@ -315,26 +318,31 @@ def json_api_exception(code: str, details=None):
     return exception
 
 
-def api_ratelimit_response(ratelimit_key: str, client: redis.Redis = None):
+def api_ratelimit_response(ratelimit_key: str, client: redis.Redis = None, limit: typing.Optional[int] = None):
     if client is None:
         client = rds()
+    if limit is None:
+        # The ratelimit was set by @ratelimit for this request based on the type of
+        # authentication performed for the request. If there is none, we can fallback to the
+        # session ratelimit as non-API endpoints may use this function.
+        limit = g.get("ratelimit_limit", API_MAX_RATELIMITS["session"])
 
-    try:
-        return {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": 250 - int(client.get(ratelimit_key)),
-            "X-RateLimit-Reset": client.ttl(ratelimit_key),
-        }
-    except TypeError:
+    count = client.get(ratelimit_key)
+    if count is None:
         # The API call was made just before the end of the minute, and this code rolls over to the following minute
         expires_at = int(time.time()) // 60 * 60 + 60
         client.expireat(ratelimit_key, expires_at)
-
         return {
-            "X-RateLimit-Limit": 250,
-            "X-RateLimit-Remaining": 250,
-            "X-RateLimit-Reset": expires_at,
+            "X-RateLimit-Limit": limit,
+            "X-RateLimit-Remaining": limit,
+            "X-RateLimit-Reset": expires_at - int(time.time()),
         }
+
+    return {
+        "X-RateLimit-Limit": limit,
+        "X-RateLimit-Remaining": max(0, limit - int(count)),
+        "X-RateLimit-Reset": client.ttl(ratelimit_key),
+    }
 
 
 def make_exception_response(

@@ -18,14 +18,18 @@ import typing
 from functools import partial, wraps
 
 from authlib.integrations.flask_oauth2 import current_token
-from flask import g, Response, request, session
+from flask import Response, g, request, session
 from flask_login import current_user
 from tornium_commons import rds
 from tornium_commons.altjson import dumps, loads
 from tornium_commons.models import OAuthClientResourceConsent, OAuthToken
 from tornium_commons.oauth import BearerTokenValidator, ResourceProtector
 
-from controllers.api.v1.utils import API_MAX_RATELIMITS, api_ratelimit_response, make_exception_response
+from controllers.api.v1.utils import (
+    API_MAX_RATELIMITS,
+    api_ratelimit_response,
+    make_exception_response,
+)
 
 
 def allow_resource_tokens(func):

@@ -29,7 +29,7 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 @ratelimit
 def update_guild_notification(notification_id, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         notification_uuid = uuid.UUID(notification_id)
@@ -105,7 +105,7 @@ def update_guild_notification(notification_id, *args, **kwargs):
 @session_required
 @ratelimit
 def delete_guild_notification(notification_id, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         notification_uuid = uuid.UUID(notification_id)
@@ -130,7 +130,7 @@ def delete_guild_notification(notification_id, *args, **kwargs):
 @session_required
 @ratelimit
 def toggle_guild_notification(notification_id, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
     data = json.loads(request.get_data().decode("utf-8"))
 
     try:

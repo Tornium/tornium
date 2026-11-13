@@ -113,7 +113,7 @@ def jsonified_server_config(guild: Server):
 @session_required
 @ratelimit
 def server_config(guild_id, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         guild: Server = Server.get_by_id(guild_id)

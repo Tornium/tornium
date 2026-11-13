@@ -22,7 +22,7 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 @require_oauth()
 @ratelimit
 def faction_members(faction_id: int, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     if not Faction.select().where(Faction.tid == faction_id).exists():
         return make_exception_response("1102", key)

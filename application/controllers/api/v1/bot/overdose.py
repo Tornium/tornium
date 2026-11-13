@@ -28,7 +28,7 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 @ratelimit
 def set_overdose_channel(guild_id: int, faction_id: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     channel_id = data.get("channel")
 
@@ -64,7 +64,7 @@ def set_overdose_channel(guild_id: int, faction_id: int, *args, **kwargs):
 @ratelimit
 def set_overdose_policy(guild_id: int, faction_id: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     policy = data.get("policy")
 

@@ -65,7 +65,7 @@ def jsonified_verify_config(guild: Server):
 @session_required
 @ratelimit
 def verification_config(guild_id, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         guild: Server = Server.get_by_id(guild_id)
@@ -88,7 +88,7 @@ def verification_config(guild_id, *args, **kwargs):
 @ratelimit
 def guild_verification(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         guild_id = int(data["guildid"])
@@ -139,7 +139,7 @@ def guild_verification(*args, **kwargs):
 @ratelimit
 def guild_auto_verification(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         guild_id = int(data["guildid"])
@@ -189,7 +189,7 @@ def guild_auto_verification(*args, **kwargs):
 @session_required
 @ratelimit
 def guild_gateway_verification(guild_id: int, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         guild: Server = Server.select().where(Server.sid == guild_id).get()
@@ -233,7 +233,7 @@ def guild_gateway_verification(guild_id: int, *args, **kwargs):
 @ratelimit
 def guild_verification_log(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         guild_id = int(data["guildid"])
@@ -263,7 +263,7 @@ def guild_verification_log(*args, **kwargs):
 @ratelimit
 def guild_jail_channel(guild_id: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         channel_id = int(data["channel"])
@@ -288,7 +288,7 @@ def guild_jail_channel(guild_id: int, *args, **kwargs):
 @ratelimit
 def guild_verification_template(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         guild_id = int(data["guildid"])
@@ -330,7 +330,7 @@ def guild_verification_template(*args, **kwargs):
 @ratelimit
 def faction_verification(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+    key = kwargs["ratelimiting_key"]
 
     try:
         guild_id = int(data["guildid"])
@@ -389,7 +389,7 @@ def faction_verification(*args, **kwargs):
 @ratelimit
 def guild_verification_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     roles = data.get("roles")
 
@@ -423,7 +423,7 @@ def guild_verification_roles(*args, **kwargs):
 @ratelimit
 def guild_unverified_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     roles = data.get("roles")
 
@@ -457,7 +457,7 @@ def guild_unverified_roles(*args, **kwargs):
 @ratelimit
 def guild_exclusion_roles(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     roles = data.get("roles")
 
@@ -491,7 +491,7 @@ def guild_exclusion_roles(*args, **kwargs):
 @ratelimit
 def faction_roles(faction_tid, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     roles = data.get("roles")
 
@@ -523,7 +523,7 @@ def faction_roles(faction_tid, *args, **kwargs):
 @ratelimit
 def faction_position_roles(faction_tid: int, position: str, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     roles = data.get("roles")
 
@@ -554,7 +554,7 @@ def faction_position_roles(faction_tid: int, position: str, *args, **kwargs):
 @session_required
 @ratelimit
 def verify_logs(guild_id: int, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
     user: User = kwargs["user"]
 
     try:

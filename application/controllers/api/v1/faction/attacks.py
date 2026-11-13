@@ -14,21 +14,29 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
+import typing
 
 from tornium_commons.models import Retaliation, User
 
-from controllers.api.v1.decorators import ratelimit, require_oauth
+from controllers.api.v1.decorators import (
+    ratelimit,
+    require_oauth,
+    require_resource_consent,
+)
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
+ATTACK_SCOPES = ["faction:attacks", "faction"]
 
-@require_oauth(["faction:attacks", "faction"])
+
+@require_oauth(ATTACK_SCOPES)
 @ratelimit
+@require_resource_consent("faction", "faction_id", ATTACK_SCOPES)
 def get_faction_retaliations(faction_id: int, *args, **kwargs):
-    key = f'tornium:ratelimit:{kwargs["user"].tid}'
-    user: User = kwargs["user"]
-
-    if user.faction_id != faction_id:
-        return make_exception_response("4022", key)
+    user: typing.Optional[User] = kwargs["user"]
+    if user is not None and user.faction_id != faction_id:
+        # We need to ensure that the faction matches when the request isn't a client credentials
+        # request with consent.
+        return make_exception_response("4022", kwargs["ratelimiting_key"])
 
     Attacker = User.alias()
     retals = (
@@ -44,4 +52,4 @@ def get_faction_retaliations(faction_id: int, *args, **kwargs):
         .limit(250)
     )
 
-    return [retal.to_dict() for retal in retals], 200, api_ratelimit_response(key)
+    return [retal.to_dict() for retal in retals], 200, api_ratelimit_response(kwargs["ratelimiting_key"])

@@ -53,7 +53,7 @@ def get_user(*args, **kwargs):
 @require_oauth()
 @ratelimit
 def get_specific_user(tid: int, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
     refresh: typing.Union[str, bool] = request.args.get("refresh", False)
 
     if isinstance(refresh, str):
@@ -106,7 +106,7 @@ def get_specific_user(tid: int, *args, **kwargs):
 @require_oauth(["", "torn_key:usage"])
 @ratelimit
 def estimate_specific_user(tid: int, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         estimated_bs, expiration_ts = estimate_user(
@@ -136,7 +136,7 @@ def estimate_specific_user(tid: int, *args, **kwargs):
 @require_oauth()
 @ratelimit
 def latest_user_stats(tid: int, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     if kwargs["user"].faction is not None:
         stat: typing.Optional[Stat] = (
@@ -173,7 +173,7 @@ def latest_user_stats(tid: int, *args, **kwargs):
 @session_required
 @ratelimit
 def get_admin_guilds(*args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
     guilds = Server.select(Server.name, Server.sid).where(Server.admins.contains(kwargs["user"].tid))
 
     return {"guilds": {guild.sid: guild.name for guild in guilds}}, 200, api_ratelimit_response(key)

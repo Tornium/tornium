@@ -42,7 +42,7 @@ CRON_REGEX = (
 @ratelimit
 def create_trigger(trigger_id=None, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     if trigger_id is not None and request.method == "PUT":
         update = True
@@ -233,7 +233,7 @@ def create_trigger(trigger_id=None, *args, **kwargs):
 @session_required
 @ratelimit
 def list_triggers(*args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     limit = request.args.get("limit", 10)
     offset = request.args.get("offset", 0)
@@ -273,7 +273,7 @@ def list_triggers(*args, **kwargs):
 @ratelimit
 def setup_trigger_guild(trigger_id, guild_id: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         trigger_uuid = uuid.UUID(trigger_id)

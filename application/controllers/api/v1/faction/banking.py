@@ -32,7 +32,7 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 @require_oauth(["faction:banking", "faction"])
 @ratelimit
 def vault_balance(*args, **kwargs):
-    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+    key = kwargs["ratelimiting_key"]
     user: User = kwargs["user"]
 
     if user.faction is None:
@@ -83,7 +83,7 @@ def vault_balance(*args, **kwargs):
 @ratelimit
 def new_banking_request(faction_id: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+    key = kwargs["ratelimiting_key"]
     user: User = kwargs["user"]
 
     amount = data.get("amount")
@@ -160,7 +160,7 @@ def new_banking_request(faction_id: int, *args, **kwargs):
 @require_oauth(["faction:banking", "faction"])
 @ratelimit
 def all_requests(faction_id: int, *args, **kwargs):
-    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+    key = kwargs["ratelimiting_key"]
     user: User = kwargs["user"]
     now = int(datetime.datetime.utcnow().timestamp())
 
@@ -231,7 +231,7 @@ def all_requests(faction_id: int, *args, **kwargs):
 @require_oauth(["faction:banking", "faction"])
 @ratelimit
 def cancel_request(faction_id: int, request_id: str, *args, **kwargs):
-    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+    key = kwargs["ratelimiting_key"]
     user: User = kwargs["user"]
 
     if user is None:

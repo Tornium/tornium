@@ -27,7 +27,7 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 @require_oauth("faction")
 @ratelimit
 def get_positions(*args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         guild_id = int(request.args["guildid"])

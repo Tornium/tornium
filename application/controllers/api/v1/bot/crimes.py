@@ -37,7 +37,7 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 @ratelimit
 def set_oc_config_channel(guild_id: int, faction_tid: int, feature: str, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
     feature = feature.replace("-", "_")
 
     if feature not in ("tool", "delayed", "missing_member", "extra_range"):
@@ -81,7 +81,7 @@ def set_oc_config_channel(guild_id: int, faction_tid: int, feature: str, *args, 
 @ratelimit
 def set_oc_config_roles(guild_id: int, faction_tid: int, feature: str, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
     feature = feature.replace("-", "_")
 
     if feature not in ("tool", "delayed", "missing_member", "extra_range"):
@@ -127,7 +127,7 @@ def set_oc_config_roles(guild_id: int, faction_tid: int, feature: str, *args, **
 @ratelimit
 def set_tool_crimes(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     crimes = data.get("crimes")
 
@@ -171,7 +171,7 @@ def set_tool_crimes(guild_id: int, faction_tid: int, *args, **kwargs):
 @ratelimit
 def set_delayed_crimes(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     crimes = data.get("crimes")
 
@@ -216,7 +216,7 @@ def set_delayed_crimes(guild_id: int, faction_tid: int, *args, **kwargs):
 @ratelimit
 def set_extra_range_global_minimum(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         minimum = int(data.get("minimum"))
@@ -257,7 +257,7 @@ def set_extra_range_global_minimum(guild_id: int, faction_tid: int, *args, **kwa
 @ratelimit
 def set_extra_range_global_maximum(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         maximum = int(data.get("maximum"))
@@ -298,7 +298,7 @@ def set_extra_range_global_maximum(guild_id: int, faction_tid: int, *args, **kwa
 @ratelimit
 def patch_extra_range_local(guild_id: int, faction_id: int, slot_guid: str, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         slot_type: OrganizedCrimeSlotType = (
@@ -372,7 +372,7 @@ def patch_extra_range_local(guild_id: int, faction_id: int, slot_guid: str, *arg
 @ratelimit
 def set_missing_member_duration(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         minimum_duration: datetime.timedelta = str_to_duration(data["minimum_duration"])

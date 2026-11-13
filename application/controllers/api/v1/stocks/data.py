@@ -25,15 +25,21 @@ from tornium_commons.errors import NetworkingError, TornError
 from tornium_commons.formatters import parse_item_str
 from tornium_commons.models import Item, StockTick
 
-from controllers.api.v1.decorators import global_cache, ratelimit, require_oauth
+from controllers.api.v1.decorators import (
+    allow_resource_tokens,
+    global_cache,
+    ratelimit,
+    require_oauth,
+)
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
 @require_oauth()
 @ratelimit
+@allow_resource_tokens
 @global_cache
 def stocks_data(*args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     stocks_map = rds().get("tornium:stocks")
 
@@ -83,7 +89,7 @@ def stocks_data(*args, **kwargs):
 @ratelimit
 @global_cache(duration=86400)
 def stock_benefits(*args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
     stock_benefits_data: dict = rds().get("tornium:stocks:benefits")
 
     if stock_benefits_data is None:

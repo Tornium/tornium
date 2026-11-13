@@ -42,7 +42,7 @@ def allow_resource_tokens(func):
     return func
 
 
-def require_resource_consent(resource_type: str, resource_id_key: str, scopes: typing.List[str]):
+def require_resource_consent(resource_type: str, resource_id_key: str, scopes: str | typing.List[str]):
     """
     Require an OAuth client using client credentials grant on this API endpoint to need the
     consent of some resource for matching scope. Any other method of authenticating to access
@@ -52,7 +52,8 @@ def require_resource_consent(resource_type: str, resource_id_key: str, scopes: t
     `ratelimiting_key`.
     """
 
-    scopes = frozenset(scopes)
+    if isinstance(scopes, str):
+        scopes = [scopes]
 
     def decorator(func):
         @wraps(func)
@@ -78,9 +79,8 @@ def require_resource_consent(resource_type: str, resource_id_key: str, scopes: t
             kwargs["consent"] = consent
             return func(*args, **kwargs)
 
-        return wrapper
-
         wrapper.allow_resource_tokens = True
+        return wrapper
 
     return decorator
 
@@ -96,7 +96,7 @@ def ratelimit(func):
 
             if not getattr(func, "allow_resource_tokens", False):
                 return make_exception_response(
-                    "4004", details={"message": "This API endpoint does not support client credentials grant."}
+                    "4003", details={"message": "This API endpoint does not support client credentials grant."}
                 )
 
             ratelimiting_key = f"tornium:ratelimit:client:{current_token.client_id}"

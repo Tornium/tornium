@@ -27,7 +27,7 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 @session_required
 @ratelimit
 def get_notification_config(guild_id: int, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         guild: Server = (
@@ -55,7 +55,7 @@ def get_notification_config(guild_id: int, *args, **kwargs):
 @session_required
 @ratelimit
 def toggle_notifications(guild_id: int, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
     data = json.loads(request.get_data().decode("utf-8"))
 
     enabled: typing.Optional[bool] = data.get("enabled")
@@ -81,7 +81,7 @@ def toggle_notifications(guild_id: int, *args, **kwargs):
 @session_required
 @ratelimit
 def set_notifications_log_channel(guild_id: int, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
     data = json.loads(request.get_data().decode("utf-8"))
 
     try:
@@ -107,7 +107,7 @@ def set_notifications_log_channel(guild_id: int, *args, **kwargs):
 @session_required
 @ratelimit
 def get_server_notifications(guild_id: int, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     limit = request.args.get("limit", 10)
     offset = request.args.get("offset", 0)

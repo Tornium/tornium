@@ -33,6 +33,6 @@ def consent(*args, **kwargs):
             & (OAuthClientResourceConsent.revoked_at.is_null(True))
         )
     ]
-    can_revoke_consent = current_user.faction_position.name in ("Leader", "Co-leader")
+    can_revoke_consent = OAuthClientResourceConsent.is_allowed_consent(current_user, "faction", current_user.faction_id)
 
     return render_template("faction/consent.html", consents=consents, can_revoke_consent=can_revoke_consent)

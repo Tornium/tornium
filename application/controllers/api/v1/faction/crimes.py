@@ -99,7 +99,7 @@ def get_delays(faction_id: int, *args, **kwargs):
         # We need to ensure that the faction matches when the request isn't a client credentials
         # request with consent.
         return make_exception_response("4022", kwargs["ratelimiting_key"])
-    elif user is not None and user.can_manage_crimes():
+    elif user is not None and not user.can_manage_crimes():
         return make_exception_response("4006", key)
     elif not Faction.select().where(Faction.tid == faction_id).exists():
         return make_exception_response("1102", key)

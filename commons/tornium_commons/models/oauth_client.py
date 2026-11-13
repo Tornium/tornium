@@ -222,7 +222,8 @@ class OAuthClient(BaseModel):
 
             # We also need to revoke the client consents granted for this client as they're now useless.
             OAuthClientResourceConsent.update(revoked_at=now, revoked_by=None).where(
-                OAuthClientResourceConsent.client == self.client_id
+                (OAuthClientResourceConsent.client == self.client_id)
+                & (OAuthClientResourceConsent.revoked_at.is_null(True))
             ).execute()
 
             OAuthClient.update(deleted_at=now).where(OAuthClient.client_id == self.client_id).execute()

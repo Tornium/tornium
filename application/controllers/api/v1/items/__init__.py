@@ -30,8 +30,4 @@ from controllers.api.v1.utils import api_ratelimit_response
 @allow_resource_tokens
 @global_cache
 def item_name_map(*args, **kwargs):
-    return (
-        jsonify({"items": Item.item_name_map()}),
-        200,
-        api_ratelimit_response(f"tornium:ratelimit:{kwargs['user'].tid}"),
-    )
+    return jsonify({"items": Item.item_name_map()}), 200, api_ratelimit_response(kwargs["ratelimiting_key"])

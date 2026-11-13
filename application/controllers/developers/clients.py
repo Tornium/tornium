@@ -101,7 +101,7 @@ def create_client():
     elif client_type == "client-credentials-grant":
         grant = ["client_credentials"]
         response_type = []
-        auth_method = "client_secret_post"
+        auth_method = "client_secret_basic"
     else:
         return make_exception_response(
             "1000",

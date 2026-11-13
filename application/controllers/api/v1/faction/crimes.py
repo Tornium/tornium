@@ -36,19 +36,24 @@ from tornium_commons.organized_crime_graph import (
 )
 
 from controllers.api.v1.decorators import (
+    allow_resource_tokens,
     global_cache,
     ratelimit,
     require_oauth,
+    require_resource_consent,
     session_required,
 )
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
+CRIMES_SCOPES = ["faction:crimes", "faction"]
+
 
 @require_oauth()
 @ratelimit
+@allow_resource_tokens
 @global_cache
 def get_oc_names(*args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     oc_names: typing.List[str] = [oc_type.name for oc_type in OrganizedCrimeType.select(OrganizedCrimeType.name)]
 
@@ -57,9 +62,10 @@ def get_oc_names(*args, **kwargs):
 
 @require_oauth()
 @ratelimit
+@allow_resource_tokens
 @global_cache
 def get_oc_slots(*args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     slots = OrganizedCrimeSlotType.select(
         OrganizedCrimeSlotType.guid, OrganizedCrimeType.name, OrganizedCrimeSlotType.name, OrganizedCrimeSlotType.number
@@ -82,14 +88,18 @@ def get_oc_slots(*args, **kwargs):
     )
 
 
-@require_oauth("faction:crimes", "faction")
+@require_oauth(CRIMES_SCOPES)
 @ratelimit
+@require_resource_consent("faction", "faction_id", CRIMES_SCOPES)
 def get_delays(faction_id: int, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
+    user: typing.Optional[User] = kwargs["user"]
 
-    if kwargs["user"].faction_id != faction_id:
-        return make_exception_response("4022", key)
-    elif not kwargs["user"].can_manage_crimes():
+    if user is not None and user.faction_id != faction_id:
+        # We need to ensure that the faction matches when the request isn't a client credentials
+        # request with consent.
+        return make_exception_response("4022", kwargs["ratelimiting_key"])
+    elif user is not None and not user.can_manage_crimes():
         return make_exception_response("4006", key)
     elif not Faction.select().where(Faction.tid == faction_id).exists():
         return make_exception_response("1102", key)
@@ -143,7 +153,7 @@ def get_delays(faction_id: int, *args, **kwargs):
 @session_required
 @ratelimit
 def get_members_cpr_slot(faction_id: int, oc_name: str, oc_position_name: str, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     if oc_name not in OrganizedCrime.oc_names():
         return make_exception_response("1105", key)
@@ -179,15 +189,19 @@ def get_members_cpr_slot(faction_id: int, oc_name: str, oc_position_name: str, *
     )
 
 
-@require_oauth("faction:crimes", "faction")
+@require_oauth(CRIMES_SCOPES)
 @ratelimit
+@require_resource_consent("faction", "faction_id", CRIMES_SCOPES)
 def get_members_cpr_oc(faction_id: int, oc_name: str, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
+    user: typing.Optional[User] = kwargs["user"]
 
     if oc_name not in OrganizedCrime.oc_names():
         return make_exception_response("1105", key)
-    elif kwargs["user"].faction_id != faction_id:
-        return make_exception_response("4022", key)
+    elif user is not None and user.faction_id != faction_id:
+        # We need to ensure that the faction matches when the request isn't a client credentials
+        # request with consent.
+        return make_exception_response("4022", kwargs["ratelimiting_key"])
     elif not Faction.select().where(Faction.tid == faction_id).exists():
         return make_exception_response("1102", key)
 
@@ -224,11 +238,12 @@ def get_members_cpr_oc(faction_id: int, oc_name: str, *args, **kwargs):
     )
 
 
-@require_oauth("faction:crimes", "faction")
+@require_oauth(["faction:crimes", "faction"])
 @ratelimit
+@require_resource_consent("faction", "faction_id", CRIMES_SCOPES)
 def get_cpr_ranges(faction_id: int, *args, **kwargs):
-    user: User = kwargs["user"]
-    key = f"tornium:ratelimit:{user.tid}"
+    user: typing.Optional[User] = kwargs["user"]
+    key = kwargs["ratelimiting_key"]
 
     try:
         faction: Faction = Faction.select().where(Faction.tid == faction_id).get()
@@ -244,6 +259,10 @@ def get_cpr_ranges(faction_id: int, *args, **kwargs):
         # If the user is signed in through oauth, they MUST only be able to access their
         # faction's CPR range to avoid excessive data sharing.
         return make_exception_response("4022", key)
+    elif kwargs["method"] == "oauth_client_credentials":
+        # If the client is authenticated through client credenial grant, it MUST have a
+        # consent granted by this faction which is checked by a decorator.
+        pass
     elif kwargs["method"] == "session" and user.faction_id != faction_id and user.tid not in faction.guild.admins:
         # If the user is using the API through Tornium's website, they can access other
         # factions' CPR ranges if the user is an admin of the server linked to the
@@ -307,10 +326,12 @@ def get_cpr_ranges(faction_id: int, *args, **kwargs):
     )
 
 
-@require_oauth("faction:crimes", "faction")
+@require_oauth(CRIMES_SCOPES)
 @ratelimit
+@require_resource_consent("faction", "faction_id", CRIMES_SCOPES)
 def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
+    invoking_user: typing.Optional[User] = kwargs["user"]
 
     try:
         user = User.select().where(User.tid == user_id).get()
@@ -326,7 +347,7 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
         return make_exception_response("0000", key, details={"message": "The default CPR must be between 0 and 100"})
     elif user.faction_id != faction_id:
         return make_exception_response("4022", key)
-    elif kwargs["user"].faction_id != faction_id:
+    elif invoking_user is not None and invoking_user.faction_id != faction_id:
         return make_exception_response("4022", key)
     elif not Faction.select().where(Faction.tid == faction_id).exists():
         return make_exception_response("1102", key)
@@ -477,7 +498,7 @@ def get_optimum_slots(faction_id: int, user_id: int, *args, **kwargs):
 @require_oauth()
 @ratelimit
 def upload_crime_scenarios(faction_id: int, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
     data = json.loads(request.get_data().decode("utf-8"))
 
     if kwargs["user"].faction_id != faction_id:

@@ -25,7 +25,11 @@ from peewee import JOIN, DoesNotExist
 from tornium_commons import Config, db, init_db
 from tornium_commons.formatters import commas, duration_to_str, rel_time, torn_timestamp
 from tornium_commons.models import Faction, OAuthClient, OAuthToken
-from tornium_commons.oauth import AuthorizationCodeGrant, RefreshTokenGrant
+from tornium_commons.oauth import (
+    AuthorizationCodeGrant,
+    ClientCredentialsGrant,
+    RefreshTokenGrant,
+)
 
 config = Config.from_json()
 
@@ -88,6 +92,7 @@ def init__app():
 
     oauth_server.init_app(app, query_client=OAuthClient.get_client, save_token=OAuthToken.save_token)
     oauth_server.register_grant(AuthorizationCodeGrant, [CodeChallenge(required=True)])
+    oauth_server.register_grant(ClientCredentialsGrant)
     oauth_server.register_grant(RefreshTokenGrant)
 
     metrics.init_app(app)

@@ -18,44 +18,132 @@ import typing
 from functools import partial, wraps
 
 from authlib.integrations.flask_oauth2 import current_token
-from flask import Response, request, session
+from flask import Response, g, request, session
 from flask_login import current_user
 from tornium_commons import rds
 from tornium_commons.altjson import dumps, loads
+from tornium_commons.models import OAuthClientResourceConsent, OAuthToken
 from tornium_commons.oauth import BearerTokenValidator, ResourceProtector
 
-from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
+from controllers.api.v1.utils import (
+    API_MAX_RATELIMITS,
+    api_ratelimit_response,
+    make_exception_response,
+)
+
+
+def allow_resource_tokens(func):
+    """
+    Mark an API endpoint as accepting requests from OAuth clients using client credential
+    grant with consent from the applicable resource. This is for endpoints that accept generic
+    requests from OAuth clients using client credentials grant without any resource consents.
+    """
+
+    func.allow_resource_tokens = True
+    return func
+
+
+def require_resource_consent(resource_type: str, resource_id_key: str, scopes: str | typing.List[str]):
+    """
+    Require an OAuth client using client credentials grant on this API endpoint to need the
+    consent of some resource for matching scope. Any other method of authenticating to access
+    this API endpoint will pass through unmodified.
+
+    Must be placed directly below `@ratelimit`, which provides `method`, `token` and
+    `ratelimiting_key`.
+    """
+
+    if isinstance(scopes, str):
+        scopes = [scopes]
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if kwargs["method"] != "oauth_client_credentials":
+                # As the request is authenticated through something else other than client
+                # credential grant, we don't need to check it.
+                return func(*args, **kwargs)
+
+            consent: typing.Optional[OAuthClientResourceConsent] = kwargs["token"].consent
+
+            if consent is None:
+                return make_exception_response(
+                    "4003",
+                    kwargs["ratelimiting_key"],
+                    details={"message": "This endpoint requires a token issued for a resource."},
+                )
+            elif consent.resource != (resource_type, kwargs[resource_id_key]):
+                return make_exception_response("4022", kwargs["ratelimiting_key"])
+            elif BearerTokenValidator.scope_insufficient(consent.scope, scopes):
+                return make_exception_response("4022", kwargs["ratelimiting_key"])
+
+            kwargs["consent"] = consent
+            return func(*args, **kwargs)
+
+        wrapper.allow_resource_tokens = True
+        return wrapper
+
+    return decorator
 
 
 def ratelimit(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        try:
-            # OAuth token
+        if isinstance(current_token, OAuthToken) and current_token.user_id is None:
+            # As this OAuth token is of the client credentials grant, we need to check
+            # if this API endpoint allows these tokens to access it. Checking if the user
+            # of the OAuth token is None checks this as CURRENTLY only client credentials
+            # grant doesn't set the user ID of a token.
+
+            if not getattr(func, "allow_resource_tokens", False):
+                return make_exception_response(
+                    "4003", details={"message": "This API endpoint does not support client credentials grant."}
+                )
+
+            ratelimiting_key = f"tornium:ratelimit:client:{current_token.client_id}"
+            access_method = "oauth_client_credentials"
+
+            kwargs["user"] = None
+            kwargs["key"] = None
+            kwargs["token"] = current_token
+        elif isinstance(current_token, OAuthToken):
+            ratelimiting_key = f"tornium:ratelimit:{current_token.user.tid}"
+            access_method = "oauth"
+
             kwargs["user"] = current_token.user
             kwargs["key"] = current_token.user.key
-            kwargs["method"] = "oauth"
-        except AttributeError:
-            # CSRF token
+            kwargs["token"] = current_token
+        else:
+            ratelimiting_key = f"tornium:ratelimit:{current_user.tid}"
+            access_method = "session"
+
             kwargs["user"] = current_user
             kwargs["key"] = current_user.key
-            kwargs["method"] = "session"
+            kwargs["token"] = None
+
+        # We need to provide the ratelimiting key so that API endpoints can use the correct
+        # key when returning data. Otherwise, when using client credentials grant, it'll
+        # provide inaccurate data.
+        kwargs["ratelimiting_key"] = ratelimiting_key
+        kwargs["method"] = access_method
+        # We need to set the limit for the ratelimiter so that, at the end of the request,
+        # the correct maximum number of requests per minute can be attached to the headers
+        # of the response.
+        g.ratelimit_limit = API_MAX_RATELIMITS[access_method]
 
         client = rds()
-        key = f"tornium:ratelimit:{kwargs['user'].tid}"
+        current_count = int(client.incr(ratelimiting_key))
+        client.expireat(ratelimiting_key, int(time.time()) // 60 * 60 + 60)
 
-        current_count = int(client.incr(key))
-        client.expireat(key, int(time.time()) // 60 * 60 + 60)
-
-        if current_count > 250:
-            return make_exception_response("4000", key)
+        if current_count > API_MAX_RATELIMITS[access_method]:
+            return make_exception_response("4000", ratelimiting_key)
 
         return func(*args, **kwargs)
 
     return wrapper
 
 
-def scoped_ratelimit(scope, maximum):
+def scoped_ratelimit(scope: str | typing.Callable, maximum: int):
     """
     A scoped ratelimiting decorator.
 
@@ -146,7 +234,7 @@ def global_cache(func=None, duration=3600):
                 "Content-Type": "application/json",
                 "Cache-Control": f"max-age={cache_ttl}, public",
                 "X-Cache": "HIT",
-                **api_ratelimit_response(f"tornium:ratelimit:{kwargs['user'].tid}", client),
+                **api_ratelimit_response(kwargs["ratelimiting_key"], client),
             },
         )
 

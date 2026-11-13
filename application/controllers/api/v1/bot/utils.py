@@ -27,7 +27,7 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 @session_required
 @ratelimit
 def get_channels(guild_id, *args, **kwargs):
-    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+    key = kwargs["ratelimiting_key"]
 
     try:
         guild: Server = Server.get_by_id(guild_id)
@@ -47,7 +47,7 @@ def get_channels(guild_id, *args, **kwargs):
 @session_required
 @ratelimit
 def test_channel(guild_id, channel_id, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         guild: Server = Server.select(Server.admins).where(Server.sid == guild_id).get()
@@ -82,7 +82,7 @@ def test_channel(guild_id, channel_id, *args, **kwargs):
 @session_required
 @ratelimit
 def get_roles(guild_id, *args, **kwargs):
-    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+    key = kwargs["ratelimiting_key"]
 
     try:
         guild: Server = Server.get_by_id(guild_id)

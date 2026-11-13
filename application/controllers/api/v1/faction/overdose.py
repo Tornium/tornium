@@ -16,28 +16,38 @@
 import csv
 import datetime
 import io
+import typing
 
 from flask import make_response, request
 from peewee import fn
 from tornium_commons.formatters import timestamp
 from tornium_commons.models import OverdoseEvent, User
 
-from controllers.api.v1.decorators import ratelimit, require_oauth
+from controllers.api.v1.decorators import (
+    ratelimit,
+    require_oauth,
+    require_resource_consent,
+)
 from controllers.api.v1.utils import (
     api_ratelimit_response,
     get_list,
     make_exception_response,
 )
 
+OVERDOSE_SCOPES = ["faction"]
 
-@require_oauth("faction")
+
+@require_oauth(OVERDOSE_SCOPES)
 @ratelimit
+@require_resource_consent("faction", "faction_id", OVERDOSE_SCOPES)
 def get_events(faction_id: int, *args, **kwargs):
-    key = f'tornium:ratelimit:{kwargs["user"].tid}'
-    user: User = kwargs["user"]
+    key = kwargs["ratelimiting_key"]
+    user: typing.Optional[User] = kwargs["user"]
 
-    if user.faction_id != faction_id:
-        return make_exception_response("4022", key)
+    if user is not None and user.faction_id != faction_id:
+        # We need to ensure that the faction matches when the request isn't a client credentials
+        # request with consent.
+        return make_exception_response("4022", kwargs["ratelimiting_key"])
 
     now = int(datetime.datetime.utcnow().timestamp())
 

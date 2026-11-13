@@ -16,15 +16,18 @@
 from flask import jsonify
 from tornium_commons.models import Item
 
-from controllers.api.v1.decorators import ratelimit, require_oauth
+from controllers.api.v1.decorators import (
+    allow_resource_tokens,
+    global_cache,
+    ratelimit,
+    require_oauth,
+)
 from controllers.api.v1.utils import api_ratelimit_response
 
 
 @require_oauth()
 @ratelimit
+@allow_resource_tokens
+@global_cache
 def item_name_map(*args, **kwargs):
-    return (
-        jsonify({"items": Item.item_name_map()}),
-        200,
-        api_ratelimit_response(f"tornium:ratelimit:{kwargs['user'].tid}"),
-    )
+    return jsonify({"items": Item.item_name_map()}), 200, api_ratelimit_response(kwargs["ratelimiting_key"])

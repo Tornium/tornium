@@ -1,0 +1,25 @@
+{% extends 'base-center.html' %}
+{% from "oauth/scopes.html" import scope_list %}
+
+{% block title %}
+Tornium - OAuth Consent Revoked
+{% endblock %}
+
+{% block content %}
+<div class="row min-vh-100">
+    <div class="col-sm-12 col-md-12 col-lg-6 mx-auto my-auto">
+        <div class="card m-3">
+            <div class="card-body container-fluid">
+                <h5 class="card-title">Consent Successfully Revoked</h5>
+
+                <p class="card-text mt-2">
+                    You have successfully revoked the consent of the OAuth client <b>{{ client.client_name }}</b> which will no longer be able to access your resource.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

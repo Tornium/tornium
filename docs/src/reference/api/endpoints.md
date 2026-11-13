@@ -7,7 +7,7 @@ The Tornium API supports the following resource APIs:
 
 All API endpoints require [OAuth authentication and authorization](./oauth-provider.md) against a registered application before performing any API calls.
 
-All API endpoints share a 250 per minute global ratelimit, however this ratelimit can change without notice. Therefore, clients **SHOULD** rely upon ratelimiting headers to determine calls remaining and the ratelimit expiration. The ratelimiting will use the following headers:
+All API endpoints share a 250 per minute global ratelimit for authorization code grant and 100 per minute per OAuth client for client credentials grant, however this ratelimit can change without notice. Therefore, clients **SHOULD** rely upon ratelimiting headers to determine calls remaining and the ratelimit expiration. The ratelimiting will use the following headers:
 - `X-RateLimit-Limit`: Maximum number of API calls until the ratelimit expires
 - `X-RateLimit-Remaining`: Number of API calls remaining until the ratelimit expires
 - `X-RateLimit-Reset`: Seconds until the ratelimit expires
@@ -32,6 +32,7 @@ If more information is available beyond the base API error, the `details` field 
 Get all known, potential retaliations for the user's faction.
 
 **Scopes Required:** `faction:attacks` (or `faction`)
+**Client Credentials Grant:** Supported with a resource access token for the faction
 
 ```http
 GET /api/v1/faction/<int:faction_id>/attacks/retaliations HTTP/1.1
@@ -149,6 +150,8 @@ Authorization: Bearer {{ access_token }}
 ### Get Organized Crimes Names
 Get a list of names of all organized crimes. The data from this API endpoint is cached for an hour.
 
+**Scopes Required:** none
+**Client Credentials Grant:** Supported with any access token
 
 ```http
 GET /api/v1/faction/crime/names HTTP/1.1
@@ -165,6 +168,7 @@ Authorization: Bearer {{ access_token }}
 Get a list of members of the authenticated user's faction who have delayed organized crimes.
 
 **Scopes Required:** `faction:crimes` (or `faction`)
+**Client Credentials Grant:** Supported with a resource access token for the faction
 
 ```http
 GET /api/v1/faction/<int:faction_id>/crime/delays?limit=50 HTTP/1.1
@@ -196,6 +200,7 @@ Get a list of known CPRs for every member in the faction for each position in th
 NOTE: The OC name may need to be URL encoded. For example, `Guardian Ángels` would be `Guardian%20%C3%81ngels`.
 
 **Scopes Required:** `faction:crimes` (or `faction`)
+**Client Credentials Grant:** Supported with a resource access token for the faction
 
 ```http
 GET /api/v1/faction/<int:faction_id>/crime/cpr/<str:oc_name>
@@ -239,6 +244,7 @@ Get a list of overdose events for members of a specific faction.
 Unless a drug is taken from the faction armory or the member shares that data with Tornium, the overdosed drug will be returned as `null`.
 
 **Scopes Required:** `faction`
+**Client Credentials Grant:** Supported with a resource access token for the faction
 
 ```http
 GET /api/v1/faction/<int:faction_id>/overdose?limit=10&offset=100 HTTP/1.1
@@ -291,6 +297,7 @@ Get a list of overdose events for members of a specific faction as a CSV file.
 Unless a drug is taken from the faction armory or the member shares that data with Tornium, the overdosed drug will be returned as `null`.
 
 **Scopes Required:** `faction`
+**Client Credentials Grant:** Supported with a resource access token for the faction
 
 ```http
 GET /api/v1/faction/<int:faction_id>/overdose?limit=10&offset=100 HTTP/1.1
@@ -424,6 +431,7 @@ Content-Type: application/json
 Get the data on all stocks for the last known tick. Returns a map of stock IDs and stock data.
 
 **Scopes Required:** none
+**Client Credentials Grant:** Supported with any access token
 
 ```http
 GET /api/v1/stocks HTTP/1.1
@@ -446,13 +454,14 @@ Get the list of benefits for each stock.
 
 **Scopes Required:** none
 
-### Get stock Movers Data
+### Get Stock Movers Data
 Get the lists of gainers and losers over the periods:
 - d1 (24 hours)
 - d7 (7 days)
 - m1 (30 days)
 
 **Scopes Required:** none
+**Client Credentials Grant:** Supported with any access token
 
 ## Users API
 ### Get User

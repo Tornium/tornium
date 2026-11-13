@@ -26,7 +26,7 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 @ratelimit
 def toggle_cpr(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     enabled = data.get("enabled")
 
@@ -42,7 +42,7 @@ def toggle_cpr(*args, **kwargs):
 @ratelimit
 def toggle_stat_db(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     enabled = data.get("enabled")
 
@@ -58,7 +58,7 @@ def toggle_stat_db(*args, **kwargs):
 @ratelimit
 def toggle_od_drug(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     enabled = data.get("enabled")
 
@@ -74,7 +74,7 @@ def toggle_od_drug(*args, **kwargs):
 @ratelimit
 def toggle_public_data(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     enabled = data.get("enabled")
 

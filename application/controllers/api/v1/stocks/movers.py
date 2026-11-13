@@ -22,7 +22,12 @@ from tornium_commons import rds
 from tornium_commons.altjson import loads
 from tornium_commons.models import StockTick
 
-from controllers.api.v1.decorators import global_cache, ratelimit, require_oauth
+from controllers.api.v1.decorators import (
+    allow_resource_tokens,
+    global_cache,
+    ratelimit,
+    require_oauth,
+)
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
 
 
@@ -39,6 +44,7 @@ def get_closest_tick(stock_id: int, start_timestamp: int):
 
 @require_oauth()
 @ratelimit
+@allow_resource_tokens
 @global_cache
 def stock_movers(*args, **kwargs):
     def get_tick(stock_id: int, timestamp: int) -> typing.Optional[StockTick]:
@@ -47,7 +53,7 @@ def stock_movers(*args, **kwargs):
         except DoesNotExist:
             return None
 
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
     redis_client = rds()
     stocks_map = redis_client.get("tornium:stocks")
 

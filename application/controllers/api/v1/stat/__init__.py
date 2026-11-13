@@ -30,7 +30,7 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 @ratelimit
 @scoped_ratelimit(lambda user: f"tornium:ratelimit:chain-list:{user.tid}", 5)
 def generate_chain_list(*args, **kwargs):
-    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+    key = kwargs["ratelimiting_key"]
     sort = request.args.get("sort", "timestamp")
 
     try:
@@ -95,7 +95,7 @@ def generate_chain_list(*args, **kwargs):
 @scoped_ratelimit(lambda user: f"tornium:ratelimit:chain-list:{user.tid}", 5)
 def generate_chain_list_v2(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+    key = kwargs["ratelimiting_key"]
     user: User = kwargs["user"]
 
     if user.battlescore in (0, None):
@@ -289,7 +289,7 @@ def generate_chain_list_v2(*args, **kwargs):
 @require_oauth()
 @ratelimit
 def get_stat_user(tid: int, *args, **kwargs):
-    key = f'tornium:ratelimit:{kwargs["user"].tid}'
+    key = kwargs["ratelimiting_key"]
 
     stat_entries = (
         Stat.select()

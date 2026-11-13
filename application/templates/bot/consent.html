@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% from "oauth/scopes.html" import scope_list %}
+
+{% block title %}
+Tornium - Server Consents
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot">Discord Bot</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot/dashboard">Server Selector</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot/dashboard/{{ guildid }}">Server Configuration</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/bot/dashboard/{{ guildid }}/consent">Server Consents</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+<div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/bot/dashboard">
+                <i class="col-1 col-sm-2 fa-solid fa-gauge-simple-high"></i> <span class="col">Server Selector</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="py-3 px-3">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">OAuth Server Consents</h5>
+            <p class="card-text">
+                This lists all OAuth clients the Discord server has granted consent to. These consents grants the application using the OAuth client access to specific data about your Discord server based on the scopes/permissions granted to the OAuth client by the Discord server. Any member of the Discord server with admin perms will be able to revoke consent for any OAuth client at any time to prevent the application from accessing the server's data.
+            </p>
+
+            <div class="card">
+                <div class="card-header">Consented Clients</div>
+
+                <ul class="list-group list-group-flush">
+                    {% for consent in consents %}
+                    <li class="list-group-item">
+                        <div class="row g-3">
+                            <div class="col-sm-12 col-lg-4">
+                                <div class="d-flex flex-wrap align-items-center gap-1">
+                                    <span class="fw-bold me-1">{{ consent.client.client_name }}</span>
+
+                                    {% if consent.client.official %}
+                                    <span class="badge border border-success text-success">Official</span>
+                                    {% endif %}
+
+                                    {% if consent.client.verified %}
+                                    <span class="badge border border-success text-success">Verified</span>
+                                    {% else %}
+                                    <span class="badge border border-warning text-warning">Unverified</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mt-1">
+                                    Created by:
+                                    <a href="https://www.torn.com/profiles.php?XID={{ consent.client.user_id }}">{{ consent.client.user.user_str_self() }}</a>
+                                </div>
+
+                                <div class="mt-1">
+                                    Granted by:
+                                    <a href="https://www.torn.com/profiles.php?XID={{ consent.consented_by_id }}">{{ consent.consented_by.user_str_self() }}</a>
+                                    ({{ consent.consented_at | reltime }})
+                                </div>
+
+                                {% if can_revoke_consent %}
+                                <form class="mt-3" method="POST" action="/oauth/{{ consent.client_id }}/consent/{{ consent.guid }}/revoke">
+                                    <button type="submit" class="btn btn-outline-danger">Revoke Consent</button>
+
+                                    <input type="hidden" id="csrf-token" name="csrf-token" value="{{ session.csrf_token }}">
+                                </form>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-sm-12 col-lg-8">
+                                <div class="card">
+                                    <div class="card-header">Granted Permissions</div>
+
+                                    {{ scope_list(consent.scopes) }}
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item">There are no OAuth clients the Discord server has granted consent to.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

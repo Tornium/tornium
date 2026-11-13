@@ -20,6 +20,7 @@
 - [How to make a vault request?](guide/vault-request.md)
 - [How to setup 2FA?](guide/2fa.md)
 - [How to use the API?](guide/api.md)
+- [How to give an application access to your faction?](guide/resource-consent.md)
 
 # Reference
 

@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% from "oauth/scopes.html" import scope_list %}
+
+{% block title %}
+Tornium - Faction Consents
+{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Tornium</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="/faction">Faction</a>
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="/faction/consent">Consents</a>
+    </li>
+</ol>
+{% endblock %}
+
+{% block subnav %}
+<div class="row pt-3 border-top">
+    <div class="container-fluid px-md-3">
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/members">
+                <i class="col-1 col-sm-2 fa-solid fa-shield-halved"></i> <span class="col">Members</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/banking">
+                <i class="col-1 col-sm-2 fa-solid fa-money-check"></i> <span class="col">Banking</span>
+            </a>
+        </div>
+
+        {% if current_user.is_authenticated and current_user.factiontid != 0 %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/armory">
+                <i class="col-1 col-sm-2 fa-solid fa-warehouse"></i> <span class="col">Armory</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/crimes/cpr">
+                <i class="col-1 col-sm-2 fa-solid fa-star-half-stroke"></i> <span class="col">Organized Crimes CPR</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/overdose">
+                <i class="col-1 col-sm-2 fa-solid fa-capsules"></i> <span class="col">Overdoses</span>
+            </a>
+        </div>
+
+        {% if current_user.can_manage_crimes() %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/crimes">
+                <i class="col-1 col-sm-2 fa-solid fa-handcuffs"></i> <span class="col">Organized Crimes</span>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if current_user.faction_aa %}
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/bankingaa">
+                <i class="col-1 col-sm-2 fa-solid fa-cash-register"></i> <span class="col">Banking AA</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/bot">
+                <i class="col-1 col-sm-2 fa-brands fa-discord"></i> <span class="col">Bot Configuration</span>
+            </a>
+        </div>
+
+        <div class="row mb-3">
+            <a class="nav-link" href="/faction/consent">
+                <i class="col-1 col-sm-2 fa-solid fa-stamp"></i> <span class="col">Consents</span>
+            </a>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="py-3 px-3">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">OAuth Faction Consents</h5>
+            <p class="card-text">
+                This lists all OAuth clients the faction has granted consent to. These consents grants the application using the OAuth client access to specific data about your faction based on the scopes/permissions granted to the OAuth client by the faction. The faction leader/coleader will be able to revoke consent for any OAuth client at any time to prevent the application from accessing the faction's data.
+            </p>
+
+            <div class="card">
+                <div class="card-header">Consented Clients</div>
+
+                <ul class="list-group list-group-flush">
+                    {% for consent in consents %}
+                    <li class="list-group-item">
+                        <div class="row g-3">
+                            <div class="col-sm-12 col-lg-4">
+                                <div class="d-flex flex-wrap align-items-center gap-1">
+                                    <span class="fw-bold me-1">{{ consent.client.client_name }}</span>
+
+                                    {% if consent.client.official %}
+                                    <span class="badge border border-success text-success">Official</span>
+                                    {% endif %}
+
+                                    {% if consent.client.verified %}
+                                    <span class="badge border border-success text-success">Verified</span>
+                                    {% else %}
+                                    <span class="badge border border-warning text-warning">Unverified</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mt-1">
+                                    Created by:
+                                    <a href="https://www.torn.com/profiles.php?XID={{ consent.client.user_id }}">{{ consent.client.user.user_str_self() }}</a>
+                                </div>
+
+                                <div class="mt-1">
+                                    Granted by:
+                                    <a href="https://www.torn.com/profiles.php?XID={{ consent.consented_by_id }}">{{ consent.consented_by.user_str_self() }}</a>
+                                    ({{ consent.consented_at | reltime }})
+                                </div>
+
+                                {% if can_revoke_consent %}
+                                <form class="mt-3" method="POST" action="/oauth/{{ consent.client_id }}/consent/{{ consent.guid }}/revoke">
+                                    <button type="submit" class="btn btn-outline-danger">Revoke Consent</button>
+
+                                    <input type="hidden" id="csrf-token" name="csrf-token" value="{{ session.csrf_token }}">
+                                </form>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-sm-12 col-lg-8">
+                                <div class="card">
+                                    <div class="card-header">Granted Permissions</div>
+
+                                    {{ scope_list(consent.scopes) }}
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item">There are no OAuth clients the faction has granted consent to.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

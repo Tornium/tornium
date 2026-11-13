@@ -1,0 +1,35 @@
+{% extends 'base-center.html' %}
+{% from "oauth/scopes.html" import scope_list %}
+
+{% block title %}
+Tornium - OAuth Consent Granted
+{% endblock %}
+
+{% block content %}
+<div class="row min-vh-100">
+    <div class="col-sm-12 col-md-12 col-lg-6 mx-auto my-auto">
+        <div class="card m-3">
+            <div class="card-body container-fluid">
+                <h5 class="card-title">Consent Successfully Granted</h5>
+
+                <p class="card-text mt-2">
+                    You have successfully granted the OAuth client <b>{{ client.client_name }}</b> access to the {{ resource_type }} of ID {{ resource_id }} with the following permissions:
+                </p>
+
+                <div class="card mt-3">
+                    <div class="card-header">Granted Permissions</div>
+
+                    {{ scope_list(consent.scopes) }}
+                </div>
+
+                <p class="card-text mt-2">
+                    You or anyone with sufficient permissions to the {{ resource_type }} can revoke all permissions from {{ client.client_name }} at any time at its page of <a href="#">granted consents</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

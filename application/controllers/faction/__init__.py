@@ -15,7 +15,7 @@
 
 from flask import Blueprint, render_template
 
-from controllers.faction import armory, banking, bot, crimes, members, overdose
+from controllers.faction import armory, banking, bot, consent, crimes, members, overdose
 
 mod = Blueprint("factionroutes", __name__)
 
@@ -32,6 +32,9 @@ mod.add_url_rule("/faction/bot", view_func=bot.bot, methods=["GET", "POST"])
 # Crime Routes
 # mod.add_url_rule("/faction/crimes", view_func=crimes.crimes, methods=["GET"])
 mod.add_url_rule("/faction/crimes/cpr", view_func=crimes.crimes_cpr, methods=["GET"])
+
+# Consent Routes
+mod.add_url_rule("/faction/consent", view_func=consent.consent, methods=["GET"])
 
 # Member Routes
 mod.add_url_rule("/faction/members", view_func=members.members, methods=["GET"])

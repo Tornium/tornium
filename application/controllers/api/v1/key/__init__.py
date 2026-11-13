@@ -80,7 +80,7 @@ def send_security_alert(api_user_discord_id: int, api_user_id: int, invoker_user
 @ratelimit
 def set_key(*args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     api_key = data.get("key")
 
@@ -138,7 +138,7 @@ def set_key(*args, **kwargs):
 @ratelimit
 def toggle_key(guid: str, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     disabled = data.get("disabled")
 
@@ -187,7 +187,7 @@ def toggle_key(guid: str, *args, **kwargs):
 @session_required
 @ratelimit
 def delete_key(guid: str, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         key_db = TornKey.select().where(TornKey.guid == uuid.UUID(guid)).get()

@@ -30,7 +30,7 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 @ratelimit
 def armory_tracked_items(guildid: int, factionid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         item_id = int(data["item"])
@@ -91,7 +91,7 @@ def armory_tracked_items(guildid: int, factionid: int, *args, **kwargs):
 @ratelimit
 def armorer_roles(guildid: int, factionid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     roles: typing.Optional[typing.Iterable[str]] = data.get("roles")
 
@@ -132,7 +132,7 @@ def armorer_roles(guildid: int, factionid: int, *args, **kwargs):
 @ratelimit
 def armory_channel(guildid: int, factionid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     channel: typing.Optional[str] = data.get("channel")
 
@@ -176,7 +176,7 @@ def armory_channel(guildid: int, factionid: int, *args, **kwargs):
 @ratelimit
 def armory_toggle(guildid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     enabled: typing.Optional[bool] = data.get("enabled")
 
@@ -203,7 +203,7 @@ def armory_toggle(guildid: int, *args, **kwargs):
 @ratelimit
 def armory_faction_toggle(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     enabled: typing.Optional[bool] = data.get("enabled")
 

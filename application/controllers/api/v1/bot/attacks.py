@@ -38,7 +38,7 @@ def _update_attack_config(faction_tid: int, server_sid: int, **kwargs):
 @ratelimit
 def faction_retal_channel(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         channel_id = int(data["channel"])
@@ -72,7 +72,7 @@ def faction_retal_channel(guild_id: int, faction_tid: int, *args, **kwargs):
 @ratelimit
 def faction_retal_roles(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         roles = list(map(int, data["roles"]))
@@ -106,7 +106,7 @@ def faction_retal_roles(guild_id: int, faction_tid: int, *args, **kwargs):
 @ratelimit
 def faction_retal_wars_toggle(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         enabled = bool(data["enabled"])
@@ -140,7 +140,7 @@ def faction_retal_wars_toggle(guild_id: int, faction_tid: int, *args, **kwargs):
 @ratelimit
 def faction_chain_bonus_channel(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         channel_id = int(data["channel"])
@@ -174,7 +174,7 @@ def faction_chain_bonus_channel(guild_id: int, faction_tid: int, *args, **kwargs
 @ratelimit
 def faction_chain_bonus_roles(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         roles = list(map(int, data["roles"]))
@@ -208,7 +208,7 @@ def faction_chain_bonus_roles(guild_id: int, faction_tid: int, *args, **kwargs):
 @ratelimit
 def faction_chain_bonus_length(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         length = int(data["length"])
@@ -242,7 +242,7 @@ def faction_chain_bonus_length(guild_id: int, faction_tid: int, *args, **kwargs)
 @ratelimit
 def faction_chain_alert_channel(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         channel_id = int(data["channel"])
@@ -276,7 +276,7 @@ def faction_chain_alert_channel(guild_id: int, faction_tid: int, *args, **kwargs
 @ratelimit
 def faction_chain_alert_roles(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         roles = list(map(int, data["roles"]))
@@ -310,7 +310,7 @@ def faction_chain_alert_roles(guild_id: int, faction_tid: int, *args, **kwargs):
 @ratelimit
 def faction_chain_alert_minimum(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         minimum = int(data["minimum"])

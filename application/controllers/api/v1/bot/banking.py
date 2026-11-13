@@ -28,7 +28,7 @@ from controllers.api.v1.utils import api_ratelimit_response, make_exception_resp
 @ratelimit
 def banking_setter(guild_id: int, faction_tid: int, *args, **kwargs):
     data = json.loads(request.get_data().decode("utf-8"))
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     channel_id = data.get("channel")
     roles_id = data.get("roles")
@@ -85,7 +85,7 @@ def banking_setter(guild_id: int, faction_tid: int, *args, **kwargs):
 @session_required
 @ratelimit
 def banking_getter(guild_id: int, faction_tid: int, *args, **kwargs):
-    key = f"tornium:ratelimit:{kwargs['user'].tid}"
+    key = kwargs["ratelimiting_key"]
 
     try:
         guild: Server = Server.get_by_id(guild_id)

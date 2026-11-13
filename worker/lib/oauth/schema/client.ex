@@ -16,6 +16,11 @@
 defmodule Tornium.Schema.OAuthClient do
   @moduledoc """
   OAuth 2.0 client.
+
+  An OAuth client using client credentials grant can have a multiple resource consents granting
+  permissions for the application utilizing the client to access some resources. As client
+  credential grant requires confidential clients, only a single application would be using the
+  OAuth client.
   """
 
   use Ecto.Schema
@@ -28,7 +33,8 @@ defmodule Tornium.Schema.OAuthClient do
           client_metadata: map(),
           deleted_at: DateTime.t() | nil,
           user_id: integer(),
-          user: Tornium.Schema.User.t()
+          user: Tornium.Schema.User.t(),
+          consents: [Tornium.Schema.OAuthClientResourceConsent.t()]
         }
 
   @primary_key {:client_id, :string, autogenerate: false}
@@ -41,5 +47,7 @@ defmodule Tornium.Schema.OAuthClient do
     field(:deleted_at, :utc_datetime)
 
     belongs_to(:user, Tornium.Schema.User, references: :tid)
+
+    has_many(:consents, Tornium.Schema.OAuthClientResourceConsent, foreign_key: :client_id, references: :client_id)
   end
 end

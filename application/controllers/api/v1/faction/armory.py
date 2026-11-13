@@ -16,30 +16,38 @@
 import csv
 import datetime
 import io
+import typing
 
 from flask import make_response, request
 from peewee import SQL, fn
 from tornium_commons.formatters import timestamp
 from tornium_commons.models import ArmoryAction, ArmoryUsage, Item, User
 
-from controllers.api.v1.decorators import ratelimit, require_oauth
+from controllers.api.v1.decorators import (
+    ratelimit,
+    require_oauth,
+    require_resource_consent,
+)
 from controllers.api.v1.utils import (
     api_ratelimit_response,
     get_list,
     make_exception_response,
 )
 
+ARMORY_SCOPES = ["faction:armory", "faction"]
+
 armory_action_values = [action.value for action in ArmoryAction]
 
 
-@require_oauth("faction:armory", "faction")
+@require_oauth(ARMORY_SCOPES)
 @ratelimit
+@require_resource_consent("faction", "faction_id", ARMORY_SCOPES)
 def get_logs(faction_id: int, *args, **kwargs):
-    key = f'tornium:ratelimit:{kwargs["user"].tid}'
-    user: User = kwargs["user"]
-
-    if user.faction_id != faction_id:
-        return make_exception_response("4022", key)
+    user: typing.Optional[User] = kwargs["user"]
+    if user is not None and user.faction_id != faction_id:
+        # We need to ensure that the faction matches when the request isn't a client credentials
+        # request with consent.
+        return make_exception_response("4022", kwargs["ratelimiting_key"])
 
     now = int(datetime.datetime.utcnow().timestamp())
 
@@ -50,7 +58,7 @@ def get_logs(faction_id: int, *args, **kwargs):
         to_timestamp = int(request.args.get("to", now))
         sort_order = request.args.get("sort", "timestamp-desc")
     except (TypeError, ValueError):
-        return make_exception_response("1000", key)
+        return make_exception_response("1000", kwargs["ratelimiting_key"])
 
     members = get_list(request.args, "members", int)
     actions = get_list(request.args, "actions", str)
@@ -58,28 +66,38 @@ def get_logs(faction_id: int, *args, **kwargs):
 
     if limit < 0 or limit > 100:
         return make_exception_response(
-            "0000", key, details={"element": "limit", "message": "The limit must be between 0 and 100."}
+            "0000",
+            kwargs["ratelimiting_key"],
+            details={"element": "limit", "message": "The limit must be between 0 and 100."},
         )
     elif offset < 0:
         return make_exception_response(
-            "0000", key, details={"element": "offset", "message": "The offset must be greater than or equal to 0."}
+            "0000",
+            kwargs["ratelimiting_key"],
+            details={"element": "offset", "message": "The offset must be greater than or equal to 0."},
         )
     elif len(actions) > 0 and any([action not in armory_action_values for action in actions]):
         return make_exception_response(
-            "0000", key, details={"element": "actions", "message": "There was an invalid action provided."}
+            "0000",
+            kwargs["ratelimiting_key"],
+            details={"element": "actions", "message": "There was an invalid action provided."},
         )
     elif from_timestamp < 0 or from_timestamp > now:
         return make_exception_response(
-            "0000", key, details={"element": "from", "message": "There was an invalid from timestamp provided."}
+            "0000",
+            kwargs["ratelimiting_key"],
+            details={"element": "from", "message": "There was an invalid from timestamp provided."},
         )
     elif to_timestamp <= 0 or to_timestamp > now:
         return make_exception_response(
-            "0000", key, details={"element": "to", "message": "There was an invalid to timestamp provided."}
+            "0000",
+            kwargs["ratelimiting_key"],
+            details={"element": "to", "message": "There was an invalid to timestamp provided."},
         )
     elif from_timestamp > to_timestamp:
         return make_exception_response(
             "0000",
-            key,
+            kwargs["ratelimiting_key"],
             details={"element": "from+to", "message": "The from timestamp can not be larger than the to timstamp."},
         )
     # TODO: Validate item IDs
@@ -108,7 +126,7 @@ def get_logs(faction_id: int, *args, **kwargs):
     else:
         return make_exception_response(
             "0000",
-            key,
+            kwargs["ratelimiting_key"],
             details={
                 "element": "sort",
                 "message": 'The sort order must be one of the following: "timestamp-desc" or "timestamp-asc".',
@@ -124,7 +142,7 @@ def get_logs(faction_id: int, *args, **kwargs):
         return (
             {"count": total_count, "logs": [log.to_dict() for log in paged_logs]},
             200,
-            api_ratelimit_response(key),
+            api_ratelimit_response(kwargs["ratelimiting_key"]),
         )
     elif "text/csv" in request.accept_mimetypes:
         logs = logs.select(ArmoryUsage)
@@ -165,17 +183,18 @@ def get_logs(faction_id: int, *args, **kwargs):
         response.headers["Content-Type"] = "text/csv"
         return response
     else:
-        return make_exception_response("4012", key)
+        return make_exception_response("4012", kwargs["ratelimiting_key"])
 
 
-@require_oauth("faction:armory", "faction")
+@require_oauth(ARMORY_SCOPES)
 @ratelimit
+@require_resource_consent("faction", "faction_id", ARMORY_SCOPES)
 def get_cumulative(faction_id: int, *args, **kwargs):
-    key = f'tornium:ratelimit:{kwargs["user"].tid}'
-    user: User = kwargs["user"]
-
-    if user.faction_id != faction_id:
-        return make_exception_response("4022", key)
+    user: typing.Optional[User] = kwargs["user"]
+    if user is not None and user.faction_id != faction_id:
+        # We need to ensure that the faction matches when the request isn't a client credentials
+        # request with consent.
+        return make_exception_response("4022", kwargs["ratelimiting_key"])
 
     now = int(datetime.datetime.utcnow().timestamp())
 
@@ -186,7 +205,7 @@ def get_cumulative(faction_id: int, *args, **kwargs):
         to_timestamp = int(request.args.get("to", now))
         sort_order = request.args.get("sort", "timestamp-desc")
     except (TypeError, ValueError):
-        return make_exception_response("1000", key)
+        return make_exception_response("1000", kwargs["ratelimiting_key"])
 
     members = get_list(request.args, "members", int)
     actions = get_list(request.args, "actions", str)
@@ -194,28 +213,38 @@ def get_cumulative(faction_id: int, *args, **kwargs):
 
     if limit < 0 or limit > 100:
         return make_exception_response(
-            "0000", key, details={"element": "limit", "message": "The limit must be between 0 and 100."}
+            "0000",
+            kwargs["ratelimiting_key"],
+            details={"element": "limit", "message": "The limit must be between 0 and 100."},
         )
     elif offset < 0:
         return make_exception_response(
-            "0000", key, details={"element": "offset", "message": "The offset must be greater than or equal to 0."}
+            "0000",
+            kwargs["ratelimiting_key"],
+            details={"element": "offset", "message": "The offset must be greater than or equal to 0."},
         )
     elif len(actions) > 0 and any([action not in armory_action_values for action in actions]):
         return make_exception_response(
-            "0000", key, details={"element": "actions", "message": "There was an invalid action provided."}
+            "0000",
+            kwargs["ratelimiting_key"],
+            details={"element": "actions", "message": "There was an invalid action provided."},
         )
     elif from_timestamp < 0 or from_timestamp > now:
         return make_exception_response(
-            "0000", key, details={"element": "from", "message": "There was an invalid from timestamp provided."}
+            "0000",
+            kwargs["ratelimiting_key"],
+            details={"element": "from", "message": "There was an invalid from timestamp provided."},
         )
     elif to_timestamp <= 0 or to_timestamp > now:
         return make_exception_response(
-            "0000", key, details={"element": "to", "message": "There was an invalid to timestamp provided."}
+            "0000",
+            kwargs["ratelimiting_key"],
+            details={"element": "to", "message": "There was an invalid to timestamp provided."},
         )
     elif from_timestamp > to_timestamp:
         return make_exception_response(
             "0000",
-            key,
+            kwargs["ratelimiting_key"],
             details={"element": "from+to", "message": "The from timestamp can not be larger than the to timstamp."},
         )
     # TODO: Validate item IDs
@@ -263,7 +292,7 @@ def get_cumulative(faction_id: int, *args, **kwargs):
     else:
         return make_exception_response(
             "0000",
-            key,
+            kwargs["ratelimiting_key"],
             details={
                 "element": "sort",
                 "message": 'The sort order must be one of the following: "timestamp-desc" or "timestamp-asc".',
@@ -296,7 +325,7 @@ def get_cumulative(faction_id: int, *args, **kwargs):
                 ],
             },
             200,
-            api_ratelimit_response(key),
+            api_ratelimit_response(kwargs["ratelimiting_key"]),
         )
     elif "text/csv" in request.accept_mimetypes:
         buffer = io.StringIO()
@@ -322,4 +351,4 @@ def get_cumulative(faction_id: int, *args, **kwargs):
         response.headers["Content-Type"] = "text/csv"
         return response
     else:
-        return make_exception_response("4012", key)
+        return make_exception_response("4012", kwargs["ratelimiting_key"])

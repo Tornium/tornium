@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import typing
+import uuid
 
 import flask
 import flask_login
@@ -29,7 +30,12 @@ from authlib.oauth2.rfc6749.grants import BaseGrant
 from flask import abort, redirect, render_template, request
 from flask_login import current_user, fresh_login_required
 from peewee import DoesNotExist
-from tornium_commons.models import OAuthClient, OAuthClientResourceConsent
+from tornium_commons.models import (
+    Faction,
+    OAuthClient,
+    OAuthClientResourceConsent,
+    Server,
+)
 from tornium_commons.oauth.client_credentials_grant import parse_resource
 from tornium_commons.oauth.scopes import RESOURCE_SCOPES
 
@@ -176,11 +182,20 @@ def client_consent(client_id: str):
     )
 
     if request.method == "GET":
+        if resource_type == "faction":
+            resource_name = Faction.select(Faction.name).where(Faction.tid == resource_id).scalar()
+            consent_page = "/faction/consent"
+        else:
+            resource_name = Server.select(Server.name).where(Server.sid == resource_id).scalar()
+            consent_page = f"/bot/dashboard/{resource_id}/consent"
+
         return flask.render_template(
             "oauth/consent.html",
             client=client,
             resource_type=resource_type,
             resource_id=resource_id,
+            resource_name=resource_name,
+            consent_page=consent_page,
             requested_scopes=valid_requested_scopes,
             existing_scopes=[] if existing_consent is None else existing_consent.scopes,
         )
@@ -222,13 +237,13 @@ def revoke_consent(client_id: str, consent_id: str):
         consent: OAuthClientResourceConsent = (
             OAuthClientResourceConsent.select()
             .where(
-                (OAuthClientResourceConsent.guid == consent_id)
+                (OAuthClientResourceConsent.guid == uuid.UUID(consent_id))
                 & (OAuthClientResourceConsent.client == client_id)
                 & (OAuthClientResourceConsent.revoked_at.is_null(True))
             )
             .get()
         )
-    except DoesNotExist:
+    except (DoesNotExist, ValueError):
         return (
             render_template("errors/error.html", title="Invalid Consent", error="No matching consent could be found."),
             404,

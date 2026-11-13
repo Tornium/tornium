@@ -113,8 +113,8 @@ class OAuthClientResourceConsent(BaseModel):
         if resource_type == "faction":
             return (
                 user.faction_id == resource_id
-                and user.faction_position is not None
-                and user.faction_position.name in ("Leader", "Co-leader")
+                and user.faction is not None
+                and user.tid in (user.faction.leader_id, user.faction.coleader_id)
             )
         elif resource_type == "server":
             return Server.select().where((Server.sid == resource_id) & (Server.admins.contains(user.tid))).exists()

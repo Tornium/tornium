@@ -54,7 +54,13 @@ from authlib.oauth2.rfc6749.errors import (
     UnauthorizedClientError,
 )
 
-from ..models import AuthAction, OAuthClient, OAuthClientResourceConsent
+from ..models import (
+    AuthAction,
+    Faction,
+    OAuthClient,
+    OAuthClientResourceConsent,
+    Server,
+)
 from .log import log
 from .scopes import GENERIC_RESOURCE_SCOPES, RESOURCE_SCOPES
 
@@ -72,6 +78,10 @@ def parse_resource(resource: str) -> typing.Tuple[typing.Optional[str], typing.O
 
     if resource_type not in OAuthClientResourceConsent.RESOURCE_TYPES:
         raise InvalidRequestError(description="Unknown organization type")
+    elif resource_type == "faction" and not Faction.select().where(Faction.tid == resource_id).exists():
+        raise InvalidRequestError(description="Invalid resource ID")
+    elif resource_type == "server" and not Server.select().where(Server.sid == resource_id).exists():
+        raise InvalidRequestError(description="Invalid resource ID")
 
     return (resource_type, resource_id)
 

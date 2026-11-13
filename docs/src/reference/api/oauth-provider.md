@@ -84,16 +84,16 @@ Once consent has been granted to a resource, the consent can be revoked at any t
 - Factions: The faction's leader or co-leader can revoke consent from the [Consents page](https://tornium.com/faction/consent) of the faction dashboard.
 - Discord servers: An admin of the Discord server can revoke consent from the Consents page of the server's dashboard at https://tornium.com/bot/dashboard/{{ guild_id }}/consent.
 
-By revoking the consent to the resource, the access tokens of the OAuth application issued under that resource consent will also be revoked and further requests will fail with `unauthorized_client` until consent is granted again.
+By revoking the consent to the resource, the access tokens of the OAuth application issued under that resource consent will also be revoked and further attempts to utilize the consent will fail with `unauthorized_client` until consent is granted again.
 
 #### Token Request
 To obtain an access token, the resource parameter **MUST** be included in the same format as the consent URL and the requested scope **MUST** be a subset of the scopes the resource consented to.
 
-```htp
+```http
 POST /oauth/token HTTP/1.1
 Host: tornium.com
 Content-Type: application/x-www-form-urlencoded
-Authorization: Basic {{ base64_client_secret }}
+Authorization: Basic {{ base64(client_id:client_secret) }}
 
 grant_type=client_credentials&resource={{ resource }}&scope={{ scope }}
 
@@ -121,7 +121,7 @@ When provided the refresh token from the original/previous token exchange, the r
 POST /oauth/token HTTP/1.1
 Host: tornium.com
 Content-Type: application/x-www-form-urlencoded
-Authorization: Basic {{ base64_client_secret }}
+Authorization: Basic {{ base64(client_id:client_secret) }}
 
 grant_type=refresh_token&refresh_token={{ refresh_token }}
 

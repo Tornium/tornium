@@ -31,6 +31,7 @@ from tornium_commons.models import (
     User,
 )
 from tornium_commons.organized_crime_graph import (
+    LoadedCrimeGraph,
     ingest_crime_data,
     parse_scenario_outcome,
 )
@@ -549,7 +550,6 @@ def upload_crime_scenarios(faction_id: int, *args, **kwargs):
             slot_position_name, slot_position_index = OrganizedCrimeSlotType.parse_slot(crime_slot["name"])
             crime_slot_assignments.append((slot_position_name, slot_position_index, slot_member_id))
 
-            print(slot_member_id, slot_index, slot_position_name, slot_position_index)
             valid_member = crime_slots_base_query.where(
                 (OrganizedCrimeSlot.user_id == slot_member_id)
                 & (OrganizedCrimeSlot.slot_index == slot_index)
@@ -576,3 +576,36 @@ def upload_crime_scenarios(faction_id: int, *args, **kwargs):
         )
 
     return make_exception_response("0001", key)
+
+
+@require_oauth()
+@ratelimit
+@allow_resource_tokens
+@global_cache(duration=5 * 60)
+def get_oc_graph(oc_name: str, *args, **kwargs):
+    key = kwargs["ratelimiting_key"]
+
+    try:
+        oc_type = OrganizedCrimeType.select().where(OrganizedCrimeType.name == oc_name.replace("_", " ")).get()
+    except DoesNotExist:
+        return make_exception_response("1108")
+
+    variants = request.args.get("variants", "best").lower()
+
+    if variants not in ("best", "all"):
+        return make_exception_response(
+            "1000", key, details={"message": 'The variants query parameter must be one of "best" or "all".'}
+        )
+
+    oc_graph = LoadedCrimeGraph.from_oc_type(oc_type)
+
+    if oc_graph is None:
+        return make_exception_response(
+            "1000",
+            key,
+            details={
+                "message": "No OC graph could be built for that OC type. There may not be sufficient data available."
+            },
+        )
+
+    return jsonify(oc_graph.to_dict(best_variant_only=(variants == "best"))), 200, api_ratelimit_response(key)

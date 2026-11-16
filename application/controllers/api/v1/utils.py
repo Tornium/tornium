@@ -124,6 +124,12 @@ API_EXCEPTIONS = {
         "http": 404,
         "message": "[DEPRECATED] Server failed to locate the requested organized crime team member.",
     },
+    "1108": {
+        "code": 1108,
+        "name": "UnknownOrganizedCrimeType",
+        "http": 404,
+        "message": "Server failed to locate the requested Torn organized crime type.",
+    },
     "1200": {
         "code": 1200,
         "name": "UnknownKey",

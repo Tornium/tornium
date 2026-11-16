@@ -16,6 +16,7 @@
 from peewee import BooleanField, DateTimeField, FloatField, ForeignKeyField
 from playhouse.postgres_ext import UUIDField
 
+from ..formatters import timestamp
 from .base_model import BaseModel
 from .organized_crime import OrganizedCrime
 from .organized_crime_graph_node import OrganizedCrimeGraphNode
@@ -37,3 +38,13 @@ class OrganizedCrimeGraphEdge(BaseModel):
     last_seen_at = DateTimeField(null=False)
     last_seen_by = ForeignKeyField(User, null=False)
     last_seen_in = ForeignKeyField(OrganizedCrime, null=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "guid": str(self.guid),
+            "from_node": str(self.from_node_id),
+            "to_node": str(self.to_node_id),
+            "success": self.success,
+            "effective_weight": self.effective_weight,
+            "last_seen_at": timestamp(self.last_seen_at),
+        }

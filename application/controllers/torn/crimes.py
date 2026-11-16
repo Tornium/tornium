@@ -16,7 +16,7 @@
 from flask import abort, render_template
 from peewee import DoesNotExist
 from tornium_commons.models import OrganizedCrimeType
-from tornium_commons.organized_crime_graph import to_graphviz
+from tornium_commons.organized_crime_graph import LoadedCrimeGraph
 
 GRAPH_MIMETYPES = {"svg": "image/svg+xml", "png": "image/png", "dot": "text/vnd.graphviz"}
 
@@ -36,7 +36,8 @@ def render_crime_graph(oc_name, graph_extension):
     except DoesNotExist:
         return abort(404)
 
-    dot = to_graphviz(organized_crime_type)
+    crime_graph = LoadedCrimeGraph.from_oc_type(organized_crime_type)
+    dot = crime_graph.to_graphviz()
 
     if graph_extension == "dot":
         return dot.source.encode(), 200, {"Content-Type": GRAPH_MIMETYPES[graph_extension]}

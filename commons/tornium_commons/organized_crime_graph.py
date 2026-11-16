@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
 import collections
 import dataclasses
 import datetime
@@ -23,6 +25,7 @@ import uuid
 
 import graphviz
 
+from .formatters import timestamp
 from .models import (
     Item,
     OrganizedCrime,
@@ -106,6 +109,7 @@ def normalize_scene_text(scene_text: str, crime_slot_assignments: typing.List[tu
         member_id = int(match.group(1))
         if member_id not in placeholders:
             raise ValueError(f"Unknown member ID {member_id} referenced in scene text.")
+
         return placeholders[member_id]
 
     text = USER_ID_REGEX.sub(replace_user_id, scene_text)
@@ -207,6 +211,7 @@ def parse_scenario_path(
             terminal=True,
         )
     )
+
     return path
 
 
@@ -226,7 +231,7 @@ def parse_scenario_outcome(crime_data: dict) -> ScenarioOutcome:
 
         item_quantities[item_name] += quantity
 
-    items = []
+    items: typing.List[ScenarioOutcomeItem] = []
     for name, quantity in sorted(item_quantities.items()):
         item = Item.get_by_name(name)
 
@@ -525,93 +530,147 @@ def _item_set_labels(item_sets: typing.List[dict]) -> typing.List[str]:
     return labels
 
 
-def to_graphviz(oc_type: OrganizedCrimeType) -> graphviz.Digraph:
-    nodes = {
-        node.guid: node
-        for node in OrganizedCrimeGraphNode.select().where(OrganizedCrimeGraphNode.oc_type == oc_type.guid)
-    }
-    root = next((node for node in nodes.values() if node.scene_id == ROOT_SCENE_ID), None)
+@dataclasses.dataclass(frozen=True)
+class LoadedCrimeGraph:
+    oc_type: OrganizedCrimeType
 
-    if root is None:
-        raise ValueError(f"No scenario graph has been ingested for {oc_type.name}")
+    root: OrganizedCrimeGraphNode
+    nodes: typing.Dict[uuid.UUID, OrganizedCrimeGraphNode]
+    variants: typing.Dict[uuid.UUID, typing.List[OrganizedCrimeGraphNodeVariant]]
+    edges: typing.dict[typing.Tuple[uuid.UUID, bool], typing.List[OrganizedCrimeGraphEdge]]
+    rewards: typing.Dict[uuid.UUID, OrganizedCrimeGraphTerminalReward]
 
-    variants = collections.defaultdict(list)
-    for variant in (
-        OrganizedCrimeGraphNodeVariant.select(OrganizedCrimeGraphNodeVariant)
-        .join(OrganizedCrimeGraphNode)
-        .where(OrganizedCrimeGraphNode.oc_type == oc_type.guid)
-        .order_by(
-            OrganizedCrimeGraphNodeVariant.effective_weight.desc(), OrganizedCrimeGraphNodeVariant.last_seen_at.desc()
-        )
-    ):
-        variants[variant.node_id].append(variant)
+    @classmethod
+    def from_oc_type(cls, oc_type: OrganizedCrimeType) -> typing.Self | None:
+        nodes = {
+            node.guid: node
+            for node in OrganizedCrimeGraphNode.select().where(OrganizedCrimeGraphNode.oc_type == oc_type.guid)
+        }
+        root = next((node for node in nodes.values() if node.scene_id == ROOT_SCENE_ID), None)
 
-    edges = collections.defaultdict(list)
-    for edge in (
-        OrganizedCrimeGraphEdge.select(OrganizedCrimeGraphEdge)
-        .join(OrganizedCrimeGraphNode, on=(OrganizedCrimeGraphEdge.from_node == OrganizedCrimeGraphNode.guid))
-        .where(OrganizedCrimeGraphNode.oc_type == oc_type.guid)
-        .order_by(OrganizedCrimeGraphEdge.effective_weight.desc(), OrganizedCrimeGraphEdge.last_seen_at.desc())
-    ):
-        if edge.to_node_id in nodes:
-            edges[(edge.from_node_id, edge.success)].append(edge)
+        if root is None:
+            return None
 
-    rewards = {
-        reward.node_id: reward
-        for reward in OrganizedCrimeGraphTerminalReward.select().where(
-            OrganizedCrimeGraphTerminalReward.node.in_(list(nodes))
-        )
-    }
+        variants = collections.defaultdict(list)
+        for variant in (
+            OrganizedCrimeGraphNodeVariant.select(OrganizedCrimeGraphNodeVariant)
+            .join(OrganizedCrimeGraphNode)
+            .where(OrganizedCrimeGraphNode.oc_type == oc_type.guid)
+            .order_by(
+                OrganizedCrimeGraphNodeVariant.effective_weight.desc(),
+                OrganizedCrimeGraphNodeVariant.last_seen_at.desc(),
+            )
+        ):
+            variants[variant.node_id].append(variant)
 
-    has_outgoing = {from_guid for from_guid, _ in edges}
-    dot = graphviz.Digraph(
-        name=oc_type.name,
-        node_attr={"shape": "box", "fontsize": "10"},
-    )
+        edges = collections.defaultdict(list)
+        for edge in (
+            OrganizedCrimeGraphEdge.select(OrganizedCrimeGraphEdge)
+            .join(OrganizedCrimeGraphNode, on=(OrganizedCrimeGraphEdge.from_node == OrganizedCrimeGraphNode.guid))
+            .where(OrganizedCrimeGraphNode.oc_type == oc_type.guid)
+            .order_by(OrganizedCrimeGraphEdge.effective_weight.desc(), OrganizedCrimeGraphEdge.last_seen_at.desc())
+        ):
+            if edge.to_node_id in nodes:
+                edges[(edge.from_node_id, edge.success)].append(edge)
 
-    for guid in nodes:
-        node = nodes[guid]
-        if guid == root.guid:
-            dot.node(str(guid), "Start", shape="circle")
-            continue
+        rewards = {
+            reward.node_id: reward
+            for reward in OrganizedCrimeGraphTerminalReward.select().where(
+                OrganizedCrimeGraphTerminalReward.node.in_(list(nodes))
+            )
+        }
 
-        node_variants = variants.get(guid, [])
-        lines = [node.scene_slug, *textwrap.wrap(node_variants[0].text if node_variants else "", 40)]
-        if len(node_variants) > 1:
-            lines.append(f"(+{len(node_variants) - 1} other variants)")
+        return cls(oc_type=oc_type, root=root, nodes=nodes, variants=variants, edges=edges, rewards=rewards)
 
-        reward = rewards.get(guid)
-        if reward is not None and reward.respect is None:
-            lines.append("Failure")
-        elif reward is not None and reward.respect is not None:
-            lines.append(f"respect {_value_range_label(reward.respect)}")
+    def to_graphviz(self) -> graphviz.Digraph:
+        has_outgoing = {from_guid for from_guid, _ in self.edges}
+        dot = graphviz.Digraph(name=self.oc_type.name, node_attr={"shape": "box", "fontsize": "10"})
 
-            if reward.money is not None:
-                lines.append(f"money {_value_range_label(reward.money, '$')}")
-            if reward.item_sets is not None:
-                lines.extend(_item_set_labels(reward.item_sets))
-
-        dot.node(
-            str(guid),
-            graphviz.nohtml("\\n".join(lines)),
-            shape="box" if guid in has_outgoing else "doubleoctagon",
-        )
-
-    for (from_guid, success), candidates in edges.items():
-        if from_guid not in nodes:
-            continue
-
-        for rank, edge in enumerate(candidates):
-            if edge.to_node_id not in nodes:
+        for node_guid in self.nodes:
+            node = self.nodes[node_guid]
+            if node_guid == self.root.guid:
+                dot.node(str(node_guid), "Start", shape="circle")
                 continue
 
-            outcome = "" if from_guid == root.guid else ("pass " if success else "fail ")
-            dot.edge(
-                str(from_guid),
-                str(edge.to_node_id),
-                label=f"{outcome}({edge.effective_weight:.2f})",
-                color="darkgreen" if success else "firebrick",
-                style="solid" if rank == 0 else "dashed",
+            node_variants = self.variants.get(node_guid, [])
+            lines = [node.scene_slug, *textwrap.wrap(node_variants[0].text if node_variants else "", 40)]
+            if len(node_variants) > 1:
+                lines.append(f"(+{len(node_variants) - 1} other variants)")
+
+            reward = self.rewards.get(node_guid)
+            if reward is not None and reward.respect is None:
+                lines.append("Failure")
+            elif reward is not None and reward.respect is not None:
+                lines.append(f"Respect {_value_range_label(reward.respect)}")
+
+                if reward.money is not None:
+                    lines.append(f"Money {_value_range_label(reward.money, '$')}")
+                if reward.item_sets is not None:
+                    lines.extend(_item_set_labels(reward.item_sets))
+
+            dot.node(
+                str(node_guid),
+                graphviz.nohtml("\\n".join(lines)),
+                shape="box" if node_guid in has_outgoing else "doubleoctagon",
             )
 
-    return dot
+        for (from_guid, success), candidates in self.edges.items():
+            if from_guid not in self.nodes:
+                continue
+
+            for rank, edge in enumerate(candidates):
+                if edge.to_node_id not in self.nodes:
+                    continue
+
+                outcome = "" if from_guid == self.root.guid else ("pass " if success else "fail ")
+                dot.edge(
+                    str(from_guid),
+                    str(edge.to_node_id),
+                    label=f"{outcome}({edge.effective_weight:.2f})",
+                    color="darkgreen" if success else "firebrick",
+                    style="solid" if rank == 0 else "dashed",
+                )
+
+        return dot
+
+    def to_dict(self, best_variant_only: bool = True) -> dict:
+        return {
+            "root": str(self.root.guid),
+            "nodes": [self._export_node(node, best_variant_only=best_variant_only) for node in self.nodes.values()],
+            "edges": [edge.to_dict() for edges in self.edges.values() for edge in edges],
+        }
+
+    def _export_node(self, node: OrganizedCrimeGraphNode, best_variant_only: bool) -> dict:
+        reward = self.rewards.get(node.guid)
+        node_variants = self.variants.get(node.guid, [])
+
+        if best_variant_only:
+            node_variants = node_variants[:1]
+
+        return {
+            "guid": str(node.guid),
+            "scene_id": node.scene_id,
+            "scene_slug": node.scene_slug,
+            "terminal": node.terminal,
+            "last_seen_at": timestamp(node.last_seen_at),
+            "variants": [
+                {
+                    "guid": str(variant.guid),
+                    "text": variant.text,
+                    "effective_weight": variant.effective_weight,
+                    "last_seen_at": timestamp(variant.last_seen_at),
+                }
+                for variant in node_variants
+            ],
+            # Failure terminals have a reward row with every reward NULL (see _observe_terminal_rewards)
+            "rewards": (
+                None
+                if reward is None
+                else {
+                    "respect": reward.respect,
+                    "money": reward.money,
+                    "item_sets": reward.item_sets,
+                    "last_seen_at": timestamp(reward.last_seen_at),
+                }
+            ),
+        }

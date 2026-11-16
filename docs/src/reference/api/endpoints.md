@@ -1,4 +1,4 @@
-# Endpoints
+#  Endpoints
 The Tornium API supports the following resource APIs:
 - [Faction API](#faction-api)
 - [Stat API](#stat-api)
@@ -163,6 +163,103 @@ Authorization: Bearer {{ access_token }}
     "Clinical Precision"
 ]
 ```
+
+### Get Organized Crime Graph
+Get the scenario graph of an organized crime. The datafrom this API endpoint is cache for five minutes.
+
+The graph of the OC contains every scene (node) seen in the crime and the edges that connect scenes when a check passes or fails, along with the rewards seen at each ending. The graph is built from crime scenarios uploaded by some faction using Tornium's OC usercript, so it may change as new scenarios are uploaded. For more information on how this works, see its [explanation](../../explanation/oc-scenario-graphing.md).
+
+**Scopes Required:** none
+**Client Credentials Grant:** Supported with any access token
+
+```http
+GET /api/v1/faction/crime/<crime_name>/graph?variants=all HTTP/1.1
+Authorization: Bearer {{ access_token }}
+```
+
+The `crime_name` path parameter is the name of the OC (such as `Break the Bank`). The name may need to be URL encoded, and underscores may be used in place of spaces. For example, `Guardian Ángels` can be requested as `Guardian%20%C3%81ngels` or `Guardian_%C3%81ngels`.
+
+**Query Parameters**
+
+| Field      | Type   | Description                                                                              | Default | Required |
+| ---------- | ------ | ---------------------------------------------------------------------------------------- | ------- | -------- |
+| `variants` | String | `all` to include all variants of a node or `top` to inlcude only the most likely variant | `all`   | False    |
+
+
+**Response**
+
+Since this API response is longer and more complicated, it'll be broken down more:
+```json
+{
+    "root": <string>,
+    "nodes": [<node>],
+    "edges": [<edge>]
+}
+```
+
+| Field     | Type           | Description                                       |
+| --------- | -------------- | ------------------------------------------------- |
+| `root`    | String         | GUID of the root node                             |
+| `nodes`   | Array          | Every node of the graph, including the root node. |
+| `edges`   | Array          | Every edge of the graph.                          |
+
+All `last_seen_at` values are Unix timestamps of the last time that element was seen in an uploaded scenario. All `effective_weight` values are positive numbers that increase each time an element is seen and decay over time; they're only meaningful relative to other weights of the same kind.
+ 
+**Node:**
+A node is a scene of the OC. The root node is an artificial node with a `scene_slug` of `__root__`  with edges to the first scene of the OC.
+
+| Field          | Type           | Description                                                                                      |
+| -------------- | -------------- | ------------------------------------------------------------------------------------------------ |
+| `guid`         | String         | Unique identifier of the node, referenced by edges                                               |
+| `scene_id`     | Integer        | ID of the scene in Torn                                                                          |
+| `scene_slug`   | String         | Slug of the scene in Torn, such as `A2` or `A9S`                                                 |
+| `terminal`     | Boolean        | Whether the scene is an ending of the OC                                                         |
+| `last_seen_at` | Integer        | Unix timestamp                                                                                   |
+| `variants`     | Array          | Text variants of the scene, ordered by descending `effective_weight` (then most recently seen)   |
+| `rewards`      | Object \| null | Rewards seen at the scene, or `null` if no rewards have been recorded for it                     |
+
+
+**Variant:**
+The same scene can be described with different scene texts. Member names in the text are replaced with position placeholders such as `{Cat Burglar:1}`. The first variant is the most likely one.
+
+| Field              | Type   | Description                         |
+| ------------------ | ------ | ----------------------------------- |
+| `guid`             | String | Unique identifier of the variant    |
+| `text`             | String | Text of the scene                   |
+| `effective_weight` | Number | Weight of the variant               |
+| `last_seen_at`     | Integer | Unix timestamp                     |
+
+
+**Reward:**
+Rewards are only recorded for terminal nodes. A failure ending has `respect`, `money` and `item_sets` all set to `null`. A successful ending has `respect` and exactly one of `money` and `item_sets`.
+
+| Field          | Type           | Description                                                                    |
+| -------------- | -------------- | ------------------------------------------------------------------------------ |
+| `respect`      | Array \| null  | Weighted respect values (`{"value": <integer>, "effective_weight": <number>}`) |
+| `money`        | Array \| null  | Weighted money values (`{"value": <integer>, "effective_weight": <number>}`)   |
+| `item_sets`    | Array \| null  | Item sets received together (see below)                                        |
+| `last_seen_at` | Integer        | Unix timestamp                                                                 |
+
+Each item set has the following fields. Item names can be found with `GET /api/v1/items`.
+
+| Field              | Type   | Description                                                                                             |
+| ------------------ | ------ | ------------------------------------------------------------------------------------------------------- |
+| `items`            | Array  | Sorted IDs of the items received together. An empty array means no items were received.                 |
+| `effective_weight` | Number | Weight of the item set                                                                                  |
+| `quantities`       | Array  | Quantities of each item (`{"item_id": <integer>, "quantity": <integer>, "effective_weight": <number>}`) |
+
+**Edge:**
+An edge connects a node to the next node when the check at that node passes or fails.
+
+| Field              | Type    | Description                                                                                       |
+| ------------------ | ------- | ------------------------------------------------------------------------------------------------- |
+| `guid`             | String  | Unique identifier of the edge                                                                     |
+| `from_node`        | String  | GUID of the node the edge starts at                                                               |
+| `to_node`          | String  | GUID of the node the edge ends at                                                                 |
+| `success`          | Boolean | Whether the edge is followed when the check at `from_node` passes. Always `true` for edges out of the root node. |
+| `effective_weight` | Number  | Weight of the edge                                                                                |
+| `last_seen_at`     | Integer | Unix timestamp                                                                                    |
+
 
 ### Get Organized Crime Delays
 Get a list of members of the authenticated user's faction who have delayed organized crimes.

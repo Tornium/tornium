@@ -835,8 +835,8 @@ let
             src = fetchFromGitHub {
               owner = "dssecret";
               repo = "nostrum";
-              rev = "2a50cdae53f1baf2ebd668fe23af4cc7fd1a8074";
-              hash = "sha256-yfXaD04UHSsBBwUK4l4xCsv3qyQe7s8TLFISUSkeazU=";
+              rev = "50b2de0019b6597b2145f57686b0bfc1455b19fa";
+              hash = "sha256-+WlUGw0KwouV7zy8Iff27Ijo9Rh5EbL93XdnxlIXQUA=";
             };
 
             beamDeps = [
@@ -973,7 +973,7 @@ let
 
       phoenix =
         let
-          version = "1.8.16";
+          version = "1.8.17";
           drv = buildMix {
             inherit version;
             name = "phoenix";
@@ -982,7 +982,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "phoenix";
-              sha256 = "e7355c35889305bc539eb09dae2393abcbaf0f65f6874a3f0dcb5f0ec53737fe";
+              sha256 = "21fd4d6a33c6af4e86b95156a49815a59140c2ba4ef8cf19565dbb7be881633e";
             };
 
             beamDeps = [
@@ -1019,7 +1019,7 @@ let
 
       phoenix_live_view =
         let
-          version = "1.2.13";
+          version = "1.2.15";
           drv = buildMix {
             inherit version;
             name = "phoenix_live_view";
@@ -1028,7 +1028,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "phoenix_live_view";
-              sha256 = "a5cd2a3df10552bce6b7e68e5d376ff3b46cca3ca62d6c43bd4398d80c197fbe";
+              sha256 = "06de7d327a964c81e93a4d64f67088852bf3512f30c04af563101feaac1deaf1";
             };
 
             beamDeps = [

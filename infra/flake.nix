@@ -7,8 +7,10 @@
     colmena.url = "github:zhaofengli/colmena";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+    statstimate.url = "github:Tornium/statstimate";
+    statstimate.inputs.nixpkgs.follows = "nixpkgs";
   };
-  outputs = { nixpkgs, disko, colmena, sops-nix, ... }:
+  outputs = { nixpkgs, disko, colmena, sops-nix, statstimate, ... }:
     let
       # overlay that bumps only pgbackrest to 2.58.0
       pgbackrestOverlay = final: prev: {
@@ -86,7 +88,7 @@
         meta = {
           nixpkgs = import nixpkgs {
             system = "x86_64-linux";
-            overlays = [ pgbackrestOverlay peeweeOverlay ];
+            overlays = [ pgbackrestOverlay peeweeOverlay statstimate.overlays.default ];
           };
         };
         defaults = {

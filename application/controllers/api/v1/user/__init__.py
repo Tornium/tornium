@@ -13,10 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import logging
 import typing
 
-from authlib.integrations.flask_oauth2 import current_token
+import statstimate
 from authlib.oauth2.rfc6749 import InvalidScopeError, OAuth2Error
 from flask import jsonify, request
 from peewee import DoesNotExist
@@ -26,7 +25,6 @@ from tornium_commons.models import Server, Stat, User
 
 from controllers.api.v1.decorators import ratelimit, require_oauth, session_required
 from controllers.api.v1.utils import api_ratelimit_response, make_exception_response
-from estimate import estimate_user
 
 
 @require_oauth("identity")
@@ -107,26 +105,26 @@ def get_specific_user(tid: int, *args, **kwargs):
 @ratelimit
 def estimate_specific_user(tid: int, *args, **kwargs):
     key = kwargs["ratelimiting_key"]
+    invoker = kwargs["user"]
 
+    estimated_stats: statstimate.EstimatedStats
     try:
-        estimated_bs, expiration_ts = estimate_user(
-            tid,
-            kwargs["user"].key,
-            allow_api_calls="torn_key:usage" in current_token.get_scope() and kwargs["user"].key not in ("", None),
-        )
-    except ValueError:
+        user: User = User.select().where(User.tid == tid).get()
+    except DoesNotExist:
         return make_exception_response("1100", key)
-    except PermissionError:
-        return require_oauth.raise_error_response(InvalidScopeError())
 
-    min_bs, max_bs = bs_to_range(estimated_bs)
+    estimated_stats: statstimate.EstimatedStats = user.estimate(
+        permitted_faction_id=None if invoker.faction is None else invoker.faction_id, api_key=kwargs["key"]
+    )
+    min_total_stats, max_total_stats = bs_to_range(estimated_stats.stat_score)
 
     return (
         {
-            "stat_score": estimated_bs,
-            "min_bs": min_bs,
-            "max_bs": max_bs,
-            "expiration": expiration_ts,
+            "stat_score": round(estimated_stats.stat_score, 2),
+            "min_bs": min_total_stats,
+            "max_bs": max_total_stats,
+            "expiration": None,
+            "method": estimated_stats.method,
         },
         200,
         api_ratelimit_response(key),

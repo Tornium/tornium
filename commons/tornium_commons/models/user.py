@@ -18,6 +18,7 @@ import inspect
 import typing
 from functools import cached_property, lru_cache
 
+import statstimate
 from peewee import (
     BigIntegerField,
     BooleanField,
@@ -34,11 +35,16 @@ from peewee import (
 )
 from playhouse.postgres_ext import ArrayField
 
+from ..errors import MissingKeyError
+from ..estimator import ESTIMATOR
 from .base_model import BaseModel
 from .faction import Faction
 from .faction_position import FactionPosition
 from .personal_stats import PersonalStats
 from .torn_key import TornKey
+
+if typing.TYPE_CHECKING:
+    from .stat import Stat
 
 
 class User(BaseModel):
@@ -162,7 +168,29 @@ class User(BaseModel):
 
     @cached_property
     def personal_stats(self) -> typing.Optional[PersonalStats]:
-        return PersonalStats.select().where(PersonalStats.user == self.tid).order_by(-PersonalStats.timestamp).first()
+        return (
+            PersonalStats.select()
+            .where(PersonalStats.user == self.tid)
+            .order_by(PersonalStats.timestamp.desc())
+            .first()
+        )
+
+    def personal_stats_at(
+        self,
+        timestamp: typing.Optional[datetime.datetime] = None,
+        max_margin: datetime.timedelta = datetime.timedelta(days=1),
+    ) -> typing.Optional[PersonalStats]:
+        timestamp = timestamp or datetime.datetime.utcnow()
+
+        return (
+            PersonalStats.select()
+            .where(
+                (PersonalStats.user == self.tid)
+                & (PersonalStats.timestamp.between(timestamp - max_margin, timestamp + max_margin))
+            )
+            .order_by(PersonalStats.timestamp.desc())
+            .first()
+        )
 
     def get_user_id(self) -> int:
         return self.tid
@@ -251,3 +279,100 @@ class User(BaseModel):
             return datetime.date.fromtimestamp(user_data["status"]["until"])
 
         return None
+
+    def stat(self, permitted_faction_id: typing.Optional[int] = None) -> typing.Optional["Stat"]:
+        """
+        Get the stats of the user from the stat database.
+
+        If a permitted faction ID is provided, this indicates that the faction's stat database data
+        can be used to find the latest stats of the user.
+
+        Parameters
+        ----------
+        permitted_faction_id : typing.Optional[int]
+            ID of the faction permitting access to their stats in the stat DB
+
+        Returns
+        -------
+        typing.Optional[Stat]
+            The latest stats of user if one could be found
+        """
+
+        from .stat import Stat
+
+        query = Stat.select().where(Stat.tid == self.tid).order_by(Stat.time_added.desc())
+
+        if permitted_faction_id is None:
+            query = query.where(Stat.added_group.in_(0, permitted_faction_id))
+        else:
+            query = query.where(Stat.added_group == 0)
+
+        return query.first()
+
+    def estimate(
+        self, permitted_faction_id: typing.Optional[int] = None, api_key: typing.Optional[str] = None
+    ) -> statstimate.EstimatedStats:
+        """
+        Estimate the stats of the user from their personal stats and the stat database through the
+        statstimate library.
+
+        If a permitted faction ID is provided, this indicates that the faction's stat database data
+        can be used to find the latest stats of the user.
+
+        Parameters
+        ----------
+        permitted_faction_id : typing.Optional[int]
+            ID of the faction permitting access to their stats in the stat DB
+
+        api_key : typing.Optional[str]
+            The API key of some user used to update the user's personal stats if necessary
+
+        Returns
+        -------
+        statstimate.EstimatedStats
+            An estimate of the user's stats.
+        """
+
+        from tornium_celery.tasks.user import update_user
+
+        from .stat import Stat
+
+        now = datetime.datetime.utcnow()
+        latest_personal_stats: typing.Optional[PersonalStats] = self.personal_stats_at()
+
+        if latest_personal_stats is None and api_key is None:
+            raise MissingKeyError()
+        elif latest_personal_stats is None:
+            # If there were no personal stats, we need to fetch them through the API.
+
+            r = update_user(tid=self.tid, refresh_existing=True, key=api_key)
+            print(r)
+            latest_personal_stats = self.personal_stats_at()
+        if latest_personal_stats is None:
+            # If there are still no personal stats found after potentially updating the database,
+            # we cannot estimate the user's stats.
+
+            raise LookupError("No current personal stats could be found")
+
+        previous_stats_data: typing.Optional[Stat] = self.stat(permitted_faction_id=permitted_faction_id)
+
+        previous_stats: typing.Optional[statstimate.PreviousStats] = None
+        if previous_stats_data is not None:
+            # If there were no personal stats, due to Torn's limitations in fetching historical data, we
+            # cannot fetch new personal stats data for this time point. The statstimate library then will
+            # only be able to use a snapshot model or retain the data from the previous stat DB entry.
+            previous_personal_stats: typing.Optional[PersonalStats] = self.personal_stats_at(
+                timestamp=previous_stats_data.time_added
+            )
+
+            if previous_personal_stats is not None:
+                previous_stats = statstimate.PreviousStats(
+                    stat_score=previous_stats_data.battlescore,
+                    personal_stats=previous_personal_stats.to_dict(),
+                    days_ago=(now - previous_stats_data.time_added).days,
+                )
+
+        return ESTIMATOR.estimate(
+            personal_stats=None if latest_personal_stats is None else latest_personal_stats.to_dict(),
+            previous_stats=previous_stats,
+        )

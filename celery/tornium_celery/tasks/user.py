@@ -53,7 +53,13 @@ MIN_USER_UPDATE = 600
     time_limit=10,
 )
 @with_db_connection
-def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, refresh_existing=True):
+def update_user(
+    self: celery.Task,
+    key: str,
+    tid: int = 0,
+    discordid: int = 0,
+    refresh_existing=True,
+):
     # TODO: Change default values of tid and discordid to None
     # TODO: Refactor discordid -> discord_id
 
@@ -81,7 +87,8 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     update_personal_stats = False
 
     if (
-        user is not None
+        not refresh_existing
+        and user is not None
         and user.last_refresh is not None
         and time.time() - timestamp(user.last_refresh) <= MIN_USER_UPDATE
     ):
@@ -96,13 +103,26 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
         personal_stats = user.personal_stats
 
     today = datetime.date.today()
-    if update_self and personal_stats is not None and personal_stats.timestamp != today:
+    if update_self:
+        # If we are updating the user with the user's API key, we can update the user's personal stats
+        # regardless of the user's current personal stats data as the data does update live throughout
+        # the day.
+
         update_personal_stats = True
     elif (
         not update_self
         and personal_stats is not None
         and personal_stats.timestamp != today - datetime.timedelta(days=1)
     ):
+        # When fetching the personal stats for other users, the Torn API will only return the data for
+        # the previous day. Therefore, we should only fetch the user's personal stats if there is no
+        # data in the database for the previous day for that user.
+
+        update_personal_stats = True
+    elif user is None or personal_stats is None:
+        # If the user is not in the database or the user's personal stats are not in the database, we
+        # would want to update their personal stats regardless.
+
         update_personal_stats = True
 
     result_sig: celery.canvas.Signature
@@ -126,6 +146,8 @@ def update_user(self: celery.Task, key: str, tid: int = 0, discordid: int = 0, r
     if self.request.id is None:
         # Run in same process
         api_result = result_sig()
+        print(api_result)
+        print(update_self)
 
         if update_self:
             result = update_user_self(api_result, key=key)

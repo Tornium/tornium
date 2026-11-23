@@ -54,7 +54,8 @@ defmodule Tornium.Workers.ServerRefreshScheduler do
       |> Enum.map(fn guild_id ->
         Tornium.Workers.ServerRefresh.new(%{guild_id: guild_id}, schedule_in: _seconds = index * 60)
       end)
-      |> Oban.insert_all()
+      |> Enum.each(&Oban.insert/1)
+      # |> Oban.insert_all()
     end)
 
     guild_ids

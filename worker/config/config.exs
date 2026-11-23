@@ -98,7 +98,7 @@ config :tornium, Oban,
       ]
     },
     {Oban.Plugins.Pruner, max_age: 60 * 60},
-    {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(1), interval: 30_000}
+    {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(10), interval: 30_000}
   ]
 
 config :tornium, Tornium.Web.Endpoint,

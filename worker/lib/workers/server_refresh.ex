@@ -59,4 +59,9 @@ defmodule Tornium.Workers.ServerRefresh do
 
     :ok
   end
+
+  @impl Oban.Worker
+  def timeout(%Oban.Job{} = _job) do
+    :timer.minutes(2)
+  end
 end

@@ -521,7 +521,7 @@ def stat_db_attacks_user(user_data):
     if (
         user.battlescore not in [None, 0]
         and user.battlescore_update is not None
-        and timestamp(user.battlescore_update) - time.time() <= 259200
+        and int(time.time()) - timestamp(user.battlescore_update) <= 259200
     ):  # Three days
         user_score = user.battlescore
     else:
@@ -558,10 +558,10 @@ def stat_db_attacks_user(user_data):
             21,
         ]:  # Checks if NPC fight (and you defeated NPC)
             continue
-        elif attack["modifiers"]["fair_fight"] in (
-            1,
-            3,
-        ):  # 3x FF can be greater than the defender battlescore indicated
+        elif attack["modifiers"]["fair_fight"] <= 1.05 or attack["modifiers"]["fair_fight"] == 3:
+            # 3x FF can be greater than the defender battlescore indicated. FF of
+            # [1, 1.05] can have incorrectly scaled battlescores calculated for the
+            # other person.
             continue
         elif user.last_attacks is not None and attack["timestamp_ended"] <= timestamp(user.last_attacks):
             continue

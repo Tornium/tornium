@@ -253,10 +253,10 @@ def stat_db_attacks(faction_data: dict, last_attacks: int):
             21,
         ]:  # Checks if NPC fight (and you defeated NPC)
             continue
-        elif attack["modifiers"]["fair_fight"] in (
-            1,
-            3,
-        ):  # 3x FF can be greater than the defender battlescore indicated
+        elif attack["modifiers"]["fair_fight"] <= 1.05 or attack["modifiers"]["fair_fight"] == 3:
+            # 3x FF can be greater than the defender battlescore indicated. FF of
+            # [1, 1.05] can have incorrectly scaled battlescores calculated for the
+            # other person.
             continue
         elif attack["timestamp_ended"] <= last_attacks + 1:
             continue

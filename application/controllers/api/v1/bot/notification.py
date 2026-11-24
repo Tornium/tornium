@@ -124,6 +124,14 @@ def get_server_notifications(guild_id: int, *args, **kwargs):
     limit = int(limit)
     offset = int(offset)
 
+    try:
+        guild: Server = Server.select(Server.admins).where(Server.sid == guild_id).get()
+    except DoesNotExist:
+        return make_exception_response("1001", key)
+
+    if kwargs["user"].tid not in guild.admins:
+        return make_exception_response("4020", key)
+
     server_notifications = Notification.select().where(Notification.server_id == guild_id)
     filtered_server_notifications = server_notifications.offset(offset).limit(limit)
 

@@ -15,6 +15,7 @@
 
 from .config import Config
 from .db_connection import db, init_db, with_db_connection
+from .estimator import ESTIMATOR
 from .redisconnection import rds
 
-__all__ = ["Config", "db", "init_db", "rds", "with_db_connection"]
+__all__ = ["Config", "db", "ESTIMATOR", "init_db", "rds", "with_db_connection"]

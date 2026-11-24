@@ -131,7 +131,8 @@
         "colmena": "colmena",
         "disko": "disko",
         "nixpkgs": "nixpkgs_2",
-        "sops-nix": "sops-nix"
+        "sops-nix": "sops-nix",
+        "statstimate": "statstimate"
       }
     },
     "sops-nix": {
@@ -167,6 +168,26 @@
         "owner": "NixOS",
         "ref": "nixos-25.05",
         "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "statstimate": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795474514,
+        "narHash": "sha256-WlhaIcES/aed2E7fhd17+Y6pJF3JPk/ZcSj1IaiVpKs=",
+        "owner": "Tornium",
+        "repo": "statstimate",
+        "rev": "b634846203a27baf5b208b5273e8225e92386711",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Tornium",
+        "repo": "statstimate",
         "type": "github"
       }
     }

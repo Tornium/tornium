@@ -15,13 +15,13 @@
 
 import random
 import time
-import typing
 
+import statstimate
+from peewee import DoesNotExist
 from tornium_commons.formatters import bs_to_range, commas, discord_escaper, find_list
 from tornium_commons.models import User
 from tornium_commons.skyutils import SKYNET_ERROR, SKYNET_GOOD
 
-from estimate import estimate_user
 from skynet.decorators import invoker_required
 
 
@@ -51,16 +51,17 @@ def estimate_command(interaction, *args, **kwargs):
             },
         }
 
-    mentioned_user: typing.Optional[User]
+    user_query = User.select()
     if user_mention is not None:
-        mentioned_user = User.select(User.tid, User.name).where(User.discord_id == user_mention["value"]).first()
-    elif user_tid is not None:
-        if user_tid["value"].isdigit():
-            mentioned_user = User.select(User.tid, User.name).where(User.tid == user_tid["value"]).first()
-        else:
-            mentioned_user = User.select(User.tid, User.name).where(User.name == user_tid["value"]).first()
+        user_query = user_query.where(User.discord_id == user_mention["value"])
+    elif user_tid is not None and user_tid["value"].isdigit():
+        user_query = user_query.where(User.tid == user_tid["value"])
+    elif user_tid is not None and not user_tid["value"].isdigit():
+        user_query = user_query.where(User.name == user_tid["value"])
 
-    if mentioned_user is None:
+    try:
+        mentioned_user: User = user_query.get()
+    except DoesNotExist:
         return {
             "type": 4,
             "data": {
@@ -76,7 +77,6 @@ def estimate_command(interaction, *args, **kwargs):
         }
 
     api_key = kwargs["invoker"].key if kwargs["invoker"] is not None else None
-
     if api_key in (None, ""):
         if len(kwargs["admin_keys"]) == 0:
             return {
@@ -93,30 +93,12 @@ def estimate_command(interaction, *args, **kwargs):
                 },
             }
 
-        if len(kwargs["admin_keys"]) == 1:
-            api_key = kwargs["admin_keys"][0]
-        else:
-            api_key = random.choice(kwargs["admin_keys"])
+        api_key = random.choice(kwargs["admin_keys"])
 
-    try:
-        stat_score, _ = estimate_user(mentioned_user.tid, api_key)
-    except ValueError:
-        return {
-            "type": 4,
-            "data": {
-                "embeds": [
-                    {
-                        "title": "Internal Error",
-                        "description": "Required data could not be found in the database. This is a known issue.",
-                        "color": SKYNET_ERROR,
-                    },
-                ],
-                "flags": 64,
-            },
-        }
-
-    stat_score = int(stat_score)
-    minimum_stats, maximum_stats = bs_to_range(stat_score)
+    stat_estimate: statstimate.EstimatedStats = mentioned_user.estimate(
+        permitted_faction_id=None if mentioned_user.faction is None else mentioned_user.faction_id, api_key=api_key
+    )
+    minimum_stats, maximum_stats = bs_to_range(stat_estimate.stat_score)
 
     return {
         "type": 4,
@@ -124,7 +106,7 @@ def estimate_command(interaction, *args, **kwargs):
             "embeds": [
                 {
                     "title": "User Stat Estimate",
-                    "description": f"{discord_escaper(mentioned_user.name)} [{mentioned_user.tid}] is estimated to have a stat score of {commas(stat_score)}.",
+                    "description": f"{discord_escaper(mentioned_user.name)} [{mentioned_user.tid}] is estimated to have a stat score of {commas(int(stat_estimate.stat_score))}.",
                     "fields": [
                         {
                             "name": "Minimum Total",
@@ -139,7 +121,7 @@ def estimate_command(interaction, *args, **kwargs):
                     ],
                     "color": SKYNET_GOOD,
                     "footer": {
-                        "text": f"Latency: {round(time.time() - start_time, 2)} seconds",
+                        "text": f"Latency: {round(time.time() - start_time, 2)} seconds | Method: {stat_estimate.method}",
                     },
                 }
             ],

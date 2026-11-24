@@ -20,7 +20,8 @@ dependencies = [
     "pydantic",
     "peewee >= 4.5.2",
     "redis",
-    "tornium-oc-graph ~= 0.2.0"
+    "tornium-oc-graph ~= 0.2.0",
+    "statstimate"
 ]
 description = "Reusable components for Tornium"
 keywords = ["tornium"]

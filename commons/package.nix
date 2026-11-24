@@ -20,6 +20,7 @@ python3Packages.buildPythonPackage {
     redis
     requests
     graphviz
+    statstimate
     tornium_oc_graph
   ];
 

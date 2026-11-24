@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from peewee import BigIntegerField, CompositeKey, DateField, DeferredForeignKey
+from playhouse.shortcuts import model_to_dict
 
 from .base_model import BaseModel
 
@@ -22,7 +23,6 @@ class PersonalStats(BaseModel):
     user = DeferredForeignKey("User", null=False)
     timestamp = DateField(null=False)
 
-    # Uses jsonb as size of values is not known beyond "int"
     useractivity = BigIntegerField(null=True)
     activestreak = BigIntegerField(null=True)
     bestactivestreak = BigIntegerField(null=True)
@@ -169,3 +169,8 @@ class PersonalStats(BaseModel):
 
     class Meta:
         primary_key = CompositeKey("user", "timestamp")
+
+    def to_dict(self) -> dict:
+        data = model_to_dict(self, recurse=False)
+
+        return {key: data[key] for key in data if key not in ("user", "user_id", "timestamp")}

@@ -615,11 +615,13 @@ Authorization: Bearer {{ access_token }}
 
 
 ### Get User Stats Estimate
-Get the stat estimate of a specific user through Tornium's stat estimation model.
+Get the stat estimate of a specific user through Tornium's [statstimate](https://github.com/Tornium/statstimate) model.
 
 **Scopes Required:** none
 
 If the user has an API key and the `torn_key:usage` scope is included, the target user's data may be updated if the target user's personal stats were last updated more than a one week previously.
+
+Depending on the data available to the statstimate model, to estimate the user's stats better, the model will choose one of these three methods: `snapshot` `keep previous` `change model`. For more information on how the statstimate library works, see its code/documentation.
 
 ```http
 GET /api/v1/user/estimate/<int:user_id> HTTP/1.1
@@ -629,7 +631,7 @@ Authorization: Bearer {{ access_token }}
     "stat_score": 1234,
     "min_bs": 380689,
     "max_bs": 553729,
-    "expiration": 1761708665
+    "method": "snapshot"
 }
 ```
 

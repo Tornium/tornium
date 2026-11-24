@@ -43,6 +43,30 @@
         ];
       };
 
+      xgboostOverlay = final: prev: {
+        xgboost =
+          let
+            # doCheck is a package argument; it also gates -DGOOGLE_TEST, so
+            # .override (not overrideAttrs) skips both building and running the gtest suite.
+            noTests = prev.xgboost.override { doCheck = false; };
+          in
+          if prev.lib.versionAtLeast prev.xgboost.version "3.2.0" then
+            noTests
+          else
+            noTests.overrideAttrs (old: rec {
+              version = "3.2.0";
+              src = prev.fetchFromGitHub {
+                owner = "dmlc";
+                repo = "xgboost";
+                tag = "v${version}";
+                fetchSubmodules = true;
+                hash = "sha256-wycVxsMVsPU5a6imml7MN/0Z55yL/AwEuKcEj7l6N94=";
+              };
+              # nixpkgs' patches are for 3.0.x and may not apply to 3.2.0
+              patches = [ ];
+            });
+      };
+
       forAllSystems = f: nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ] (
         system: f (import nixpkgs { inherit system; overlays = [ pgbackrestOverlay ]; })
       );
@@ -88,7 +112,7 @@
         meta = {
           nixpkgs = import nixpkgs {
             system = "x86_64-linux";
-            overlays = [ pgbackrestOverlay peeweeOverlay statstimate.overlays.default ];
+            overlays = [ pgbackrestOverlay peeweeOverlay xgboostOverlay statstimate.overlays.default ];
           };
         };
         defaults = {

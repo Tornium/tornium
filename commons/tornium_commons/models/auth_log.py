@@ -49,6 +49,9 @@ class AuthAction(enum.Enum):
     # User failed to create an authorization code
     # TODO: This needs to be added
     OAUTH_AUTHORIZATION_FAILURE = 52
+    # An authorization code that had already been exchanged for a token was presented again. All
+    # tokens issued from that code (and their refreshed descendants) are revoked.
+    OAUTH_AUTHORIZATION_CODE_REUSE = 53
 
     # An OAuth token was issued from an authorization code
     OAUTH_TOKEN_ISSUE = 61

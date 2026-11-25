@@ -66,7 +66,7 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
             token: OAuthToken = OAuthToken.select().where(OAuthToken.refresh_token == refresh_token).get()
         except DoesNotExist:
             log(
-                user_id=self.request.user.tid if self.request.user is not None else None,
+                user_id=None,
                 action=AuthAction.OAUTH_TOKEN_REFRESH_INVALID,
                 request=self.request,
             )
@@ -91,7 +91,7 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
             # fresh authorization grant.
 
             log(
-                user_id=self.request.user.tid if self.request.user is not None else None,
+                user_id=token.user_id,
                 action=AuthAction.OAUTH_TOKEN_REFRESH_REUSE,
                 login_key=refresh_token,
                 request=self.request,
@@ -105,7 +105,7 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
             # This refresh token has expired (or has already been used, but that has already been
             # hndled above), so we should log it ane return None.
             log(
-                user_id=self.request.user.tid if self.request.user is not None else None,
+                user_id=token.user_id,
                 action=AuthAction.OAUTH_TOKEN_REFRESH_INVALID,
                 request=self.request,
             )

@@ -121,9 +121,14 @@ class OAuthToken(BaseModel):
         return self.refresh_token_revoked_at is None and not self.is_refresh_token_expired()
 
     def revoke(self) -> None:
+        # Only set timestamps that are not already set so that the original revocation time is
+        # preserved for auditing.
         now = datetime.datetime.utcnow()
-        OAuthToken.update(access_token_revoked_at=now, refresh_token_revoked_at=now).where(
-            OAuthToken.access_token == self.access_token
+        OAuthToken.update(access_token_revoked_at=now).where(
+            (OAuthToken.access_token == self.access_token) & OAuthToken.access_token_revoked_at.is_null(True)
+        ).execute()
+        OAuthToken.update(refresh_token_revoked_at=now).where(
+            (OAuthToken.access_token == self.access_token) & OAuthToken.refresh_token_revoked_at.is_null(True)
         ).execute()
 
         AuthLog.insert(
@@ -136,9 +141,14 @@ class OAuthToken(BaseModel):
         ).execute()
 
     def revoke_token_family(self) -> None:
+        # Only set timestamps that are not already set so that the original revocation time is
+        # preserved for auditing.
         now = datetime.datetime.utcnow()
-        OAuthToken.update(access_token_revoked_at=now, refresh_token_revoked_at=now).where(
-            OAuthToken.family_id == self.family_id
+        OAuthToken.update(access_token_revoked_at=now).where(
+            (OAuthToken.family_id == self.family_id) & OAuthToken.access_token_revoked_at.is_null(True)
+        ).execute()
+        OAuthToken.update(refresh_token_revoked_at=now).where(
+            (OAuthToken.family_id == self.family_id) & OAuthToken.refresh_token_revoked_at.is_null(True)
         ).execute()
 
     def alert_token_family_revocation(self) -> None:

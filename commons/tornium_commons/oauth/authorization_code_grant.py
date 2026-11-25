@@ -134,7 +134,15 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
 
         authorization_code.used_by: typing.Optional[OAuthToken]
         if authorization_code.used_by is not None:
-            authorization_code.used_by.revoke()
+            # RFC 6749 4.1.2: the authorization server SHOULD revoke all tokens previously issued
+            # based on that authorization code.
+            #
+            # Revoking the token family covers the token issued from this code and any tokens
+            # refreshed from it.
+
+            authorization_code.used_by.revoke_token_family()
+            log(user_id=user.tid, action=AuthAction.OAUTH_AUTHORIZATION_CODE_REUSE, request=self.request)
+
             raise InvalidGrantError("This authorization_code has already been used.")
 
         scope = authorization_code.get_scope()

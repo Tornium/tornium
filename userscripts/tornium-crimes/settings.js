@@ -15,7 +15,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 import { APP_ID, BASE_URL, GM_PREFIX, VERSION } from "./constants.js";
 import { log } from "./logging.js";
-import { accessToken, authorizationURL, authStatus, isAuthExpired } from "./oauth.js";
+import { accessToken, authorizationURL, authStatus, clearAuthTokens, isAuthExpired } from "./oauth.js";
 
 function arrayToString(array) {
     return btoa(String.fromCharCode.apply(null, array)).replaceAll("=", "").replaceAll("+", "-").replaceAll("/", "_");
@@ -185,7 +185,6 @@ margin: 8px 6px 0 0;
 }
 
 function deleteOAuthToken() {
-    GM_deleteValue(`${GM_PREFIX}:access-token`);
-    GM_deleteValue(`${GM_PREFIX}:access-token-expires`);
+    clearAuthTokens();
     window.location.reload();
 }

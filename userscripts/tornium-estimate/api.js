@@ -16,7 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 import { CACHE_EXPIRATION, getCache, putCache } from "./cache.js";
 import { BASE_URL } from "./constants.js";
 import { log } from "./logging.js";
-import { accessToken } from "./oauth.js";
+import { accessToken, clearAuthTokens } from "./oauth.js";
 
 export function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXPIRATION, limiter: null }) {
     return getCache(endpoint).then((cachedResponse) => {
@@ -51,8 +51,7 @@ export function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXP
 
                         if (responseJSON.error !== undefined) {
                             // TODO: Replace check with WWW-Authenticate header
-                            GM_deleteValue("tornium-estimate:access-token");
-                            GM_deleteValue("tornium-estimate:access-token-expires");
+                            clearAuthTokens();
 
                             // TODO: Determine how this could use .reject but still have the response processed normally
                             resolve(responseJSON);

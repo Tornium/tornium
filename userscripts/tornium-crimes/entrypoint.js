@@ -18,7 +18,7 @@ import { injectMemberSelector, injectStyles, startCrimeTabListener, updateMember
 import { APP_ID, CACHE_ENABLED, DEBUG, GM_PREFIX, VERSION } from "./constants.js";
 import { waitForElement } from "./dom.js";
 import { log } from "./logging.js";
-import { resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
+import { hasRefreshToken, refreshToken, resolveToken, isAuthExpired, redirectURI } from "./oauth.js";
 import { startScenarioExporterListener } from "./scenario-exporter.js";
 import { createSettingsButton, injectSettingsPage, injectSettingsStyles } from "./settings.js";
 
@@ -59,6 +59,13 @@ function executeCrimes() {
     // });
 }
 
+if (isAuthExpired() && hasRefreshToken() && window.location.host == "www.torn.com") {
+    // If the access token has expired and there is a refresh token, we should try to
+    // refresh the access token via refresh token grant before proceeding with the rest
+    // of the entrypoint.
+    await refreshToken();
+}
+
 if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     const errorContainer = document.getElementsByClassName("main-wrap")[0];
     const errorContainerTitle = document.getElementById("skip-to-content");
@@ -80,10 +87,19 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     const callbackState = callbackParams.get("state");
     const callbackCode = callbackParams.get("code");
 
-    const localState = GM_getValue(`${GM_PREFIX}:state`);
-    const localCodeVerifier = GM_getValue(`${GM_PREFIX}:codeVerifier`);
+    const localState = GM_getValue(`${GM_PREFIX}:state`, null);
+    const localCodeVerifier = GM_getValue(`${GM_PREFIX}:codeVerifier`, null);
 
-    if (callbackState === localState) {
+    // The state and code verifier are single-use. Delete them before exchanging the code so that
+    // revisiting this page (back button, reload, tab restore) can't send the same authorization
+    // code again, which would cause Tornium to revoke the tokens issued from it.
+    GM_deleteValue(`${GM_PREFIX}:state`);
+    GM_deleteValue(`${GM_PREFIX}:codeVerifier`);
+
+    if (localState == null || localCodeVerifier == null) {
+        log("OAuth callback revisited after the authorization code was already used. Skipping...");
+        window.location.replace("https://www.torn.com");
+    } else if (callbackState === localState) {
         resolveToken(callbackCode, callbackState, localCodeVerifier);
         log("Succesfully authenticated the OAuth token");
         // NOTE: The redirect will occur inside the resolveToken callback

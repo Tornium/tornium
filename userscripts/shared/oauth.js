@@ -58,6 +58,23 @@ export function hasRefreshToken() {
     return accessRefreshToken != null;
 }
 
+export function clearAuthTokens() {
+    GM_deleteValue(`${GM_PREFIX}:access-token`);
+    GM_deleteValue(`${GM_PREFIX}:access-token-expires`);
+    GM_deleteValue(`${GM_PREFIX}:refresh-token`);
+    localStorage.removeItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY);
+
+    accessToken = null;
+    accessTokenExpiration = 0;
+    accessRefreshToken = null;
+
+    tokenBroadcastChannel.postMessage({
+        accessToken: null,
+        accessTokenExpiration: 0,
+        accessRefreshToken: null,
+    });
+}
+
 export async function refreshToken(forceRefresh = false) {
     const acquiredLock = await navigator.locks.request(
         `${GM_PREFIX}:refresh-token-lock`,
@@ -131,8 +148,8 @@ async function doRefreshToken() {
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             data: tokenData.toString(),
             responseType: "json",
-            onload: (response) => {
-                resolveTokenCallback(response);
+            onload: async (response) => {
+                await resolveTokenCallback(response);
                 log("Access token successfully refreshed");
                 // TODO: Implement successful message
 
@@ -185,21 +202,25 @@ export function resolveToken(code, state, codeVerifier) {
         },
         data: tokenData.toString(),
         responseType: "json",
-        onload: (response) => {
-            resolveTokenCallback(response);
+        onload: async (response) => {
+            // Wait for the tokens and the refresh token hash to be stored before navigating away,
+            // otherwise the hash may never be written and later refreshes will be skipped.
+            await resolveTokenCallback(response);
             // To avoid introducing an open redirect vulnerability, we are just going to
             // redirect to Torn's home page.
             // See https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html
-            window.location.href = "https://www.torn.com";
+            // replace() is used so the callback URL (with its single-use code) is not kept in the
+            // browser history.
+            window.location.replace("https://www.torn.com");
         },
     });
 }
 
-function resolveTokenCallback(response) {
+async function resolveTokenCallback(response) {
     // TODO: Implement error handling in this
     let responseJSON = response.response;
 
-    if (response.responseType === undefined) {
+    if (response.responseType === undefined || responseJSON == null || typeof responseJSON !== "object") {
         try {
             responseJSON = JSON.parse(response.responseText);
             response.responseType = "json";
@@ -247,7 +268,7 @@ function resolveTokenCallback(response) {
         localStorage.removeItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY);
     } else {
         GM_setValue(`${GM_PREFIX}:refresh-token`, accessRefreshToken);
-        updateRefreshTokenHash();
+        await updateRefreshTokenHash();
     }
 
     tokenBroadcastChannel.postMessage({
@@ -279,7 +300,11 @@ async function updateRefreshTokenHash() {
     }
 
     const hashedRefreshToken = await getRefreshTokenHash();
-    localStorage.setItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY, hashedRefreshToken);
+    if (hashedRefreshToken == null) {
+        localStorage.removeItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY);
+    } else {
+        localStorage.setItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY, hashedRefreshToken);
+    }
 }
 
 async function hasValidRefreshTokenHash() {

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tornium Estimation
 // @namespace    https://tornium.com
-// @version      0.5.13
+// @version      0.5.14
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/profiles.php*
@@ -44,7 +44,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 var DEBUG = false;
 var BASE_URL = "https://tornium.com";
 var ENABLE_LOGGING = true;
-var VERSION = "0.5.13";
+var VERSION = "0.5.14";
 var APP_ID = "6be7696c40837f83e5cab139e02e287408c186939c10b025";
 var APP_SCOPE = "torn_key:usage";
 var CACHE_ENABLED = "caches" in window;
@@ -151,6 +151,20 @@ function hasRefreshToken() {
   accessRefreshToken = GM_getValue(`${GM_PREFIX}:refresh-token`, null);
   return accessRefreshToken != null;
 }
+function clearAuthTokens() {
+  GM_deleteValue(`${GM_PREFIX}:access-token`);
+  GM_deleteValue(`${GM_PREFIX}:access-token-expires`);
+  GM_deleteValue(`${GM_PREFIX}:refresh-token`);
+  localStorage.removeItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY);
+  accessToken = null;
+  accessTokenExpiration = 0;
+  accessRefreshToken = null;
+  tokenBroadcastChannel.postMessage({
+    accessToken: null,
+    accessTokenExpiration: 0,
+    accessRefreshToken: null
+  });
+}
 async function refreshToken(forceRefresh = false) {
   const acquiredLock = await navigator.locks.request(
     `${GM_PREFIX}:refresh-token-lock`,
@@ -201,8 +215,8 @@ async function doRefreshToken() {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       data: tokenData.toString(),
       responseType: "json",
-      onload: (response) => {
-        resolveTokenCallback(response);
+      onload: async (response) => {
+        await resolveTokenCallback(response);
         log("Access token successfully refreshed");
         resolve(response);
       },
@@ -248,15 +262,15 @@ function resolveToken(code, state, codeVerifier) {
     },
     data: tokenData.toString(),
     responseType: "json",
-    onload: (response) => {
-      resolveTokenCallback(response);
-      window.location.href = "https://www.torn.com";
+    onload: async (response) => {
+      await resolveTokenCallback(response);
+      window.location.replace("https://www.torn.com");
     }
   });
 }
-function resolveTokenCallback(response) {
+async function resolveTokenCallback(response) {
   let responseJSON = response.response;
-  if (response.responseType === void 0) {
+  if (response.responseType === void 0 || responseJSON == null || typeof responseJSON !== "object") {
     try {
       responseJSON = JSON.parse(response.responseText);
       response.responseType = "json";
@@ -293,7 +307,7 @@ function resolveTokenCallback(response) {
     localStorage.removeItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY);
   } else {
     GM_setValue(`${GM_PREFIX}:refresh-token`, accessRefreshToken);
-    updateRefreshTokenHash();
+    await updateRefreshTokenHash();
   }
   tokenBroadcastChannel.postMessage({
     accessToken,
@@ -317,7 +331,11 @@ async function updateRefreshTokenHash() {
     return;
   }
   const hashedRefreshToken = await getRefreshTokenHash();
-  localStorage.setItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY, hashedRefreshToken);
+  if (hashedRefreshToken == null) {
+    localStorage.removeItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY);
+  } else {
+    localStorage.setItem(REFRESH_TOKEN_LOCAL_STORAGE_KEY, hashedRefreshToken);
+  }
 }
 async function hasValidRefreshTokenHash() {
   accessRefreshToken = GM_getValue(`${GM_PREFIX}:refresh-token`, null);
@@ -360,8 +378,7 @@ function torniumFetch(endpoint, options = { method: "GET", ttl: CACHE_EXPIRATION
             }
           }
           if (responseJSON.error !== void 0) {
-            GM_deleteValue("tornium-estimate:access-token");
-            GM_deleteValue("tornium-estimate:access-token-expires");
+            clearAuthTokens();
             resolve(responseJSON);
             return;
           }
@@ -1041,8 +1058,7 @@ margin: 8px 6px 0 0;
 `);
 }
 function deleteOAuthToken() {
-  GM_deleteValue("tornium-estimate:access-token");
-  GM_deleteValue("tornium-estimate:access-token-expires");
+  clearAuthTokens();
   window.location.reload();
 }
 
@@ -1070,9 +1086,14 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
   const callbackParams = new URLSearchParams(window.location.search);
   const callbackState = callbackParams.get("state");
   const callbackCode = callbackParams.get("code");
-  const localState = GM_getValue("tornium-estimate:state");
-  const localCodeVerifier = GM_getValue("tornium-estimate:codeVerifier");
-  if (callbackState === localState) {
+  const localState = GM_getValue("tornium-estimate:state", null);
+  const localCodeVerifier = GM_getValue("tornium-estimate:codeVerifier", null);
+  GM_deleteValue("tornium-estimate:state");
+  GM_deleteValue("tornium-estimate:codeVerifier");
+  if (localState == null || localCodeVerifier == null) {
+    log("OAuth callback revisited after the authorization code was already used. Skipping...");
+    window.location.replace("https://www.torn.com");
+  } else if (callbackState === localState) {
     resolveToken(callbackCode, callbackState, localCodeVerifier);
     log("Succesfully authenticated the OAuth token");
   } else {

@@ -68,10 +68,19 @@ if (window.location.pathname.startsWith(`/tornium/${APP_ID}/settings`)) {
     const callbackState = callbackParams.get("state");
     const callbackCode = callbackParams.get("code");
 
-    const localState = GM_getValue("tornium-estimate:state");
-    const localCodeVerifier = GM_getValue("tornium-estimate:codeVerifier");
+    const localState = GM_getValue("tornium-estimate:state", null);
+    const localCodeVerifier = GM_getValue("tornium-estimate:codeVerifier", null);
 
-    if (callbackState === localState) {
+    // The state and code verifier are single-use. Delete them before exchanging the code so that
+    // revisiting this page (back button, reload, tab restore) can't send the same authorization
+    // code again, which would cause Tornium to revoke the tokens issued from it.
+    GM_deleteValue("tornium-estimate:state");
+    GM_deleteValue("tornium-estimate:codeVerifier");
+
+    if (localState == null || localCodeVerifier == null) {
+        log("OAuth callback revisited after the authorization code was already used. Skipping...");
+        window.location.replace("https://www.torn.com");
+    } else if (callbackState === localState) {
         resolveToken(callbackCode, callbackState, localCodeVerifier);
         log("Succesfully authenticated the OAuth token");
         // NOTE: The redirect will occur inside the resolveToken callback

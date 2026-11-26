@@ -5,8 +5,6 @@
 // @copyright    GPLv3
 // @author       tiksan [2383326]
 // @match        https://www.torn.com/factions.php*
-// @match        https://tornium.com/oauth/97884c32bb18b41224f482390d9f712268e1240082cdc6b9/callback*
-// @match        http://127.0.0.1:5000/oauth/97884c32bb18b41224f482390d9f712268e1240082cdc6b9/callback*
 // @match        https://www.torn.com/tornium/97884c32bb18b41224f482390d9f712268e1240082cdc6b9/oauth/callback*
 // @match        https://www.torn.com/tornium/97884c32bb18b41224f482390d9f712268e1240082cdc6b9/settings
 // @grant        GM_xmlhttpRequest

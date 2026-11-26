@@ -16,7 +16,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 import { PAGE_OPTIONS, Config } from "./config.js";
 import { APP_ID, BASE_URL, VERSION } from "./constants.js";
 import { log } from "./logging.js";
-import { accessToken, authorizationURL, authStatus, hasRefreshToken, isAuthExpired, refreshToken } from "./oauth.js";
+import {
+    accessToken,
+    authorizationURL,
+    authStatus,
+    clearAuthTokens,
+    hasRefreshToken,
+    isAuthExpired,
+    refreshToken,
+} from "./oauth.js";
 
 function arrayToString(array) {
     return btoa(String.fromCharCode.apply(null, array)).replaceAll("=", "").replaceAll("+", "-").replaceAll("/", "_");
@@ -102,7 +110,9 @@ export function injectSettingsPage(container) {
             oauthConnectButton.setAttribute("href", "#");
             oauthConnectButton.addEventListener("click", (event) => {
                 event.preventDefault();
-                refreshToken(true).then(() => { window.location.reload(); });
+                refreshToken(true).then(() => {
+                    window.location.reload();
+                });
             });
         }
 
@@ -278,7 +288,6 @@ margin: 8px 6px 0 0;
 }
 
 function deleteOAuthToken() {
-    GM_deleteValue("tornium-estimate:access-token");
-    GM_deleteValue("tornium-estimate:access-token-expires");
+    clearAuthTokens();
     window.location.reload();
 }

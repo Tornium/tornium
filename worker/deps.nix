@@ -347,7 +347,7 @@ let
 
       db_connection =
         let
-          version = "2.10.2";
+          version = "2.10.3";
           drv = buildMix {
             inherit version;
             name = "db_connection";
@@ -356,7 +356,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "db_connection";
-              sha256 = "510b14482330f1af6490a2fa0efd8d4f1435d1529b165647df22ac0f2df0fa93";
+              sha256 = "ff441940bfd9ef5cced632e0e36d4ac823abeb9cae2767203fb9b4ccd1bd83cb";
             };
 
             beamDeps = [
@@ -455,7 +455,7 @@ let
 
       finch =
         let
-          version = "0.24.0";
+          version = "0.25.0";
           drv = buildMix {
             inherit version;
             name = "finch";
@@ -464,7 +464,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "finch";
-              sha256 = "33ba40069c3587c2f99f9125b766e19dad87d6d54be3c6961db2304df04cef00";
+              sha256 = "9fd9a2c47a9033f4d70fad6e7d656948c08bc6652699de20e609a5917c0bb0a5";
             };
 
             beamDeps = [
@@ -809,7 +809,7 @@ let
 
       nimble_pool =
         let
-          version = "1.1.0";
+          version = "1.2.0";
           drv = buildMix {
             inherit version;
             name = "nimble_pool";
@@ -818,7 +818,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "nimble_pool";
-              sha256 = "af2e4e6b34197db81f7aad230c1118eac993acc0dae6bc83bac0126d4ae0813a";
+              sha256 = "bc442e72578c21842589fa8e5886b6175fa5245fdbbad35fc08db277ac2b2c0d";
             };
           };
         in
@@ -1146,7 +1146,7 @@ let
 
       postgrex =
         let
-          version = "0.22.4";
+          version = "0.23.0";
           drv = buildMix {
             inherit version;
             name = "postgrex";
@@ -1155,7 +1155,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "postgrex";
-              sha256 = "4aae45a2d60e35b04eea2602440be152fae332901f1fc7a60fc7cb7f0f9a9c5a";
+              sha256 = "f001ab3fd56f5ef2b8b3cd4a512005614fcaeccca068ddb29e57d338a7f104ec";
             };
 
             beamDeps = [
